@@ -43,26 +43,6 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Nova Consulta de Patente</h2>
         <p className="text-gray-600">Digite o nome do produto ou substância para verificar o status da patente</p>
-        
-        {tokenUsage && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-blue-700">Tokens disponíveis:</span>
-              <span className="font-semibold text-blue-800">{remainingTokens} de {tokenUsage.totalTokens}</span>
-            </div>
-            <div className="mt-2 h-2 bg-blue-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                style={{ width: `${(remainingTokens / tokenUsage.totalTokens) * 100}%` }}
-              />
-            </div>
-            {remainingTokens < 10 && (
-              <div className="mt-2 text-sm text-orange-600">
-                Tokens insuficientes para consulta. <Link to="/plans" className="text-blue-600 hover:underline">Adquirir mais tokens</Link>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       <div className="p-6">
@@ -96,6 +76,11 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
               )}
             </button>
           </div>
+          {remainingTokens < 10 && (
+            <div className="mt-2 text-sm text-orange-600">
+              Tokens insuficientes para consulta. <Link to="/plans" className="text-blue-600 hover:underline">Adquirir mais tokens</Link>
+            </div>
+          )}
         </form>
 
         {error && (

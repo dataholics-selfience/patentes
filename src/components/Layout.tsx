@@ -5,6 +5,7 @@ import { PatentConsultationType, PatentResultType, TokenUsageType } from '../typ
 import PatentConsultation from './PatentConsultation';
 import PatentHistory from './PatentHistory';
 import UserProfile from './UserProfile';
+import TokenUsageChart from './TokenUsageChart';
 import { Menu, X, FlaskConical, History, CreditCard, LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
@@ -292,6 +293,14 @@ const Layout = () => {
               </div>
             </div>
             <div className="p-4 space-y-4">
+              {/* Token Usage in Sidebar */}
+              {tokenUsage && (
+                <TokenUsageChart
+                  totalTokens={tokenUsage.totalTokens}
+                  usedTokens={tokenUsage.usedTokens}
+                />
+              )}
+              
               <Link
                 to="/plans"
                 className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"

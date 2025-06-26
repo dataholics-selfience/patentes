@@ -34,7 +34,7 @@ const Plans = () => {
       icon: Pill,
       description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
       tokens: 1000,
-      price: 600,
+      price: 5000,
       highlight: true,
       stripeLink: 'https://buy.stripe.com/9B6cN5dT9gDme7tdzdfYY0o'
     },
@@ -44,7 +44,7 @@ const Plans = () => {
       icon: Dna,
       description: 'Plano para especialistas em propriedade intelectual farmacêutica',
       tokens: 3000,
-      price: 1800,
+      price: 13000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/eVqeVd4iz0Eo0gDan1fYY0p'
     },
@@ -54,7 +54,7 @@ const Plans = () => {
       icon: Sparkles,
       description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
       tokens: 11000,
-      price: 6000,
+      price: 25000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/9B68wP5mD5YI5AXcv9fYY0q'
     }

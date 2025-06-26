@@ -102,7 +102,7 @@ const PatentHistory = ({ consultations, onClose }: PatentHistoryProps) => {
             <p className="text-gray-600">Nenhuma consulta realizada ainda</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 max-h-96 overflow-y-auto">
             {consultations.map((consultation) => (
               <button
                 key={consultation.id}
