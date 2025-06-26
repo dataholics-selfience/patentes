@@ -23,7 +23,7 @@ const Plans = () => {
       name: 'Pesquisador',
       icon: Microscope,
       description: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
-      tokens: 300,
+      tokens: 100,
       price: 0,
       highlight: false,
       stripeLink: ''
