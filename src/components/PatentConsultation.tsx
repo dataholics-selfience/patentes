@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, Shield } from 'lucide-react';
 import { PatentResultType, TokenUsageType } from '../types';
 import { Link } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PatentConsultationProps {
-  onConsultation: (produto: string) => Promise<PatentResultType>;
+  onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
   tokenUsage: TokenUsageType | null;
 }
 
@@ -23,7 +24,10 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     setResult(null);
 
     try {
-      const resultado = await onConsultation(produto.trim());
+      // Generate a unique sessionId for this consultation
+      const sessionId = uuidv4().replace(/-/g, '');
+      
+      const resultado = await onConsultation(produto.trim(), sessionId);
       setResult(resultado);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao consultar patente');

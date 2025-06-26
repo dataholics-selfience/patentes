@@ -60,7 +60,7 @@ const Layout = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleConsultation = async (produto: string): Promise<PatentResultType> => {
+  const handleConsultation = async (produto: string, sessionId: string): Promise<PatentResultType> => {
     if (!auth.currentUser || !tokenUsage) {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
     }
@@ -73,14 +73,15 @@ const Layout = () => {
     }
 
     try {
-      // Call webhook
-      const response = await fetch('https://dataholics-selfience.webhook.office.com/webhookb2/Prod-tokens-firebase-gdpr', {
+      // Call webhook with sessionId
+      const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           produto: produto,
+          sessionId: sessionId,
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
@@ -90,7 +91,38 @@ const Layout = () => {
         throw new Error('Erro ao consultar patente');
       }
 
-      const resultado = await response.json() as PatentResultType;
+      const rawResponse = await response.json();
+      
+      // Parse the nested JSON structure
+      let resultado: PatentResultType;
+      
+      if (Array.isArray(rawResponse) && rawResponse.length > 0 && rawResponse[0].output) {
+        // Extract the JSON string from the output field
+        let jsonString = rawResponse[0].output;
+        
+        // Remove markdown code block fences if present
+        jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        
+        // Parse the actual patent data
+        const parsedData = JSON.parse(jsonString);
+        
+        // Map the fields to match PatentResultType interface
+        resultado = {
+          substancia: parsedData.nome_substancia || '',
+          patente_vigente: parsedData.patente_vigente || false,
+          data_expiracao_patente_principal: parsedData.data_expiracao_patente_principal || '',
+          paises_registrados: Array.isArray(parsedData.paises_registrados) ? parsedData.paises_registrados : [],
+          exploracao_comercial: parsedData.exploracao_comercial || false,
+          riscos_regulatorios_eticos: Array.isArray(parsedData.riscos_regulatorios_eticos) 
+            ? parsedData.riscos_regulatorios_eticos 
+            : [parsedData.riscos_regulatorios_eticos || ''],
+          data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente || parsedData.data_expiracao_patente_principal || '',
+          alternativas_compostos: Array.isArray(parsedData.alternativas_compostos) ? parsedData.alternativas_compostos : []
+        };
+      } else {
+        // Fallback: assume the response is already in the correct format
+        resultado = rawResponse as PatentResultType;
+      }
 
       // Update token usage
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
@@ -107,6 +139,7 @@ const Layout = () => {
         userId: auth.currentUser.uid,
         userEmail: auth.currentUser.email,
         produto,
+        sessionId,
         resultado,
         consultedAt: new Date().toISOString()
       });
