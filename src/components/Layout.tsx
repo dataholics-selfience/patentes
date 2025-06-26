@@ -60,6 +60,84 @@ const Layout = () => {
     return () => unsubscribe();
   }, []);
 
+  const parsePatentResponse = (rawResponse: any): PatentResultType => {
+    console.log('Raw response received:', rawResponse);
+    
+    let jsonString = '';
+    
+    // Handle nested array structure
+    if (Array.isArray(rawResponse) && rawResponse.length > 0) {
+      if (rawResponse[0].output) {
+        // Check if it's a nested structure
+        if (typeof rawResponse[0].output === 'string') {
+          try {
+            const parsed = JSON.parse(rawResponse[0].output);
+            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
+              jsonString = parsed[0].output;
+            } else {
+              jsonString = rawResponse[0].output;
+            }
+          } catch {
+            jsonString = rawResponse[0].output;
+          }
+        } else {
+          jsonString = JSON.stringify(rawResponse[0].output);
+        }
+      }
+    }
+    
+    // Remove markdown code block fences
+    jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    console.log('Cleaned JSON string:', jsonString);
+    
+    // Parse the actual patent data
+    const parsedData = JSON.parse(jsonString);
+    console.log('Parsed data:', parsedData);
+    
+    // Map the fields to match PatentResultType interface
+    const resultado: PatentResultType = {
+      substancia: parsedData.substancia || 'Produto consultado',
+      patente_vigente: parsedData.patente_vigente || false,
+      data_expiracao_patente_principal: parsedData.data_expiracao_patente_principal || 
+                                       parsedData.data_estimativa_expiracao || 
+                                       parsedData.data_vencimento_patente || 
+                                       'Não informado',
+      paises_registrados: Array.isArray(parsedData.paises_registrados) 
+        ? parsedData.paises_registrados 
+        : Array.isArray(parsedData.paises_registro)
+          ? parsedData.paises_registro
+          : (typeof parsedData.paises_registro === 'string' 
+              ? [parsedData.paises_registro] 
+              : []),
+      exploracao_comercial: parsedData.exploracao_comercial || 
+                           parsedData.explorada_comercialmente || 
+                           false,
+      riscos_regulatorios_eticos: Array.isArray(parsedData.riscos_regulatorios_eticos) 
+        ? parsedData.riscos_regulatorios_eticos 
+        : Array.isArray(parsedData.riscos_regulatorios_ou_eticos)
+          ? parsedData.riscos_regulatorios_ou_eticos
+          : (typeof parsedData.riscos_regulatorios_ou_eticos === 'string'
+              ? [parsedData.riscos_regulatorios_ou_eticos]
+              : ['Não informado']),
+      data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente_novo_produto || 
+                                          parsedData.data_vencimento_para_novo_produto || 
+                                          parsedData.data_vencimento_patente || 
+                                          null,
+      alternativas_compostos: Array.isArray(parsedData.alternativas_compostos) 
+        ? parsedData.alternativas_compostos.map((alt: any) => 
+            typeof alt === 'string' ? alt : (alt.nome || alt.descricao || alt)
+          )
+        : Array.isArray(parsedData.alternativas_de_compostos_analogos)
+          ? parsedData.alternativas_de_compostos_analogos.map((alt: any) => 
+              typeof alt === 'string' ? alt : (alt.nome || alt.descricao || alt)
+            )
+          : []
+    };
+    
+    return resultado;
+  };
+
   const handleConsultation = async (produto: string, sessionId: string): Promise<PatentResultType> => {
     if (!auth.currentUser || !tokenUsage) {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
@@ -94,50 +172,12 @@ const Layout = () => {
       const rawResponse = await response.json();
       console.log('Raw response:', rawResponse);
       
-      // Parse the nested JSON structure
-      let resultado: PatentResultType;
+      // Parse the response using the improved parser
+      const resultado = parsePatentResponse(rawResponse);
       
-      if (Array.isArray(rawResponse) && rawResponse.length > 0 && rawResponse[0].output) {
-        // Extract the JSON string from the output field
-        let jsonString = rawResponse[0].output;
-        
-        // Remove markdown code block fences if present
-        jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        console.log('Cleaned JSON string:', jsonString);
-        
-        try {
-          // Parse the actual patent data
-          const parsedData = JSON.parse(jsonString);
-          console.log('Parsed data:', parsedData);
-          
-          // Map the fields to match PatentResultType interface
-          resultado = {
-            substancia: produto, // Use the input product name
-            patente_vigente: parsedData.patente_vigente || false,
-            data_expiracao_patente_principal: parsedData.data_estimativa_expiracao || parsedData.data_vencimento_patente || '',
-            paises_registrados: Array.isArray(parsedData.paises_registrada) 
-              ? parsedData.paises_registrada 
-              : (parsedData.paises_registrados || []),
-            exploracao_comercial: parsedData.explorada_comercialmente || parsedData.exploracao_comercial || false,
-            riscos_regulatorios_eticos: Array.isArray(parsedData.riscos_regulatorios_ou_ethicos) 
-              ? parsedData.riscos_regulatorios_ou_ethicos 
-              : [parsedData.riscos_regulatorios_ou_ethicos || 'Não informado'],
-            data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente || parsedData.data_estimativa_expiracao || null,
-            alternativas_compostos: Array.isArray(parsedData.alternativas_compostos) 
-              ? parsedData.alternativas_compostos.map((alt: any) => 
-                  typeof alt === 'string' ? alt : (alt.nome || alt.descricao || alt)
-                )
-              : []
-          };
-        } catch (parseError) {
-          console.error('Error parsing JSON:', parseError);
-          console.error('JSON string that failed to parse:', jsonString);
-          throw new Error('Erro ao processar resposta da consulta de patente');
-        }
-      } else {
-        console.error('Unexpected response format:', rawResponse);
-        throw new Error('Formato de resposta inesperado');
+      // Set the product name from input if not present in response
+      if (!resultado.substancia || resultado.substancia === 'Produto consultado') {
+        resultado.substancia = produto;
       }
 
       console.log('Final resultado:', resultado);
