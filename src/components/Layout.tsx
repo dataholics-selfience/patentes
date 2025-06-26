@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { PatentConsultationType, PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
@@ -210,6 +210,10 @@ const Layout = () => {
     }
   };
 
+  const handleConsultationDeleted = (deletedId: string) => {
+    setConsultations(prev => prev.filter(consultation => consultation.id !== deletedId));
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -257,7 +261,7 @@ const Layout = () => {
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
             >
               <History size={16} />
-              Histórico
+              Histórico ({consultations.length})
             </button>
             <UserProfile />
             <button
@@ -317,7 +321,7 @@ const Layout = () => {
                 className="flex items-center gap-2 w-full px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
               >
                 <History size={16} />
-                Histórico
+                Histórico ({consultations.length})
               </button>
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
@@ -351,6 +355,7 @@ const Layout = () => {
               <PatentHistory 
                 consultations={consultations}
                 onClose={() => setShowHistory(false)}
+                onConsultationDeleted={handleConsultationDeleted}
               />
             </div>
           )}
