@@ -47,6 +47,7 @@ export interface PatentResultType {
   exploracao_comercial: boolean;
   riscos_regulatorios_eticos: string[];
   data_vencimento_patente_novo_produto: string | null;
+  alternativas_compostos?: string[];
 }
 
 export interface PlanType {
