@@ -65,13 +65,13 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
   const formattedRenewalDate = getFormattedRenewalDate();
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4">
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-gray-400">{t.tokenUsage || 'Uso de Tokens'}</span>
-        <span className="text-sm text-blue-400">{remainingTokens} {t.remaining || 'restantes'}</span>
+        <span className="text-sm text-gray-700 font-medium">{t.tokenUsage || 'Uso de Tokens'}</span>
+        <span className="text-sm text-blue-600 font-semibold">{remainingTokens} {t.remaining || 'restantes'}</span>
       </div>
       
-      <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
         <div 
           className="h-full bg-blue-500 rounded-full transition-all duration-300"
           style={{ width: `${100 - percentage}%` }}
@@ -79,14 +79,14 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
       </div>
 
       {formattedRenewalDate && (
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-gray-600">
           {t.renewalOn || 'Renovação em'} {formattedRenewalDate}
         </div>
       )}
 
       <Link 
         to="/plans" 
-        className="mt-3 block text-center text-sm text-blue-400 hover:text-blue-300 transition-colors"
+        className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
       >
         {t.upgradePlan || 'Atualizar plano'}
       </Link>

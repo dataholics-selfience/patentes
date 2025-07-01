@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { PatentConsultationType, PatentResultType, TokenUsageType } from '../types';
+import { PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
-import PatentHistory from './PatentHistory';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
-import { Menu, X, FlaskConical, History, CreditCard, LogOut } from 'lucide-react';
+import { Menu, X, FlaskConical, CreditCard, LogOut } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Layout = () => {
   const navigate = useNavigate();
-  const [consultations, setConsultations] = useState<PatentConsultationType[]>([]);
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -34,31 +31,10 @@ const Layout = () => {
       } catch (error) {
         console.error('Error fetching token usage:', error);
       }
+      setIsLoading(false);
     };
 
     fetchTokenUsage();
-
-    // Listen to consultations
-    const consultationsQuery = query(
-      collection(db, 'patentConsultations'),
-      where('userId', '==', auth.currentUser.uid),
-      orderBy('consultedAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(consultationsQuery, (snapshot) => {
-      const newConsultations = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as PatentConsultationType[];
-      
-      setConsultations(newConsultations);
-      setIsLoading(false);
-    }, (error) => {
-      console.error('Error fetching consultations:', error);
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
   }, []);
 
   const parsePatentResponse = (rawResponse: any): PatentResultType => {
@@ -193,25 +169,11 @@ const Layout = () => {
         usedTokens: prev.usedTokens + CONSULTATION_TOKEN_COST
       } : null);
 
-      // Save consultation to history
-      await addDoc(collection(db, 'patentConsultations'), {
-        userId: auth.currentUser.uid,
-        userEmail: auth.currentUser.email,
-        produto,
-        sessionId,
-        resultado,
-        consultedAt: new Date().toISOString()
-      });
-
       return resultado;
     } catch (error) {
       console.error('Error in consultation:', error);
       throw error;
     }
-  };
-
-  const handleConsultationDeleted = (deletedId: string) => {
-    setConsultations(prev => prev.filter(consultation => consultation.id !== deletedId));
   };
 
   const handleLogout = async () => {
@@ -256,13 +218,6 @@ const Layout = () => {
               <CreditCard size={16} />
               Planos
             </Link>
-            <button
-              onClick={() => setShowHistory(!showHistory)}
-              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <History size={16} />
-              Histórico ({consultations.length})
-            </button>
             <UserProfile />
             <button
               onClick={handleLogout}
@@ -313,16 +268,6 @@ const Layout = () => {
                 <CreditCard size={16} />
                 Planos
               </Link>
-              <button
-                onClick={() => {
-                  setShowHistory(!showHistory);
-                  setShowSidebar(false);
-                }}
-                className="flex items-center gap-2 w-full px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                <History size={16} />
-                Histórico ({consultations.length})
-              </button>
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>
@@ -340,25 +285,14 @@ const Layout = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1">
           {/* Consultation Panel */}
-          <div className={`${showHistory ? 'lg:col-span-2' : 'lg:col-span-3'} transition-all duration-300`}>
+          <div className="w-full">
             <PatentConsultation 
               onConsultation={handleConsultation}
               tokenUsage={tokenUsage}
             />
           </div>
-          
-          {/* History Panel */}
-          {showHistory && (
-            <div className="lg:col-span-1">
-              <PatentHistory 
-                consultations={consultations}
-                onClose={() => setShowHistory(false)}
-                onConsultationDeleted={handleConsultationDeleted}
-              />
-            </div>
-          )}
         </div>
       </main>
     </div>
