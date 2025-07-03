@@ -1,118 +1,126 @@
+import { useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Terms = () => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-black p-4 md:p-8">
+    <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="text-gray-300 hover:text-white mr-4"
+            className="text-gray-600 hover:text-gray-900 mr-4"
           >
             <ArrowLeft size={24} />
           </button>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Termos e Condições de Uso e Política de Privacidade – Gen.Oi</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">📄 Termos e Condições de Uso – Plataforma de Consulta de Patentes com IA</h1>
         </div>
 
-        <div className="prose prose-invert max-w-none">
-          <p className="text-gray-400">Última atualização: Maio de 2025</p>
-
-          <p className="text-gray-300 mt-6">
-            Ao se cadastrar e utilizar os serviços do Gen.Oi (plataforma operada pela empresa DATAHOLICS LTDA, CNPJ 08.761.268/0001-04), 
-            você concorda com os termos abaixo. Eles explicam como usamos seus dados, o que você pode esperar da nossa plataforma, 
-            e quais são seus direitos.
+        <div className="prose prose-lg max-w-none text-gray-700">
+          <p className="text-gray-600 mb-6">
+            <strong>Última atualização:</strong> 26 de junho de 2025<br />
+            <strong>Empresa responsável:</strong> DATAHOLICS LTDA | CNPJ: 13.205.200/0001-36
           </p>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">1. O que é o Gen.Oi</h2>
-          <p className="text-gray-300">
-            O Gen.Oi é uma plataforma de inteligência artificial que ajuda empresas a resolverem desafios por meio da recomendação 
-            de startups. O usuário descreve seu desafio, interage com uma IA estrategista e recebe indicações personalizadas de até 
-            12 startups. O uso da plataforma é baseado em sistema de tokens, com uma quantidade inicial gratuita e possibilidade de 
-            aquisição posterior.
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">1. Aceitação dos Termos</h2>
+          <p className="mb-6">
+            Ao acessar ou utilizar a plataforma de Inteligência Artificial ("Plataforma") para análise, consulta e notificação sobre patentes, o usuário declara que leu, entendeu e concorda integralmente com estes Termos de Uso e com a Política de Privacidade.
           </p>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">2. Dados que coletamos</h2>
-          <p className="text-gray-300">Coletamos os seguintes dados para prestar nossos serviços:</p>
-          <ul className="list-disc pl-6 text-gray-300 space-y-2">
-            <li>Informações fornecidas por você no cadastro (nome, e-mail, empresa, desafio, etc.)</li>
-            <li>Dados de uso da plataforma (navegação, interações com a IA, tokens consumidos)</li>
-            <li>Informações técnicas (IP, localização aproximada, dispositivo usado)</li>
-          </ul>
-          <p className="text-gray-300 mt-4">
-            A base legal para o uso desses dados é o seu consentimento e/ou a execução do contrato de uso da plataforma.
-          </p>
-
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">3. Como usamos seus dados</h2>
-          <p className="text-gray-300">Utilizamos seus dados para:</p>
-          <ul className="list-disc pl-6 text-gray-300 space-y-2">
-            <li>Oferecer a experiência personalizada com a IA</li>
-            <li>Recomendar startups alinhadas aos seus desafios</li>
-            <li>Comunicar melhorias, ofertas e alertas sobre o uso da plataforma</li>
-            <li>Cumprir obrigações legais e garantir a segurança da plataforma</li>
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">2. Descrição dos Serviços</h2>
+          <p className="mb-4">A Plataforma utiliza inteligência artificial e dados públicos para:</p>
+          <ul className="list-disc pl-6 mb-6 space-y-2">
+            <li>Consultar registros de patentes de bases nacionais e internacionais;</li>
+            <li>Indicar status de expiração, vigência ou similaridade de patentes;</li>
+            <li>Auxiliar usuários na análise de tendências tecnológicas e propriedade industrial;</li>
+            <li>Emitir alertas sobre vencimento ou possíveis conflitos de registros.</li>
           </ul>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">4. Compartilhamento de dados</h2>
-          <p className="text-gray-300">Seus dados não serão vendidos. Podemos compartilhar informações apenas quando:</p>
-          <ul className="list-disc pl-6 text-gray-300 space-y-2">
-            <li>Houver exigência legal ou judicial</li>
-            <li>For necessário para prestadores de serviço operarem a plataforma (sob acordo de confidencialidade)</li>
-            <li>Com startups recomendadas, somente com seu consentimento explícito</li>
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">3. Uso Permitido</h2>
+          <p className="mb-4">A Plataforma destina-se a:</p>
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>Usuários profissionais, empresas, inventores e pesquisadores interessados em propriedade intelectual;</li>
+            <li>Fins informativos, estratégicos e de apoio à tomada de decisão.</li>
+          </ul>
+          <p className="mb-6">
+            O uso da Plataforma não substitui pareceres técnicos, jurídicos ou registros oficiais junto aos órgãos competentes (ex: INPI, EPO, USPTO).
+          </p>
+
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">4. Fontes de Dados e Limitações</h2>
+          <p className="mb-4">A Plataforma se baseia em dados provenientes de fontes públicas e/ou APIs externas, tais como:</p>
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>Instituto Nacional da Propriedade Industrial (INPI – Brasil)</li>
+            <li>United States Patent and Trademark Office (USPTO)</li>
+            <li>European Patent Office (EPO)</li>
+            <li>World Intellectual Property Organization (WIPO)</li>
+          </ul>
+          <p className="mb-6">
+            Apesar do esforço para manter os dados atualizados, a Plataforma não garante a precisão em tempo real nem a completude absoluta das informações. Para efeitos legais, consulte sempre a fonte oficial.
+          </p>
+
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">5. Privacidade e Proteção de Dados</h2>
+          <p className="mb-4">
+            A Plataforma coleta e trata dados pessoais nos termos da Lei Geral de Proteção de Dados (LGPD – Lei 13.709/2018).
+          </p>
+          <p className="mb-4">O usuário concorda com o tratamento de seus dados, conforme descrito na Política de Privacidade, com finalidades como:</p>
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>Autenticação e controle de acesso;</li>
+            <li>Personalização da experiência;</li>
+            <li>Geração de relatórios e sugestões personalizadas com base em seu uso.</li>
+          </ul>
+          <p className="mb-6">
+            O usuário poderá solicitar, a qualquer tempo, a exclusão ou portabilidade de seus dados.
+          </p>
+
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">6. Obrigações do Usuário</h2>
+          <p className="mb-4">O usuário compromete-se a:</p>
+          <ul className="list-disc pl-6 mb-6 space-y-2">
+            <li>Utilizar a Plataforma de forma ética e conforme a legislação vigente;</li>
+            <li>Não utilizar a Plataforma para obtenção de vantagem indevida, cópia de conteúdo protegido ou engenharia reversa de algoritmos;</li>
+            <li>Não violar direitos de propriedade intelectual de terceiros a partir das informações obtidas.</li>
           </ul>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">5. Seus direitos como usuário</h2>
-          <p className="text-gray-300">Você pode, a qualquer momento:</p>
-          <ul className="list-disc pl-6 text-gray-300 space-y-2">
-            <li>Confirmar se tratamos seus dados</li>
-            <li>Acessar, corrigir ou excluir seus dados</li>
-            <li>Revogar seu consentimento</li>
-            <li>Solicitar portabilidade</li>
-            <li>Solicitar anonimização ou bloqueio</li>
-          </ul>
-          <p className="text-gray-300 mt-4">
-            Para exercer qualquer desses direitos, entre em contato pelo WhatsApp ou e-mail disponível no site.
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">7. Direitos Autorais e Propriedade Intelectual</h2>
+          <p className="mb-4">
+            Os algoritmos, modelo de IA, interface, layout, estrutura de banco de dados e demais elementos da Plataforma são de titularidade exclusiva da DATAHOLICS LTDA e protegidos pela legislação vigente.
+          </p>
+          <p className="mb-6">
+            O uso da Plataforma não concede qualquer licença ou cessão de direitos sobre software, marcas ou conteúdos utilizados ou exibidos.
           </p>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">6. Segurança e armazenamento</h2>
-          <p className="text-gray-300">
-            Seus dados são armazenados com segurança, com medidas técnicas para proteger a confidencialidade e integridade das 
-            informações. Mesmo assim, nenhum sistema é 100% imune a falhas ou ataques. Em caso de incidente com risco relevante, 
-            você será notificado, e comunicaremos a ANPD conforme a LGPD.
-          </p>
-          <p className="text-gray-300 mt-4">
-            Os dados são armazenados apenas pelo tempo necessário para prestação do serviço ou cumprimento de obrigações legais.
-          </p>
-
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">7. Conta e exclusão</h2>
-          <p className="text-gray-300">
-            Você pode excluir sua conta a qualquer momento pela interface do site. Isso encerrará seu acesso, removerá os dados 
-            não obrigatórios por lei, e encerrará o uso dos tokens.
-          </p>
-
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">8. Uso da plataforma</h2>
-          <ul className="list-disc pl-6 text-gray-300 space-y-2">
-            <li>Ao se cadastrar, você ganha tokens para uso inicial gratuito</li>
-            <li>Após o uso dos tokens gratuitos, é possível adquirir novos tokens ou planos pagos</li>
-            <li>O uso indevido da plataforma, tentativas de manipulação da IA ou geração de dados falsos poderá resultar em suspensão da conta</li>
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">8. Limitações de Responsabilidade</h2>
+          <p className="mb-4">A Plataforma é fornecida "como está", e a DATAHOLICS LTDA:</p>
+          <ul className="list-disc pl-6 mb-6 space-y-2">
+            <li>Não se responsabiliza por decisões tomadas com base nas análises automatizadas;</li>
+            <li>Não garante a disponibilidade contínua dos serviços;</li>
+            <li>Não responde por indisponibilidades causadas por terceiros, APIs ou fontes externas.</li>
           </ul>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">9. Atualizações deste documento</h2>
-          <p className="text-gray-300">
-            Podemos atualizar estes Termos e Condições a qualquer momento. Avisaremos sobre mudanças importantes por e-mail ou 
-            dentro da plataforma. O uso contínuo do Gen.Oi após uma atualização indica que você aceita os novos termos.
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">9. Alterações nos Termos</h2>
+          <p className="mb-6">
+            Estes Termos podem ser atualizados a qualquer momento. O uso contínuo da Plataforma após eventuais alterações será considerado como aceitação tácita dos novos termos.
           </p>
 
-          <h2 className="text-xl font-bold text-white mt-8 mb-4">10. Contato</h2>
-          <p className="text-gray-300">
-            Em caso de dúvidas, solicitações ou exercício de direitos, fale com a equipe Gen.Oi pelo WhatsApp no site 
-            https://genoibot.com ou pelo e-mail informado na página de contato.
+          <h2 className="text-xl font-bold text-gray-900 mt-8 mb-4">10. Foro</h2>
+          <p className="mb-8">
+            Fica eleito o foro da comarca de São Paulo/SP, com renúncia expressa a qualquer outro, por mais privilegiado que seja, para dirimir dúvidas ou controvérsias decorrentes destes Termos.
           </p>
 
-          <p className="text-gray-300 mt-8">
-            Ao continuar navegando e utilizando o Gen.Oi, você declara que leu, compreendeu e concorda com estes Termos e Condições.
-          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
+            <p className="text-blue-800 font-medium">
+              📞 <strong>Contato e Suporte:</strong> Para dúvidas sobre estes termos ou exercício de direitos relacionados aos seus dados, entre em contato conosco através do WhatsApp: 
+              <a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 ml-1">
+                +55 11 99573-6666
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </div>

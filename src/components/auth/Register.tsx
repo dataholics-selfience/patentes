@@ -1,16 +1,25 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { FlaskConical } from 'lucide-react';
 
+const EVOLUTION_API_CONFIG = {
+  instances: [
+    { baseUrl: 'https://evolution-api-production-f719.up.railway.app', instanceKey: '215D70C6CC83-4EE4-B55A-DE7D4146CBF1' },
+    { baseUrl: 'https://evolution-api-2-production.up.railway.app', instanceKey: '215D70C6CC83-4EE4-B55A-DE7D4146CBF2' },
+    { baseUrl: 'https://evolution-api-3-production.up.railway.app', instanceKey: '215D70C6CC83-4EE4-B55A-DE7D4146CBF3' }
+  ]
+};
+
 const Register = () => {
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     name: '',
     cpf: '',
     company: '',
-    email: '',
+    email: searchParams.get('email') || '',
     phone: '',
     password: '',
     terms: false
@@ -18,6 +27,122 @@ const Register = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+  }, []);
+
+  const formatPhoneForEvolution = (phone: string): string => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Brazilian numbers
+    if (cleanPhone.startsWith('55')) {
+      return cleanPhone;
+    } else if (cleanPhone.length === 11 && cleanPhone.startsWith('11')) {
+      return '55' + cleanPhone;
+    } else if (cleanPhone.length === 10 && cleanPhone.startsWith('11')) {
+      return '55' + cleanPhone;
+    } else if (cleanPhone.length === 11) {
+      return '55' + cleanPhone;
+    } else if (cleanPhone.length === 10) {
+      return '55' + cleanPhone;
+    }
+    
+    // International numbers - validate format
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 15) {
+      return cleanPhone;
+    }
+    
+    return '';
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Brazilian numbers
+    if (cleanPhone.startsWith('55') && cleanPhone.length === 13) return true;
+    if (cleanPhone.length === 11 || cleanPhone.length === 10) return true;
+    
+    // International numbers
+    if (cleanPhone.length >= 10 && cleanPhone.length <= 15) return true;
+    
+    return false;
+  };
+
+  const getRandomInstance = () => {
+    const randomIndex = Math.floor(Math.random() * EVOLUTION_API_CONFIG.instances.length);
+    return EVOLUTION_API_CONFIG.instances[randomIndex];
+  };
+
+  const sendWhatsAppVerification = async (phone: string, verificationLink: string) => {
+    const formattedPhone = formatPhoneForEvolution(phone);
+    
+    if (!formattedPhone) {
+      console.error('Invalid phone number format:', phone);
+      return false;
+    }
+
+    const instance = getRandomInstance();
+    
+    const message = `🔬 *Consulta de Patentes - Ativação de Conta*
+
+Olá! Sua conta foi criada com sucesso.
+
+Para ativar sua conta e começar a usar nossa plataforma de análise de patentes farmacêuticas, clique no link abaixo:
+
+${verificationLink}
+
+✅ *Benefícios da sua conta:*
+• 100 consultas gratuitas
+• Análise instantânea de patentes
+• Verificação de riscos regulatórios
+• Identificação de compostos alternativos
+
+⚡ *Acesso imediato após ativação!*
+
+Precisa de ajuda? Responda esta mensagem.
+
+---
+*Consulta de Patentes - Protegendo sua inovação*`;
+
+    try {
+      const evolutionPayload = {
+        number: formattedPhone,
+        text: message
+      };
+
+      console.log('Sending WhatsApp verification via Evolution API:', {
+        instance: instance.baseUrl,
+        payload: evolutionPayload
+      });
+
+      const response = await fetch(
+        `${instance.baseUrl}/message/sendText/${instance.instanceKey}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': instance.instanceKey
+          },
+          body: JSON.stringify(evolutionPayload)
+        }
+      );
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('WhatsApp verification sent successfully:', responseData);
+        return true;
+      } else {
+        const errorText = await response.text();
+        console.error('Evolution API error:', errorText);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error sending WhatsApp verification:', error);
+      return false;
+    }
+  };
 
   const checkDeletedUser = async (email: string) => {
     const q = query(
@@ -33,6 +158,11 @@ const Register = () => {
     e.preventDefault();
     if (!formData.terms) {
       setError('Você precisa aceitar os termos de uso para continuar.');
+      return;
+    }
+
+    if (!validatePhone(formData.phone)) {
+      setError('Por favor, insira um número de telefone válido.');
       return;
     }
     
@@ -100,7 +230,24 @@ const Register = () => {
         transactionId: crypto.randomUUID()
       });
 
+      // Send email verification first
       await sendEmailVerification(user);
+
+      // Wait a moment for the email verification link to be generated
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Generate verification link (this would typically come from Firebase Auth)
+      const verificationLink = `${window.location.origin}/verify-email`;
+
+      // Send WhatsApp verification with the link
+      if (formData.phone.trim()) {
+        try {
+          await sendWhatsAppVerification(formData.phone.trim(), verificationLink);
+        } catch (whatsappError) {
+          console.error('WhatsApp verification failed:', whatsappError);
+          // Don't block registration if WhatsApp fails
+        }
+      }
 
       navigate('/verify-email');
     } catch (error: any) {
@@ -184,7 +331,7 @@ const Register = () => {
               value={formData.phone}
               onChange={handleChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Telefone"
+              placeholder="Telefone/WhatsApp (ex: 11999887766)"
             />
             <input
               type="password"
@@ -206,7 +353,7 @@ const Register = () => {
                 required
               />
               <label className="ml-2 block text-sm text-gray-700">
-                Aceito os termos de uso e política de privacidade
+                Aceito os <Link to="/terms" className="text-blue-600 hover:text-blue-700">termos de uso e política de privacidade</Link>
               </label>
             </div>
           </div>

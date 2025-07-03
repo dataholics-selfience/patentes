@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
-import { FlaskConical } from 'lucide-react';
+import { FlaskConical, ArrowLeft } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -71,7 +71,7 @@ const Login = () => {
       }
 
       setError('');
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
       
     } catch (error: any) {
       console.error('Login error:', error);
@@ -100,9 +100,19 @@ const Login = () => {
     <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <FlaskConical size={48} className="text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
+          <div className="flex items-center justify-between mb-6">
+            <Link 
+              to="/" 
+              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft size={20} className="mr-2" />
+              <span className="text-sm">Voltar</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <FlaskConical size={48} className="text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
+            </div>
+            <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Faça seu login</h2>
           <p className="mt-2 text-gray-600">Acesse sua conta para consultar patentes</p>

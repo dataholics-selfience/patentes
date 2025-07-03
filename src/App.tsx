@@ -11,6 +11,8 @@ import EmailVerification from './components/auth/EmailVerification';
 import AccountDeleted from './components/AccountDeleted';
 import Plans from './components/Plans';
 import UserManagement from './components/UserProfile/UserManagement';
+import LandingPage from './components/LandingPage';
+import Terms from './components/Terms';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -51,14 +53,21 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
-        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" replace />} />
+        {/* Public routes */}
+        <Route path="/home" element={<LandingPage />} />
+        <Route path="/terms" element={<Terms />} />
+        
+        {/* Auth routes */}
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/verify-email" element={<EmailVerification />} />
+        <Route path="/account-deleted" element={<AccountDeleted />} />
+        
+        {/* Protected routes */}
         <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
         <Route path="/plans" element={<Plans />} />
-        <Route path="/account-deleted" element={<AccountDeleted />} />
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           user ? (
             user.emailVerified ? (
               <Layout />
@@ -67,6 +76,19 @@ function App() {
             )
           ) : (
             <Navigate to="/login" replace />
+          )
+        } />
+        
+        {/* Default routes */}
+        <Route path="/" element={
+          user ? (
+            user.emailVerified ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/verify-email" replace />
+            )
+          ) : (
+            <LandingPage />
           )
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
