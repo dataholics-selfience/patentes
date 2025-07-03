@@ -5,7 +5,7 @@ import { PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
-import { Menu, X, FlaskConical, CreditCard, LogOut } from 'lucide-react';
+import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -14,6 +14,29 @@ const Layout = () => {
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const patentAgencies = [
+    {
+      name: "INPI Brasil",
+      logo: "/inpi-logo-1.jpeg",
+      alt: "INPI Brasil"
+    },
+    {
+      name: "USPTO",
+      logo: "/uspto-logo-2.png",
+      alt: "USPTO"
+    },
+    {
+      name: "EPO",
+      logo: "/epto-logo-3.png",
+      alt: "EPO"
+    },
+    {
+      name: "WIPO",
+      logo: "/Wipo-logo-4.png",
+      alt: "WIPO"
+    }
+  ];
 
   useEffect(() => {
     if (!auth.currentUser) {
@@ -193,7 +216,7 @@ const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -284,7 +307,7 @@ const Layout = () => {
       )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="grid grid-cols-1">
           {/* Consultation Panel */}
           <div className="w-full">
@@ -295,6 +318,46 @@ const Layout = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t border-gray-200 py-6 mt-auto">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+            {/* Support Button - Left */}
+            <a 
+              href="https://wa.me/5511995736666" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 bg-white text-green-600 border-2 border-green-600 hover:bg-green-50 px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              <MessageCircle size={20} />
+              Suporte via WhatsApp
+            </a>
+
+            {/* Patent Agencies Logos - Right */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
+              <div className="flex items-center gap-4">
+                {patentAgencies.map((agency, index) => (
+                  <div key={index} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
+                    <img
+                      src={agency.logo}
+                      alt={agency.alt}
+                      className="h-6 object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      title={agency.name}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Copyright */}
+          <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
+            <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -9,6 +9,117 @@ interface PatentConsultationProps {
   tokenUsage: TokenUsageType | null;
 }
 
+// Mapeamento de países para bandeiras (emojis) e status
+const countryFlags: { [key: string]: { flag: string; name: string } } = {
+  // Principais países
+  'Brasil': { flag: '🇧🇷', name: 'Brasil' },
+  'Brazil': { flag: '🇧🇷', name: 'Brasil' },
+  'Estados Unidos': { flag: '🇺🇸', name: 'Estados Unidos' },
+  'United States': { flag: '🇺🇸', name: 'Estados Unidos' },
+  'USA': { flag: '🇺🇸', name: 'Estados Unidos' },
+  'US': { flag: '🇺🇸', name: 'Estados Unidos' },
+  'Alemanha': { flag: '🇩🇪', name: 'Alemanha' },
+  'Germany': { flag: '🇩🇪', name: 'Alemanha' },
+  'França': { flag: '🇫🇷', name: 'França' },
+  'France': { flag: '🇫🇷', name: 'França' },
+  'Reino Unido': { flag: '🇬🇧', name: 'Reino Unido' },
+  'United Kingdom': { flag: '🇬🇧', name: 'Reino Unido' },
+  'UK': { flag: '🇬🇧', name: 'Reino Unido' },
+  'Japão': { flag: '🇯🇵', name: 'Japão' },
+  'Japan': { flag: '🇯🇵', name: 'Japão' },
+  'China': { flag: '🇨🇳', name: 'China' },
+  'Coreia do Sul': { flag: '🇰🇷', name: 'Coreia do Sul' },
+  'South Korea': { flag: '🇰🇷', name: 'Coreia do Sul' },
+  'Canadá': { flag: '🇨🇦', name: 'Canadá' },
+  'Canada': { flag: '🇨🇦', name: 'Canadá' },
+  'Austrália': { flag: '🇦🇺', name: 'Austrália' },
+  'Australia': { flag: '🇦🇺', name: 'Austrália' },
+  'Índia': { flag: '🇮🇳', name: 'Índia' },
+  'India': { flag: '🇮🇳', name: 'Índia' },
+  'Itália': { flag: '🇮🇹', name: 'Itália' },
+  'Italy': { flag: '🇮🇹', name: 'Itália' },
+  'Espanha': { flag: '🇪🇸', name: 'Espanha' },
+  'Spain': { flag: '🇪🇸', name: 'Espanha' },
+  'Holanda': { flag: '🇳🇱', name: 'Holanda' },
+  'Netherlands': { flag: '🇳🇱', name: 'Holanda' },
+  'Suíça': { flag: '🇨🇭', name: 'Suíça' },
+  'Switzerland': { flag: '🇨🇭', name: 'Suíça' },
+  'Suécia': { flag: '🇸🇪', name: 'Suécia' },
+  'Sweden': { flag: '🇸🇪', name: 'Suécia' },
+  'Noruega': { flag: '🇳🇴', name: 'Noruega' },
+  'Norway': { flag: '🇳🇴', name: 'Noruega' },
+  'Dinamarca': { flag: '🇩🇰', name: 'Dinamarca' },
+  'Denmark': { flag: '🇩🇰', name: 'Dinamarca' },
+  'Finlândia': { flag: '🇫🇮', name: 'Finlândia' },
+  'Finland': { flag: '🇫🇮', name: 'Finlândia' },
+  'Bélgica': { flag: '🇧🇪', name: 'Bélgica' },
+  'Belgium': { flag: '🇧🇪', name: 'Bélgica' },
+  'Áustria': { flag: '🇦🇹', name: 'Áustria' },
+  'Austria': { flag: '🇦🇹', name: 'Áustria' },
+  'Portugal': { flag: '🇵🇹', name: 'Portugal' },
+  'México': { flag: '🇲🇽', name: 'México' },
+  'Mexico': { flag: '🇲🇽', name: 'México' },
+  'Argentina': { flag: '🇦🇷', name: 'Argentina' },
+  'Chile': { flag: '🇨🇱', name: 'Chile' },
+  'Colômbia': { flag: '🇨🇴', name: 'Colômbia' },
+  'Colombia': { flag: '🇨🇴', name: 'Colômbia' },
+  'Peru': { flag: '🇵🇪', name: 'Peru' },
+  'Uruguai': { flag: '🇺🇾', name: 'Uruguai' },
+  'Uruguay': { flag: '🇺🇾', name: 'Uruguai' },
+  'Rússia': { flag: '🇷🇺', name: 'Rússia' },
+  'Russia': { flag: '🇷🇺', name: 'Rússia' },
+  'África do Sul': { flag: '🇿🇦', name: 'África do Sul' },
+  'South Africa': { flag: '🇿🇦', name: 'África do Sul' },
+  'Israel': { flag: '🇮🇱', name: 'Israel' },
+  'Singapura': { flag: '🇸🇬', name: 'Singapura' },
+  'Singapore': { flag: '🇸🇬', name: 'Singapura' },
+  'Tailândia': { flag: '🇹🇭', name: 'Tailândia' },
+  'Thailand': { flag: '🇹🇭', name: 'Tailândia' },
+  'Malásia': { flag: '🇲🇾', name: 'Malásia' },
+  'Malaysia': { flag: '🇲🇾', name: 'Malásia' },
+  'Indonésia': { flag: '🇮🇩', name: 'Indonésia' },
+  'Indonesia': { flag: '🇮🇩', name: 'Indonésia' },
+  'Filipinas': { flag: '🇵🇭', name: 'Filipinas' },
+  'Philippines': { flag: '🇵🇭', name: 'Filipinas' },
+  'Vietnã': { flag: '🇻🇳', name: 'Vietnã' },
+  'Vietnam': { flag: '🇻🇳', name: 'Vietnã' },
+  'Taiwan': { flag: '🇹🇼', name: 'Taiwan' },
+  'Hong Kong': { flag: '🇭🇰', name: 'Hong Kong' },
+  'Nova Zelândia': { flag: '🇳🇿', name: 'Nova Zelândia' },
+  'New Zealand': { flag: '🇳🇿', name: 'Nova Zelândia' },
+  
+  // Organizações regionais
+  'Europa': { flag: '🇪🇺', name: 'União Europeia' },
+  'European Union': { flag: '🇪🇺', name: 'União Europeia' },
+  'EU': { flag: '🇪🇺', name: 'União Europeia' },
+  'EPO': { flag: '🇪🇺', name: 'Escritório Europeu de Patentes' },
+  'European Patent Office': { flag: '🇪🇺', name: 'Escritório Europeu de Patentes' },
+  'WIPO': { flag: '🌍', name: 'Organização Mundial da Propriedade Intelectual' },
+  'World Intellectual Property Organization': { flag: '🌍', name: 'OMPI' },
+  'Internacional': { flag: '🌍', name: 'Internacional' },
+  'International': { flag: '🌍', name: 'Internacional' },
+  'Global': { flag: '🌍', name: 'Global' },
+  'Worldwide': { flag: '🌍', name: 'Mundial' }
+};
+
+// Função para obter informações do país
+const getCountryInfo = (country: string) => {
+  // Primeiro, tenta encontrar uma correspondência exata
+  const exactMatch = countryFlags[country];
+  if (exactMatch) return exactMatch;
+  
+  // Se não encontrar, tenta encontrar uma correspondência parcial (case-insensitive)
+  const lowerCountry = country.toLowerCase();
+  const partialMatch = Object.keys(countryFlags).find(key => 
+    key.toLowerCase().includes(lowerCountry) || lowerCountry.includes(key.toLowerCase())
+  );
+  
+  if (partialMatch) return countryFlags[partialMatch];
+  
+  // Se não encontrar nenhuma correspondência, retorna um ícone genérico
+  return { flag: '🏳️', name: country };
+};
+
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
   const [produto, setProduto] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -184,15 +295,29 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 <h3 className="text-xl font-bold text-gray-900">Países com Registro</h3>
               </div>
               {result.paises_registrados && result.paises_registrados.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {result.paises_registrados.map((pais, index) => (
-                    <div key={index} className="bg-white p-3 rounded-lg border text-center">
-                      <span className="text-sm font-medium text-gray-900">{pais}</span>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {result.paises_registrados.map((pais, index) => {
+                    const countryInfo = getCountryInfo(pais);
+                    return (
+                      <div key={index} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl" role="img" aria-label={`Bandeira ${countryInfo.name}`}>
+                            {countryInfo.flag}
+                          </span>
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900 block">{countryInfo.name}</span>
+                            <span className="text-sm text-green-600 font-medium">✓ Registrado</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-gray-600">Nenhum país registrado informado</p>
+                <div className="bg-white p-6 rounded-lg border text-center">
+                  <Globe size={48} className="text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-600">Nenhum país registrado informado</p>
+                </div>
               )}
             </div>
 
@@ -205,7 +330,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 </div>
                 <ul className="space-y-3">
                   {result.riscos_regulatorios_eticos.map((risco, index) => (
-                    <li key={index} className="flex items-start gap-3">
+                    <li key={index} className="flex items-start gap-3 bg-white p-4 rounded-lg border">
                       <div className="w-2 h-2 bg-red-600 rounded-full mt-2 flex-shrink-0" />
                       <span className="text-gray-700">{risco}</span>
                     </li>
@@ -223,7 +348,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 </div>
                 <ul className="space-y-3">
                   {result.alternativas_compostos.map((alternativa, index) => (
-                    <li key={index} className="flex items-start gap-3">
+                    <li key={index} className="flex items-start gap-3 bg-white p-4 rounded-lg border">
                       <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0" />
                       <span className="text-gray-700">{alternativa}</span>
                     </li>

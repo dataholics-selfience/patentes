@@ -79,6 +79,37 @@ const LandingPage = () => {
     { number: "24/7", label: "Disponibilidade" }
   ];
 
+  const patentAgencies = [
+    {
+      name: "Instituto Nacional da Propriedade Industrial",
+      country: "Brasil",
+      logo: "/inpi-logo-1.jpeg",
+      alt: "INPI Brasil",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+    },
+    {
+      name: "United States Patent and Trademark Office",
+      country: "Estados Unidos",
+      logo: "/uspto-logo-2.png",
+      alt: "USPTO",
+      size: "normal"
+    },
+    {
+      name: "European Patent Office",
+      country: "Europa",
+      logo: "/epto-logo-3.png",
+      alt: "EPO",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+    },
+    {
+      name: "World Intellectual Property Organization",
+      country: "Internacional",
+      logo: "/Wipo-logo-4.png",
+      alt: "WIPO",
+      size: "normal"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -187,8 +218,62 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Patent Agencies Section */}
       <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Conectado às Principais Agências de Patentes Mundiais
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Nossa plataforma consulta dados em tempo real das mais importantes 
+              organizações de propriedade intelectual do mundo.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 items-center">
+            {patentAgencies.map((agency, index) => (
+              <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow text-center">
+                <div className="h-20 flex items-center justify-center mb-4">
+                  <img
+                    src={agency.logo}
+                    alt={agency.alt}
+                    className={`max-h-full max-w-full object-contain ${
+                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                      agency.size === 'reduced' ? 'scale-80' : ''
+                    }`}
+                  />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
+                <p className="text-xs text-gray-600">{agency.country}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-gray-600 mb-6">
+              Acesso direto a milhões de registros de patentes atualizados em tempo real
+            </p>
+            <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span>Dados em tempo real</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Cobertura global</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span>APIs oficiais</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -196,7 +281,7 @@ const LandingPage = () => {
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Nossa IA especializada oferece análises precisas e instantâneas, 
-              protegendo sua empresa e acelerando a inovação.
+              protegendo empresas e acelerando a inovação.
             </p>
           </div>
           
@@ -215,7 +300,7 @@ const LandingPage = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
@@ -290,7 +375,7 @@ const LandingPage = () => {
               className="border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold inline-flex items-center gap-2"
             >
               <MessageCircle size={20} />
-              Falar agora com um especialista
+              Suporte via WhatsApp
             </a>
           </div>
         </div>
@@ -317,7 +402,7 @@ const LandingPage = () => {
                   className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
                 >
                   <MessageCircle size={20} />
-                  Falar agora com um especialista
+                  Suporte via WhatsApp
                 </a>
               </div>
             </div>
@@ -341,8 +426,29 @@ const LandingPage = () => {
             </div>
           </div>
           
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+          {/* Patent Agencies Logos in Footer */}
+          <div className="border-t border-gray-800 mt-8 pt-8">
+            <div className="text-center mb-6">
+              <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Agências de Patentes</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-items-center">
+                {patentAgencies.map((agency, index) => (
+                  <div key={index} className="bg-white p-3 rounded-lg">
+                    <img
+                      src={agency.logo}
+                      alt={agency.alt}
+                      className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
+                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                        agency.size === 'reduced' ? 'scale-80' : ''
+                      }`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="text-center text-gray-400">
+              <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+            </div>
           </div>
         </div>
       </footer>
