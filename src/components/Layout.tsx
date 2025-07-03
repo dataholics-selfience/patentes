@@ -91,50 +91,105 @@ const Layout = () => {
     
     console.log('Cleaned JSON string:', jsonString);
     
-    // Parse the actual patent data
-    const parsedData = JSON.parse(jsonString);
+    // Parse the actual patent data - handle both array and object formats
+    let parsedData;
+    try {
+      const parsed = JSON.parse(jsonString);
+      // If it's an array, take the first element
+      parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+      throw new Error('Invalid JSON response from API');
+    }
+    
     console.log('Parsed data:', parsedData);
     
-    // Map the fields to match PatentResultType interface
-    const resultado: PatentResultType = {
-      substancia: parsedData.substancia || 'Produto consultado',
-      patente_vigente: parsedData.patente_vigente || false,
-      data_expiracao_patente_principal: parsedData.data_expiracao_patente_principal || 
-                                       parsedData.data_estimativa_expiracao || 
-                                       parsedData.data_vencimento_patente || 
-                                       'Não informado',
-      paises_registrados: Array.isArray(parsedData.paises_registrados) 
-        ? parsedData.paises_registrados 
-        : Array.isArray(parsedData.paises_registro)
-          ? parsedData.paises_registro
-          : (typeof parsedData.paises_registro === 'string' 
-              ? [parsedData.paises_registro] 
-              : []),
-      exploracao_comercial: parsedData.exploracao_comercial || 
-                           parsedData.explorada_comercialmente || 
-                           false,
-      riscos_regulatorios_eticos: Array.isArray(parsedData.riscos_regulatorios_eticos) 
-        ? parsedData.riscos_regulatorios_eticos 
-        : Array.isArray(parsedData.riscos_regulatorios_ou_eticos)
-          ? parsedData.riscos_regulatorios_ou_eticos
-          : (typeof parsedData.riscos_regulatorios_ou_eticos === 'string'
-              ? [parsedData.riscos_regulatorios_ou_eticos]
-              : ['Não informado']),
-      data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente_novo_produto || 
-                                          parsedData.data_vencimento_para_novo_produto || 
-                                          parsedData.data_vencimento_patente || 
-                                          null,
-      alternativas_compostos: Array.isArray(parsedData.alternativas_compostos) 
-        ? parsedData.alternativas_compostos.map((alt: any) => 
-            typeof alt === 'string' ? alt : (alt.nome || alt.descricao || alt)
-          )
-        : Array.isArray(parsedData.alternativas_de_compostos_analogos)
-          ? parsedData.alternativas_de_compostos_analogos.map((alt: any) => 
-              typeof alt === 'string' ? alt : (alt.nome || alt.descricao || alt)
-            )
-          : []
+    // Parse countries from string if needed
+    const parseCountries = (countriesData: any): string[] => {
+      if (Array.isArray(countriesData)) {
+        return countriesData;
+      }
+      if (typeof countriesData === 'string') {
+        // Split by common separators and clean up
+        return countriesData
+          .split(/[,;]/)
+          .map(country => country.trim())
+          .filter(country => country.length > 0);
+      }
+      return [];
+    };
+
+    // Parse risks from string if needed
+    const parseRisks = (risksData: any): string[] => {
+      if (Array.isArray(risksData)) {
+        return risksData;
+      }
+      if (typeof risksData === 'string') {
+        // If it's a single string, return as array with one element
+        return [risksData];
+      }
+      return [];
+    };
+
+    // Parse alternatives from string if needed
+    const parseAlternatives = (alternativesData: any): string[] => {
+      if (Array.isArray(alternativesData)) {
+        return alternativesData;
+      }
+      if (typeof alternativesData === 'string') {
+        // Split by common separators and clean up
+        return alternativesData
+          .split(/[,;]/)
+          .map(alt => alt.trim())
+          .filter(alt => alt.length > 0);
+      }
+      return [];
     };
     
+    // Map the fields to match PatentResultType interface with improved field mapping
+    const resultado: PatentResultType = {
+      substancia: parsedData.substancia || parsedData.produto || parsedData.substance || 'Produto consultado',
+      patente_vigente: Boolean(parsedData.patente_vigente || parsedData.patent_valid || false),
+      data_expiracao_patente_principal: parsedData.data_expiracao_patente_principal || 
+                                       parsedData.data_estimativa_expiracao || 
+                                       parsedData.data_vencimento_patente ||
+                                       parsedData.expiration_date ||
+                                       'Não informado',
+      paises_registrados: parseCountries(
+        parsedData.paises_registrados || 
+        parsedData.paises_registro ||
+        parsedData.registered_countries ||
+        parsedData.countries ||
+        []
+      ),
+      exploracao_comercial: Boolean(
+        parsedData.exploracao_comercial || 
+        parsedData.explorada_comercialmente ||
+        parsedData.commercial_exploitation ||
+        false
+      ),
+      riscos_regulatorios_eticos: parseRisks(
+        parsedData.riscos_regulatorios_eticos || 
+        parsedData.riscos_regulatorios_ou_eticos ||
+        parsedData.regulatory_risks ||
+        parsedData.risks ||
+        'Não informado'
+      ),
+      data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente_novo_produto || 
+                                          parsedData.data_vencimento_para_novo_produto || 
+                                          parsedData.data_vencimento_patente ||
+                                          parsedData.new_product_expiration ||
+                                          null,
+      alternativas_compostos: parseAlternatives(
+        parsedData.alternativas_compostos ||
+        parsedData.alternativas_de_compostos_analogos ||
+        parsedData.alternative_compounds ||
+        parsedData.alternatives ||
+        []
+      )
+    };
+    
+    console.log('Final resultado:', resultado);
     return resultado;
   };
 

@@ -3,121 +3,186 @@ import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, 
 import { PatentResultType, TokenUsageType } from '../types';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import Flag from 'react-world-flags';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
   tokenUsage: TokenUsageType | null;
 }
 
-// Mapeamento de países para bandeiras (emojis) e status
-const countryFlags: { [key: string]: { flag: string; name: string } } = {
+// Mapeamento de países para códigos de bandeiras
+const countryCodeMap: { [key: string]: string } = {
   // Principais países
-  'Brasil': { flag: '🇧🇷', name: 'Brasil' },
-  'Brazil': { flag: '🇧🇷', name: 'Brasil' },
-  'Estados Unidos': { flag: '🇺🇸', name: 'Estados Unidos' },
-  'United States': { flag: '🇺🇸', name: 'Estados Unidos' },
-  'USA': { flag: '🇺🇸', name: 'Estados Unidos' },
-  'US': { flag: '🇺🇸', name: 'Estados Unidos' },
-  'Alemanha': { flag: '🇩🇪', name: 'Alemanha' },
-  'Germany': { flag: '🇩🇪', name: 'Alemanha' },
-  'França': { flag: '🇫🇷', name: 'França' },
-  'France': { flag: '🇫🇷', name: 'França' },
-  'Reino Unido': { flag: '🇬🇧', name: 'Reino Unido' },
-  'United Kingdom': { flag: '🇬🇧', name: 'Reino Unido' },
-  'UK': { flag: '🇬🇧', name: 'Reino Unido' },
-  'Japão': { flag: '🇯🇵', name: 'Japão' },
-  'Japan': { flag: '🇯🇵', name: 'Japão' },
-  'China': { flag: '🇨🇳', name: 'China' },
-  'Coreia do Sul': { flag: '🇰🇷', name: 'Coreia do Sul' },
-  'South Korea': { flag: '🇰🇷', name: 'Coreia do Sul' },
-  'Canadá': { flag: '🇨🇦', name: 'Canadá' },
-  'Canada': { flag: '🇨🇦', name: 'Canadá' },
-  'Austrália': { flag: '🇦🇺', name: 'Austrália' },
-  'Australia': { flag: '🇦🇺', name: 'Austrália' },
-  'Índia': { flag: '🇮🇳', name: 'Índia' },
-  'India': { flag: '🇮🇳', name: 'Índia' },
-  'Itália': { flag: '🇮🇹', name: 'Itália' },
-  'Italy': { flag: '🇮🇹', name: 'Itália' },
-  'Espanha': { flag: '🇪🇸', name: 'Espanha' },
-  'Spain': { flag: '🇪🇸', name: 'Espanha' },
-  'Holanda': { flag: '🇳🇱', name: 'Holanda' },
-  'Netherlands': { flag: '🇳🇱', name: 'Holanda' },
-  'Suíça': { flag: '🇨🇭', name: 'Suíça' },
-  'Switzerland': { flag: '🇨🇭', name: 'Suíça' },
-  'Suécia': { flag: '🇸🇪', name: 'Suécia' },
-  'Sweden': { flag: '🇸🇪', name: 'Suécia' },
-  'Noruega': { flag: '🇳🇴', name: 'Noruega' },
-  'Norway': { flag: '🇳🇴', name: 'Noruega' },
-  'Dinamarca': { flag: '🇩🇰', name: 'Dinamarca' },
-  'Denmark': { flag: '🇩🇰', name: 'Dinamarca' },
-  'Finlândia': { flag: '🇫🇮', name: 'Finlândia' },
-  'Finland': { flag: '🇫🇮', name: 'Finlândia' },
-  'Bélgica': { flag: '🇧🇪', name: 'Bélgica' },
-  'Belgium': { flag: '🇧🇪', name: 'Bélgica' },
-  'Áustria': { flag: '🇦🇹', name: 'Áustria' },
-  'Austria': { flag: '🇦🇹', name: 'Áustria' },
-  'Portugal': { flag: '🇵🇹', name: 'Portugal' },
-  'México': { flag: '🇲🇽', name: 'México' },
-  'Mexico': { flag: '🇲🇽', name: 'México' },
-  'Argentina': { flag: '🇦🇷', name: 'Argentina' },
-  'Chile': { flag: '🇨🇱', name: 'Chile' },
-  'Colômbia': { flag: '🇨🇴', name: 'Colômbia' },
-  'Colombia': { flag: '🇨🇴', name: 'Colômbia' },
-  'Peru': { flag: '🇵🇪', name: 'Peru' },
-  'Uruguai': { flag: '🇺🇾', name: 'Uruguai' },
-  'Uruguay': { flag: '🇺🇾', name: 'Uruguai' },
-  'Rússia': { flag: '🇷🇺', name: 'Rússia' },
-  'Russia': { flag: '🇷🇺', name: 'Rússia' },
-  'África do Sul': { flag: '🇿🇦', name: 'África do Sul' },
-  'South Africa': { flag: '🇿🇦', name: 'África do Sul' },
-  'Israel': { flag: '🇮🇱', name: 'Israel' },
-  'Singapura': { flag: '🇸🇬', name: 'Singapura' },
-  'Singapore': { flag: '🇸🇬', name: 'Singapura' },
-  'Tailândia': { flag: '🇹🇭', name: 'Tailândia' },
-  'Thailand': { flag: '🇹🇭', name: 'Tailândia' },
-  'Malásia': { flag: '🇲🇾', name: 'Malásia' },
-  'Malaysia': { flag: '🇲🇾', name: 'Malásia' },
-  'Indonésia': { flag: '🇮🇩', name: 'Indonésia' },
-  'Indonesia': { flag: '🇮🇩', name: 'Indonésia' },
-  'Filipinas': { flag: '🇵🇭', name: 'Filipinas' },
-  'Philippines': { flag: '🇵🇭', name: 'Filipinas' },
-  'Vietnã': { flag: '🇻🇳', name: 'Vietnã' },
-  'Vietnam': { flag: '🇻🇳', name: 'Vietnã' },
-  'Taiwan': { flag: '🇹🇼', name: 'Taiwan' },
-  'Hong Kong': { flag: '🇭🇰', name: 'Hong Kong' },
-  'Nova Zelândia': { flag: '🇳🇿', name: 'Nova Zelândia' },
-  'New Zealand': { flag: '🇳🇿', name: 'Nova Zelândia' },
+  'Brasil': 'BR',
+  'Brazil': 'BR',
+  'Estados Unidos': 'US',
+  'United States': 'US',
+  'USA': 'US',
+  'US': 'US',
+  'Alemanha': 'DE',
+  'Germany': 'DE',
+  'França': 'FR',
+  'France': 'FR',
+  'Reino Unido': 'GB',
+  'United Kingdom': 'GB',
+  'UK': 'GB',
+  'Japão': 'JP',
+  'Japan': 'JP',
+  'China': 'CN',
+  'Coreia do Sul': 'KR',
+  'South Korea': 'KR',
+  'Canadá': 'CA',
+  'Canada': 'CA',
+  'Austrália': 'AU',
+  'Australia': 'AU',
+  'Índia': 'IN',
+  'India': 'IN',
+  'Itália': 'IT',
+  'Italy': 'IT',
+  'Espanha': 'ES',
+  'Spain': 'ES',
+  'Holanda': 'NL',
+  'Netherlands': 'NL',
+  'Suíça': 'CH',
+  'Switzerland': 'CH',
+  'Suécia': 'SE',
+  'Sweden': 'SE',
+  'Noruega': 'NO',
+  'Norway': 'NO',
+  'Dinamarca': 'DK',
+  'Denmark': 'DK',
+  'Finlândia': 'FI',
+  'Finland': 'FI',
+  'Bélgica': 'BE',
+  'Belgium': 'BE',
+  'Áustria': 'AT',
+  'Austria': 'AT',
+  'Portugal': 'PT',
+  'México': 'MX',
+  'Mexico': 'MX',
+  'Argentina': 'AR',
+  'Chile': 'CL',
+  'Colômbia': 'CO',
+  'Colombia': 'CO',
+  'Peru': 'PE',
+  'Uruguai': 'UY',
+  'Uruguay': 'UY',
+  'Rússia': 'RU',
+  'Russia': 'RU',
+  'África do Sul': 'ZA',
+  'South Africa': 'ZA',
+  'Israel': 'IL',
+  'Singapura': 'SG',
+  'Singapore': 'SG',
+  'Tailândia': 'TH',
+  'Thailand': 'TH',
+  'Malásia': 'MY',
+  'Malaysia': 'MY',
+  'Indonésia': 'ID',
+  'Indonesia': 'ID',
+  'Filipinas': 'PH',
+  'Philippines': 'PH',
+  'Vietnã': 'VN',
+  'Vietnam': 'VN',
+  'Taiwan': 'TW',
+  'Hong Kong': 'HK',
+  'Nova Zelândia': 'NZ',
+  'New Zealand': 'NZ',
   
   // Organizações regionais
-  'Europa': { flag: '🇪🇺', name: 'União Europeia' },
-  'European Union': { flag: '🇪🇺', name: 'União Europeia' },
-  'EU': { flag: '🇪🇺', name: 'União Europeia' },
-  'EPO': { flag: '🇪🇺', name: 'Escritório Europeu de Patentes' },
-  'European Patent Office': { flag: '🇪🇺', name: 'Escritório Europeu de Patentes' },
-  'WIPO': { flag: '🌍', name: 'Organização Mundial da Propriedade Intelectual' },
-  'World Intellectual Property Organization': { flag: '🌍', name: 'OMPI' },
-  'Internacional': { flag: '🌍', name: 'Internacional' },
-  'International': { flag: '🌍', name: 'Internacional' },
-  'Global': { flag: '🌍', name: 'Global' },
-  'Worldwide': { flag: '🌍', name: 'Mundial' }
+  'Europa': 'EU',
+  'European Union': 'EU',
+  'EU': 'EU',
+  'EPO': 'EU',
+  'European Patent Office': 'EU',
+  'União Europeia': 'EU'
+};
+
+// Função para obter código do país
+const getCountryCode = (countryName: string): string | null => {
+  if (!countryName) return null;
+  
+  // Primeiro tenta correspondência exata
+  const exactMatch = countryCodeMap[countryName];
+  if (exactMatch) return exactMatch;
+  
+  // Tenta correspondência case-insensitive
+  const lowerCountry = countryName.toLowerCase();
+  const foundKey = Object.keys(countryCodeMap).find(key => 
+    key.toLowerCase() === lowerCountry
+  );
+  
+  if (foundKey) return countryCodeMap[foundKey];
+  
+  // Tenta correspondência parcial
+  const partialMatch = Object.keys(countryCodeMap).find(key => 
+    key.toLowerCase().includes(lowerCountry) || lowerCountry.includes(key.toLowerCase())
+  );
+  
+  if (partialMatch) return countryCodeMap[partialMatch];
+  
+  return null;
 };
 
 // Função para obter informações do país
 const getCountryInfo = (country: string) => {
-  // Primeiro, tenta encontrar uma correspondência exata
-  const exactMatch = countryFlags[country];
-  if (exactMatch) return exactMatch;
+  const countryCode = getCountryCode(country);
+  return {
+    code: countryCode,
+    name: country,
+    displayName: country
+  };
+};
+
+// Componente para renderizar bandeira do país
+interface CountryFlagProps {
+  countryName: string;
+  size?: number;
+  showName?: boolean;
+  className?: string;
+}
+
+const CountryFlag: React.FC<CountryFlagProps> = ({ 
+  countryName, 
+  size = 24, 
+  showName = true, 
+  className = "" 
+}) => {
+  const countryInfo = getCountryInfo(countryName);
   
-  // Se não encontrar, tenta encontrar uma correspondência parcial (case-insensitive)
-  const lowerCountry = country.toLowerCase();
-  const partialMatch = Object.keys(countryFlags).find(key => 
-    key.toLowerCase().includes(lowerCountry) || lowerCountry.includes(key.toLowerCase())
+  if (!countryInfo.code) {
+    // Fallback para países desconhecidos
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        <div 
+          className="bg-gray-300 rounded-sm flex items-center justify-center text-gray-600 text-xs font-bold"
+          style={{ width: size, height: size * 0.75 }}
+        >
+          ?
+        </div>
+        {showName && <span>{countryInfo.displayName}</span>}
+      </div>
+    );
+  }
+  
+  return (
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div style={{ width: size, height: size * 0.75 }} className="flex-shrink-0">
+        <Flag 
+          code={countryInfo.code} 
+          style={{ 
+            width: '100%', 
+            height: '100%', 
+            objectFit: 'cover',
+            borderRadius: '2px',
+            display: 'block'
+          }}
+          alt={`${countryInfo.displayName} flag`}
+        />
+      </div>
+      {showName && <span>{countryInfo.displayName}</span>}
+    </div>
   );
-  
-  if (partialMatch) return countryFlags[partialMatch];
-  
-  // Se não encontrar nenhuma correspondência, retorna um ícone genérico
-  return { flag: '🏳️', name: country };
 };
 
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
@@ -296,22 +361,19 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
               </div>
               {result.paises_registrados && result.paises_registrados.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {result.paises_registrados.map((pais, index) => {
-                    const countryInfo = getCountryInfo(pais);
-                    return (
-                      <div key={index} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl" role="img" aria-label={`Bandeira ${countryInfo.name}`}>
-                            {countryInfo.flag}
-                          </span>
-                          <div className="flex-1">
-                            <span className="font-medium text-gray-900 block">{countryInfo.name}</span>
-                            <span className="text-sm text-green-600 font-medium">✓ Registrado</span>
-                          </div>
-                        </div>
+                  {result.paises_registrados.map((pais, index) => (
+                    <div key={index} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
+                      <CountryFlag
+                        countryName={pais}
+                        size={32}
+                        showName={true}
+                        className="items-center"
+                      />
+                      <div className="mt-2">
+                        <span className="text-sm text-green-600 font-medium">✓ Registrado</span>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="bg-white p-6 rounded-lg border text-center">
