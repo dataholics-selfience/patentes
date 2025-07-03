@@ -13,6 +13,40 @@
     
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Plataforma especializada em consulta e análise de patentes farmacêuticas. Verifique status de patentes, países registrados e riscos regulatórios." />
+    
+    <!-- Language detection script -->
+    <script>
+      // Detect and set initial language
+      function detectLanguage() {
+        const saved = localStorage.getItem('language');
+        if (saved && ['pt', 'en', 'fr', 'it', 'es'].includes(saved)) {
+          return saved;
+        }
+        
+        const browserLang = navigator.language.toLowerCase();
+        if (browserLang.startsWith('pt')) return 'pt';
+        if (browserLang.startsWith('en')) return 'en';
+        if (browserLang.startsWith('fr')) return 'fr';
+        if (browserLang.startsWith('it')) return 'it';
+        if (browserLang.startsWith('es')) return 'es';
+        
+        return 'pt'; // default
+      }
+      
+      const lang = detectLanguage();
+      document.documentElement.lang = lang;
+      
+      // Set title based on language
+      const titles = {
+        pt: 'Consulta de Patentes - Análise inteligente de propriedade intelectual farmacêutica',
+        en: 'Patent Consultation - Intelligent pharmaceutical intellectual property analysis',
+        fr: 'Consultation de Brevets - Analyse intelligente de la propriété intellectuelle pharmaceutique',
+        it: 'Consultazione Brevetti - Analisi intelligente della proprietà intellettuale farmaceutica',
+        es: 'Consulta de Patentes - Análisis inteligente de propiedad intelectual farmacéutica'
+      };
+      
+      document.title = titles[lang] || titles.pt;
+    </script>
   </head>
   <body class="bg-white text-gray-900">
     <div id="root"></div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { LanguageProvider } from './utils/i18n';
 import Layout from './components/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
@@ -51,49 +52,51 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/home" element={<LandingPage />} />
-        <Route path="/terms" element={<Terms />} />
-        
-        {/* Auth routes */}
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/verify-email" element={<EmailVerification />} />
-        <Route path="/account-deleted" element={<AccountDeleted />} />
-        
-        {/* Protected routes */}
-        <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
-        <Route path="/plans" element={<Plans />} />
-        <Route path="/dashboard" element={
-          user ? (
-            user.emailVerified ? (
-              <Layout />
+    <LanguageProvider>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/home" element={<LandingPage />} />
+          <Route path="/terms" element={<Terms />} />
+          
+          {/* Auth routes */}
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/account-deleted" element={<AccountDeleted />} />
+          
+          {/* Protected routes */}
+          <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/dashboard" element={
+            user ? (
+              user.emailVerified ? (
+                <Layout />
+              ) : (
+                <Navigate to="/verify-email" replace />
+              )
             ) : (
-              <Navigate to="/verify-email" replace />
+              <Navigate to="/login" replace />
             )
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        
-        {/* Default routes */}
-        <Route path="/" element={
-          user ? (
-            user.emailVerified ? (
-              <Navigate to="/dashboard" replace />
+          } />
+          
+          {/* Default routes */}
+          <Route path="/" element={
+            user ? (
+              user.emailVerified ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Navigate to="/verify-email" replace />
+              )
             ) : (
-              <Navigate to="/verify-email" replace />
+              <LandingPage />
             )
-          ) : (
-            <LandingPage />
-          )
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </LanguageProvider>
   );
 }
 

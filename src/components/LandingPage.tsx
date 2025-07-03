@@ -5,10 +5,13 @@ import {
   ArrowRight, Phone, Mail, Globe, Zap, Target, Award,
   MessageCircle, Star, ChevronRight
 } from 'lucide-react';
+import { useTranslation } from '../utils/i18n';
+import { CountryFlag } from '../utils/countryFlags';
+import LanguageSelector from './LanguageSelector';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -33,50 +36,50 @@ const LandingPage = () => {
   const features = [
     {
       icon: Shield,
-      title: "Verificação Instantânea de Patentes",
+      title: t.instantVerification,
       description: "Consulte o status de patentes farmacêuticas em segundos, evitando riscos jurídicos e multas milionárias."
     },
     {
       icon: Clock,
-      title: "Acelere seu P&D",
+      title: t.accelerateRD,
       description: "Reduza o tempo de pesquisa e desenvolvimento identificando rapidamente oportunidades de mercado."
     },
     {
       icon: TrendingUp,
-      title: "Economia Garantida",
+      title: t.guaranteedSavings,
       description: "Elimine a necessidade de consultorias caras. Nossa IA oferece análises precisas por uma fração do custo."
     },
     {
       icon: Globe,
-      title: "Cobertura Internacional",
+      title: t.internationalCoverage,
       description: "Acesse informações de patentes de múltiplos países e jurisdições em uma única plataforma."
     },
     {
       icon: Target,
-      title: "Análise de Riscos",
+      title: t.riskAnalysis,
       description: "Identifique riscos regulatórios e éticos antes de investir em desenvolvimento de produtos."
     },
     {
       icon: Zap,
-      title: "Alternativas Inteligentes",
+      title: t.smartAlternatives,
       description: "Descubra compostos análogos e alternativas viáveis para seus projetos de inovação."
     }
   ];
 
   const benefits = [
-    "Evite processos judiciais custosos por violação de patentes",
-    "Reduza custos de consultoria em até 90%",
-    "Acelere o time-to-market de novos produtos",
-    "Identifique oportunidades de mercado inexploradas",
-    "Minimize riscos regulatórios e éticos",
-    "Otimize investimentos em P&D"
+    t.avoidLawsuits,
+    t.reduceCosts,
+    t.accelerateTimeToMarket,
+    t.identifyOpportunities,
+    t.minimizeRisks,
+    t.optimizeInvestments
   ];
 
   const stats = [
-    { number: "10,000+", label: "Consultas Realizadas" },
-    { number: "500+", label: "Empresas Atendidas" },
-    { number: "95%", label: "Precisão das Análises" },
-    { number: "24/7", label: "Disponibilidade" }
+    { number: "10,000+", label: t.consultationsPerformed },
+    { number: "500+", label: t.companiesServed },
+    { number: "95%", label: t.analysisAccuracy },
+    { number: "24/7", label: t.availability }
   ];
 
   const patentAgencies = [
@@ -85,7 +88,7 @@ const LandingPage = () => {
       country: "Brasil",
       logo: "/inpi-logo-1.jpeg",
       alt: "INPI Brasil",
-      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+      size: "extra-reduced"
     },
     {
       name: "United States Patent and Trademark Office",
@@ -99,7 +102,7 @@ const LandingPage = () => {
       country: "Europa",
       logo: "/epto-logo-3.png",
       alt: "EPO",
-      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+      size: "extra-reduced"
     },
     {
       name: "World Intellectual Property Organization",
@@ -118,20 +121,21 @@ const LandingPage = () => {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
               <FlaskConical size={32} className="text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">Consulta de Patentes</span>
+              <span className="text-2xl font-bold text-gray-900">{t.patentConsultation}</span>
             </div>
             <div className="flex items-center gap-4">
+              <LanguageSelector />
               <Link 
                 to="/login" 
                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
-                Entrar
+                {t.login}
               </Link>
               <Link 
                 to="/register" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Começar Grátis
+                {t.startFree}
               </Link>
             </div>
           </div>
@@ -144,14 +148,10 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Verifique Patentes
-                <span className="text-blue-600"> Farmacêuticas</span>
-                <br />em Segundos
+                {t.landingTitle}
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Proteja sua empresa de riscos jurídicos, acelere seu P&D e economize milhões 
-                em consultorias com nossa plataforma de inteligência artificial especializada 
-                em propriedade intelectual farmacêutica.
+                {t.landingDescription}
               </p>
               
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -168,7 +168,7 @@ const LandingPage = () => {
                   disabled={isSubmitting}
                   className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Processando...' : 'Começar Grátis'}
+                  {isSubmitting ? 'Processando...' : t.startFree}
                   <ArrowRight size={20} />
                 </button>
               </form>
@@ -178,7 +178,7 @@ const LandingPage = () => {
               )}
               
               <p className="text-sm text-gray-500">
-                ✅ 100 consultas gratuitas • ✅ Sem cartão de crédito • ✅ Acesso imediato
+                ✅ {t.freeConsultations} • ✅ {t.noCreditCard} • ✅ {t.immediateAccess}
               </p>
             </div>
             
@@ -223,7 +223,7 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Conectado às Principais Agências de Patentes Mundiais
+              {t.connectedToAgencies}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Nossa plataforma consulta dados em tempo real das mais importantes 
@@ -239,13 +239,15 @@ const LandingPage = () => {
                     src={agency.logo}
                     alt={agency.alt}
                     className={`max-h-full max-w-full object-contain ${
-                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : 
                       agency.size === 'reduced' ? 'scale-80' : ''
                     }`}
                   />
                 </div>
-                <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
-                <p className="text-xs text-gray-600">{agency.country}</p>
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">{agency.name}</h3>
+                <div className="flex items-center justify-center">
+                  <CountryFlag countryName={agency.country} size={20} showName={true} />
+                </div>
               </div>
             ))}
           </div>
@@ -257,15 +259,15 @@ const LandingPage = () => {
             <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span>Dados em tempo real</span>
+                <span>{t.realTimeData}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Cobertura global</span>
+                <span>{t.globalCoverage}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span>APIs oficiais</span>
+                <span>{t.officialApis}</span>
               </div>
             </div>
           </div>
@@ -365,7 +367,7 @@ const LandingPage = () => {
               to="/register" 
               className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors font-semibold inline-flex items-center gap-2"
             >
-              Começar Grátis Agora
+              {t.startFree}
               <ArrowRight size={20} />
             </Link>
             <a 
@@ -388,11 +390,10 @@ const LandingPage = () => {
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 <FlaskConical size={32} className="text-blue-400" />
-                <span className="text-2xl font-bold">Consulta de Patentes</span>
+                <span className="text-2xl font-bold">{t.patentConsultation}</span>
               </div>
               <p className="text-gray-400 mb-6">
-                Plataforma de inteligência artificial especializada em análise de patentes 
-                farmacêuticas, protegendo empresas e acelerando a inovação.
+                {t.platformDescription}
               </p>
               <div className="flex items-center gap-4">
                 <a 
@@ -408,20 +409,20 @@ const LandingPage = () => {
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Produto</h3>
+              <h3 className="text-lg font-semibold mb-4">{t.product}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/register" className="hover:text-white transition-colors">Começar Grátis</Link></li>
-                <li><Link to="/plans" className="hover:text-white transition-colors">Planos</Link></li>
-                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Suporte</a></li>
+                <li><Link to="/register" className="hover:text-white transition-colors">{t.startFree}</Link></li>
+                <li><Link to="/plans" className="hover:text-white transition-colors">{t.plans}</Link></li>
+                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{t.support}</a></li>
               </ul>
             </div>
             
             <div>
               <h3 className="text-lg font-semibold mb-4">Empresa</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contato</a></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Termos de Uso</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Privacidade</Link></li>
+                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{t.contact}</a></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">{t.termsOfUse}</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">{t.privacy}</Link></li>
               </ul>
             </div>
           </div>
@@ -429,7 +430,7 @@ const LandingPage = () => {
           {/* Patent Agencies Logos in Footer */}
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="text-center mb-6">
-              <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Agências de Patentes</h4>
+              <h4 className="text-lg font-semibold text-gray-300 mb-4">{t.connectedToAgencies}</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-items-center">
                 {patentAgencies.map((agency, index) => (
                   <div key={index} className="bg-white p-3 rounded-lg">
@@ -437,7 +438,7 @@ const LandingPage = () => {
                       src={agency.logo}
                       alt={agency.alt}
                       className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
-                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : 
                         agency.size === 'reduced' ? 'scale-80' : ''
                       }`}
                     />
@@ -447,7 +448,7 @@ const LandingPage = () => {
             </div>
             
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+              <p>&copy; 2025 {t.patentConsultation}. {t.allRightsReserved}.</p>
             </div>
           </div>
         </div>

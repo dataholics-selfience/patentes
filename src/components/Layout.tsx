@@ -8,8 +8,11 @@ import TokenUsageChart from './TokenUsageChart';
 import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '../utils/i18n';
+import LanguageSelector from './LanguageSelector';
 
 const Layout = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -210,7 +213,7 @@ const Layout = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-blue-600 text-lg">Carregando...</div>
+        <div className="animate-pulse text-blue-600 text-lg">{t.loading}...</div>
       </div>
     );
   }
@@ -229,17 +232,18 @@ const Layout = () => {
             </button>
             <div className="flex items-center gap-3">
               <FlaskConical size={32} className="text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t.appName}</h1>
             </div>
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
+            <LanguageSelector />
             <Link
               to="/plans"
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <CreditCard size={16} />
-              Planos
+              {t.plans}
             </Link>
             <UserProfile />
             <button
@@ -256,7 +260,7 @@ const Layout = () => {
       {showSidebar && (
         <>
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className={`fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden`}
             onClick={() => setShowSidebar(false)}
           />
           <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 lg:hidden">
@@ -264,7 +268,7 @@ const Layout = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <FlaskConical size={24} className="text-blue-600" />
-                  <span className="font-bold text-gray-900">Patentes</span>
+                  <span className="font-bold text-gray-900">{t.appName}</span>
                 </div>
                 <button
                   onClick={() => setShowSidebar(false)}
@@ -275,6 +279,9 @@ const Layout = () => {
               </div>
             </div>
             <div className="p-4 space-y-4">
+              {/* Language Selector in Sidebar */}
+              <LanguageSelector />
+              
               {/* Token Usage in Sidebar */}
               {tokenUsage && (
                 <TokenUsageChart
@@ -289,7 +296,7 @@ const Layout = () => {
                 onClick={() => setShowSidebar(false)}
               >
                 <CreditCard size={16} />
-                Planos
+                {t.plans}
               </Link>
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
@@ -299,7 +306,7 @@ const Layout = () => {
                 className="flex items-center gap-2 w-full px-4 py-2 text-red-600 hover:text-red-700 transition-colors"
               >
                 <LogOut size={16} />
-                Sair
+                {t.logout}
               </button>
             </div>
           </div>
@@ -336,7 +343,7 @@ const Layout = () => {
 
             {/* Patent Agencies Logos - Right */}
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
+              <span className="text-sm text-gray-600 hidden lg:block">{t.connectedToAgencies}:</span>
               <div className="flex items-center gap-4">
                 {patentAgencies.map((agency, index) => (
                   <div key={index} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
@@ -354,7 +361,7 @@ const Layout = () => {
 
           {/* Copyright */}
           <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
-            <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+            <p>&copy; 2025 {t.appName}. {t.allRightsReserved}.</p>
           </div>
         </div>
       </footer>
