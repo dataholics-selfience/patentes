@@ -36,7 +36,7 @@ const Plans = () => {
       tokens: 150,
       price: 5000,
       highlight: true,
-      stripeLink: 'https://buy.stripe.com/7sYfZh7uLdra4wT7aPfYY0r'
+      stripeLink: 'https://buy.stripe.com/3cI6oH6qHaeYbZlfHlfYY0u'
     },
     {
       id: 'especialista',
@@ -46,7 +46,7 @@ const Plans = () => {
       tokens: 300,
       price: 13000,
       highlight: false,
-      stripeLink: 'https://buy.stripe.com/5kQ3cvbL19aUe7t3YDfYY0s'
+      stripeLink: 'https://buy.stripe.com/eVq5kD2ar86Q3sPdzdfYY0v'
     },
     {
       id: 'diretor',
@@ -56,7 +56,7 @@ const Plans = () => {
       tokens: 700,
       price: 25000,
       highlight: false,
-      stripeLink: 'https://buy.stripe.com/bJeaEXcP50Eo2oL52HfYY0t'
+      stripeLink: 'https://buy.stripe.com/3cI9AT5mD4UE2oLan1fYY0w'
     }
   ];
 
