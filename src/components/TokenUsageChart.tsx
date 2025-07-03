@@ -67,8 +67,8 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-gray-700 font-medium">{t.tokenUsage || 'Uso de Tokens'}</span>
-        <span className="text-sm text-blue-600 font-semibold">{remainingTokens} {t.remaining || 'restantes'}</span>
+        <span className="text-sm text-gray-700 font-medium">{t.tokenUsage}</span>
+        <span className="text-sm text-blue-600 font-semibold">{remainingTokens} {t.remaining}</span>
       </div>
       
       <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -80,7 +80,7 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
 
       {formattedRenewalDate && (
         <div className="mt-2 text-xs text-gray-600">
-          {t.renewalOn || 'Renovação em'} {formattedRenewalDate}
+          {t.renewalOn} {formattedRenewalDate}
         </div>
       )}
 
@@ -88,7 +88,7 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
         to="/plans" 
         className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
       >
-        {t.upgradePlan || 'Atualizar plano'}
+        {t.upgradePlan}
       </Link>
     </div>
   );

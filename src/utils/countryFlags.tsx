@@ -158,8 +158,70 @@ const countryCodeMap: { [key: string]: string } = {
   'Unión Europea': 'EU'
 };
 
+// Function to parse countries from text - IMPROVED to extract ALL countries
+export const parseCountriesFromText = (countriesText: string): string[] => {
+  if (!countriesText || typeof countriesText !== 'string') {
+    return [];
+  }
+
+  // Remove common suffixes that don't represent countries
+  let cleanText = countriesText
+    .replace(/,?\s*(mas\s+já\s+expiradas?|but\s+already\s+expired|mais\s+déjà\s+expirées?|ma\s+già\s+scadute?|pero\s+ya\s+expiradas?)\s*\.?\s*$/i, '')
+    .replace(/,?\s*(entre\s+outros?|among\s+others?|entre\s+autres?|tra\s+gli\s+altri|entre\s+otros?)\s*\.?\s*$/i, '')
+    .trim();
+
+  // Split by common separators
+  const separators = [',', ';', ' e ', ' and ', ' et ', ' y ', ' und ', ' en ', ' og '];
+  let countries = [cleanText];
+  
+  separators.forEach(separator => {
+    countries = countries.flatMap(country => 
+      country.split(separator).map(c => c.trim())
+    );
+  });
+
+  // Clean up each country name
+  const cleanedCountries = countries
+    .map(country => {
+      return country
+        .replace(/^\s*-\s*/, '') // Remove leading dashes
+        .replace(/\s*\(.*?\)\s*/g, '') // Remove parentheses content
+        .replace(/\s*\[.*?\]\s*/g, '') // Remove brackets content
+        .trim();
+    })
+    .filter(country => {
+      // Filter out empty strings and common non-country phrases
+      if (!country || country.length < 2) return false;
+      
+      const lowerCountry = country.toLowerCase();
+      const excludePatterns = [
+        /^diversos\s+outros?\s+países?/i,
+        /^various\s+other\s+countries?/i,
+        /^divers\s+autres\s+pays/i,
+        /^vari\s+altri\s+paesi/i,
+        /^varios\s+otros\s+países/i,
+        /^outros?\s+países?/i,
+        /^other\s+countries?/i,
+        /^autres?\s+pays/i,
+        /^altri\s+paesi/i,
+        /^otros?\s+países/i,
+        /^etc\.?$/i,
+        /^e\s+outros?$/i,
+        /^and\s+others?$/i,
+        /^et\s+autres?$/i,
+        /^y\s+otros?$/i
+      ];
+      
+      return !excludePatterns.some(pattern => pattern.test(country));
+    });
+
+  return cleanedCountries;
+};
+
 // Function to get country code from country name
 export const getCountryCode = (countryName: string): string | null => {
+  if (!countryName) return null;
+  
   // First try exact match
   const exactMatch = countryCodeMap[countryName];
   if (exactMatch) return exactMatch;
@@ -328,6 +390,46 @@ export const CountryFlag: React.FC<CountryFlagProps> = ({
         />
       </div>
       {showName && <span>{translatedName}</span>}
+    </div>
+  );
+};
+
+// Component to render ALL countries from text - NO LIMITS
+interface CountryFlagsFromTextProps {
+  countriesText: string;
+  size?: number;
+  showNames?: boolean;
+  className?: string;
+}
+
+export const CountryFlagsFromText: React.FC<CountryFlagsFromTextProps> = ({
+  countriesText,
+  size = 24,
+  showNames = true,
+  className = ""
+}) => {
+  const countries = parseCountriesFromText(countriesText);
+  
+  if (countries.length === 0) {
+    return (
+      <div className={`text-gray-500 ${className}`}>
+        Nenhum país identificado
+      </div>
+    );
+  }
+
+  // SHOW ALL COUNTRIES - NO LIMITS
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {countries.map((country, index) => (
+        <CountryFlag
+          key={index}
+          countryName={country}
+          size={size}
+          showName={showNames}
+          className="mb-1"
+        />
+      ))}
     </div>
   );
 };

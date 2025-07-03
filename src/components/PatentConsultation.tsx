@@ -4,7 +4,7 @@ import { PatentResultType, TokenUsageType } from '../types';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation, getLanguageTag } from '../utils/i18n.tsx';
-import { CountryFlag } from '../utils/countryFlags';
+import { CountryFlagsFromText } from '../utils/countryFlags';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -191,18 +191,21 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 <h3 className="text-xl font-bold text-gray-900">{t.registeredCountries}</h3>
               </div>
               {result.paises_registrados && result.paises_registrados.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {result.paises_registrados.map((pais, index) => (
-                    <div key={index} className="bg-white p-4 rounded-lg border hover:shadow-md transition-shadow">
-                      <div className="flex items-center gap-3">
-                        <CountryFlag countryName={pais} size={32} showName={false} />
-                        <div className="flex-1">
-                          <span className="font-medium text-gray-900 block">{pais}</span>
-                          <span className="text-sm text-green-600 font-medium">✓ Registrado</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="bg-white p-4 rounded-lg border">
+                  {/* Handle both array and string formats */}
+                  {Array.isArray(result.paises_registrados) ? (
+                    <CountryFlagsFromText 
+                      countriesText={result.paises_registrados.join(', ')} 
+                      size={24} 
+                      showNames={true}
+                    />
+                  ) : (
+                    <CountryFlagsFromText 
+                      countriesText={result.paises_registrados} 
+                      size={24} 
+                      showNames={true}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="bg-white p-6 rounded-lg border text-center">

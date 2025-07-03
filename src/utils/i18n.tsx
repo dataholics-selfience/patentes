@@ -117,17 +117,83 @@ interface Translations {
   privacy: string;
   allRightsReserved: string;
   
-  // Plans
+  // Plans - EXPANDED
   planPesquisador: string;
   planAnalista: string;
   planEspecialista: string;
   planDiretor: string;
+  planPesquisadorDescription: string;
+  planAnalistaDescription: string;
+  planEspecialistaDescription: string;
+  planDiretorDescription: string;
+  choosePlan: string;
+  unlockPowerDescription: string;
+  mostPopular: string;
+  free: string;
+  consultations: string;
+  initialPlan: string;
+  currentPlan: string;
+  startNow: string;
+  researcherPlanError: string;
+  errorProcessingRequest: string;
+  securePayment: string;
+  pciCertified: string;
+  fraudProtection: string;
   
   // Support
   whatsappSupport: string;
   
   // Footer
   copyright: string;
+  
+  // Sidebar
+  newChallenge: string;
+  pipelineCRM: string;
+  challenges: string;
+  
+  // Countries
+  brazil: string;
+  unitedStates: string;
+  germany: string;
+  france: string;
+  unitedKingdom: string;
+  japan: string;
+  china: string;
+  southKorea: string;
+  canada: string;
+  australia: string;
+  india: string;
+  italy: string;
+  spain: string;
+  netherlands: string;
+  switzerland: string;
+  sweden: string;
+  norway: string;
+  denmark: string;
+  finland: string;
+  belgium: string;
+  austria: string;
+  portugal: string;
+  mexico: string;
+  argentina: string;
+  chile: string;
+  colombia: string;
+  peru: string;
+  uruguay: string;
+  russia: string;
+  southAfrica: string;
+  israel: string;
+  singapore: string;
+  thailand: string;
+  malaysia: string;
+  indonesia: string;
+  philippines: string;
+  vietnam: string;
+  taiwan: string;
+  hongKong: string;
+  newZealand: string;
+  europeanUnion: string;
+  international: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -240,17 +306,83 @@ const translations: Record<Language, Translations> = {
     privacy: 'Privacidade',
     allRightsReserved: 'Todos os direitos reservados',
     
-    // Plans
+    // Plans - EXPANDED
     planPesquisador: 'Pesquisador',
     planAnalista: 'Analista',
     planEspecialista: 'Especialista',
     planDiretor: 'Diretor',
+    planPesquisadorDescription: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
+    planAnalistaDescription: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
+    planEspecialistaDescription: 'Plano para especialistas em propriedade intelectual farmacêutica',
+    planDiretorDescription: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
+    choosePlan: 'Escolha seu Plano',
+    unlockPowerDescription: 'Desbloqueie o poder da análise de patentes com nossos planos especializados',
+    mostPopular: 'Mais Popular',
+    free: 'Gratuito',
+    consultations: 'consultas',
+    initialPlan: 'Plano Inicial',
+    currentPlan: 'Plano Atual',
+    startNow: 'Começar Agora',
+    researcherPlanError: 'O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.',
+    errorProcessingRequest: 'Erro ao processar sua solicitação. Por favor, tente novamente.',
+    securePayment: 'Pagamento Seguro',
+    pciCertified: 'Certificado PCI DSS',
+    fraudProtection: 'Proteção Antifraude',
     
     // Support
     whatsappSupport: 'Suporte via WhatsApp',
     
     // Footer
-    copyright: '© 2025 Consulta de Patentes. Todos os direitos reservados.'
+    copyright: '© 2025 Consulta de Patentes. Todos os direitos reservados.',
+    
+    // Sidebar
+    newChallenge: 'Novo Desafio',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Desafios',
+    
+    // Countries
+    brazil: 'Brasil',
+    unitedStates: 'Estados Unidos',
+    germany: 'Alemanha',
+    france: 'França',
+    unitedKingdom: 'Reino Unido',
+    japan: 'Japão',
+    china: 'China',
+    southKorea: 'Coreia do Sul',
+    canada: 'Canadá',
+    australia: 'Austrália',
+    india: 'Índia',
+    italy: 'Itália',
+    spain: 'Espanha',
+    netherlands: 'Holanda',
+    switzerland: 'Suíça',
+    sweden: 'Suécia',
+    norway: 'Noruega',
+    denmark: 'Dinamarca',
+    finland: 'Finlândia',
+    belgium: 'Bélgica',
+    austria: 'Áustria',
+    portugal: 'Portugal',
+    mexico: 'México',
+    argentina: 'Argentina',
+    chile: 'Chile',
+    colombia: 'Colômbia',
+    peru: 'Peru',
+    uruguay: 'Uruguai',
+    russia: 'Rússia',
+    southAfrica: 'África do Sul',
+    israel: 'Israel',
+    singapore: 'Singapura',
+    thailand: 'Tailândia',
+    malaysia: 'Malásia',
+    indonesia: 'Indonésia',
+    philippines: 'Filipinas',
+    vietnam: 'Vietnã',
+    taiwan: 'Taiwan',
+    hongKong: 'Hong Kong',
+    newZealand: 'Nova Zelândia',
+    europeanUnion: 'União Europeia',
+    international: 'Internacional'
   },
   
   en: {
@@ -362,17 +494,83 @@ const translations: Record<Language, Translations> = {
     privacy: 'Privacy',
     allRightsReserved: 'All rights reserved',
     
-    // Plans
+    // Plans - EXPANDED
     planPesquisador: 'Researcher',
     planAnalista: 'Analyst',
     planEspecialista: 'Specialist',
     planDiretor: 'Director',
+    planPesquisadorDescription: 'Initial plan for researchers starting their patent analysis',
+    planAnalistaDescription: 'Plan for analysts who need regular pharmaceutical patent consultations',
+    planEspecialistaDescription: 'Plan for pharmaceutical intellectual property specialists',
+    planDiretorDescription: 'Plan for R&D directors managing extensive patent portfolios',
+    choosePlan: 'Choose Your Plan',
+    unlockPowerDescription: 'Unlock the power of patent analysis with our specialized plans',
+    mostPopular: 'Most Popular',
+    free: 'Free',
+    consultations: 'consultations',
+    initialPlan: 'Initial Plan',
+    currentPlan: 'Current Plan',
+    startNow: 'Start Now',
+    researcherPlanError: 'The Researcher plan is the initial plan and cannot be purchased. Please choose another plan.',
+    errorProcessingRequest: 'Error processing your request. Please try again.',
+    securePayment: 'Secure Payment',
+    pciCertified: 'PCI DSS Certified',
+    fraudProtection: 'Fraud Protection',
     
     // Support
     whatsappSupport: 'WhatsApp Support',
     
     // Footer
-    copyright: '© 2025 Patent Consultation. All rights reserved.'
+    copyright: '© 2025 Patent Consultation. All rights reserved.',
+    
+    // Sidebar
+    newChallenge: 'New Challenge',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Challenges',
+    
+    // Countries
+    brazil: 'Brazil',
+    unitedStates: 'United States',
+    germany: 'Germany',
+    france: 'France',
+    unitedKingdom: 'United Kingdom',
+    japan: 'Japan',
+    china: 'China',
+    southKorea: 'South Korea',
+    canada: 'Canada',
+    australia: 'Australia',
+    india: 'India',
+    italy: 'Italy',
+    spain: 'Spain',
+    netherlands: 'Netherlands',
+    switzerland: 'Switzerland',
+    sweden: 'Sweden',
+    norway: 'Norway',
+    denmark: 'Denmark',
+    finland: 'Finland',
+    belgium: 'Belgium',
+    austria: 'Austria',
+    portugal: 'Portugal',
+    mexico: 'Mexico',
+    argentina: 'Argentina',
+    chile: 'Chile',
+    colombia: 'Colombia',
+    peru: 'Peru',
+    uruguay: 'Uruguay',
+    russia: 'Russia',
+    southAfrica: 'South Africa',
+    israel: 'Israel',
+    singapore: 'Singapore',
+    thailand: 'Thailand',
+    malaysia: 'Malaysia',
+    indonesia: 'Indonesia',
+    philippines: 'Philippines',
+    vietnam: 'Vietnam',
+    taiwan: 'Taiwan',
+    hongKong: 'Hong Kong',
+    newZealand: 'New Zealand',
+    europeanUnion: 'European Union',
+    international: 'International'
   },
   
   fr: {
@@ -484,17 +682,83 @@ const translations: Record<Language, Translations> = {
     privacy: 'Confidentialité',
     allRightsReserved: 'Tous droits réservés',
     
-    // Plans
+    // Plans - EXPANDED
     planPesquisador: 'Chercheur',
     planAnalista: 'Analyste',
     planEspecialista: 'Spécialiste',
     planDiretor: 'Directeur',
+    planPesquisadorDescription: 'Plan initial pour les chercheurs commençant leur analyse de brevets',
+    planAnalistaDescription: 'Plan pour les analystes nécessitant des consultations régulières de brevets pharmaceutiques',
+    planEspecialistaDescription: 'Plan pour les spécialistes en propriété intellectuelle pharmaceutique',
+    planDiretorDescription: 'Plan pour les directeurs R&D gérant des portefeuilles étendus de brevets',
+    choosePlan: 'Choisissez Votre Plan',
+    unlockPowerDescription: 'Débloquez la puissance de l\'analyse de brevets avec nos plans spécialisés',
+    mostPopular: 'Plus Populaire',
+    free: 'Gratuit',
+    consultations: 'consultations',
+    initialPlan: 'Plan Initial',
+    currentPlan: 'Plan Actuel',
+    startNow: 'Commencer Maintenant',
+    researcherPlanError: 'Le plan Chercheur est le plan initial et ne peut pas être acheté. Veuillez choisir un autre plan.',
+    errorProcessingRequest: 'Erreur lors du traitement de votre demande. Veuillez réessayer.',
+    securePayment: 'Paiement Sécurisé',
+    pciCertified: 'Certifié PCI DSS',
+    fraudProtection: 'Protection Antifraude',
     
     // Support
     whatsappSupport: 'Support WhatsApp',
     
     // Footer
-    copyright: '© 2025 Consultation de Brevets. Tous droits réservés.'
+    copyright: '© 2025 Consultation de Brevets. Tous droits réservés.',
+    
+    // Sidebar
+    newChallenge: 'Nouveau Défi',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Défis',
+    
+    // Countries
+    brazil: 'Brésil',
+    unitedStates: 'États-Unis',
+    germany: 'Allemagne',
+    france: 'France',
+    unitedKingdom: 'Royaume-Uni',
+    japan: 'Japon',
+    china: 'Chine',
+    southKorea: 'Corée du Sud',
+    canada: 'Canada',
+    australia: 'Australie',
+    india: 'Inde',
+    italy: 'Italie',
+    spain: 'Espagne',
+    netherlands: 'Pays-Bas',
+    switzerland: 'Suisse',
+    sweden: 'Suède',
+    norway: 'Norvège',
+    denmark: 'Danemark',
+    finland: 'Finlande',
+    belgium: 'Belgique',
+    austria: 'Autriche',
+    portugal: 'Portugal',
+    mexico: 'Mexique',
+    argentina: 'Argentine',
+    chile: 'Chili',
+    colombia: 'Colombie',
+    peru: 'Pérou',
+    uruguay: 'Uruguay',
+    russia: 'Russie',
+    southAfrica: 'Afrique du Sud',
+    israel: 'Israël',
+    singapore: 'Singapour',
+    thailand: 'Thaïlande',
+    malaysia: 'Malaisie',
+    indonesia: 'Indonésie',
+    philippines: 'Philippines',
+    vietnam: 'Vietnam',
+    taiwan: 'Taiwan',
+    hongKong: 'Hong Kong',
+    newZealand: 'Nouvelle-Zélande',
+    europeanUnion: 'Union Européenne',
+    international: 'International'
   },
   
   it: {
@@ -606,17 +870,83 @@ const translations: Record<Language, Translations> = {
     privacy: 'Privacy',
     allRightsReserved: 'Tutti i diritti riservati',
     
-    // Plans
+    // Plans - EXPANDED
     planPesquisador: 'Ricercatore',
     planAnalista: 'Analista',
     planEspecialista: 'Specialista',
     planDiretor: 'Direttore',
+    planPesquisadorDescription: 'Piano iniziale per ricercatori che iniziano la loro analisi di brevetti',
+    planAnalistaDescription: 'Piano per analisti che necessitano di consultazioni regolari di brevetti farmaceutici',
+    planEspecialistaDescription: 'Piano per specialisti in proprietà intellettuale farmaceutica',
+    planDiretorDescription: 'Piano per direttori R&S che gestiscono portafogli estesi di brevetti',
+    choosePlan: 'Scegli il Tuo Piano',
+    unlockPowerDescription: 'Sblocca il potere dell\'analisi di brevetti con i nostri piani specializzati',
+    mostPopular: 'Più Popolare',
+    free: 'Gratuito',
+    consultations: 'consultazioni',
+    initialPlan: 'Piano Iniziale',
+    currentPlan: 'Piano Attuale',
+    startNow: 'Inizia Ora',
+    researcherPlanError: 'Il piano Ricercatore è il piano iniziale e non può essere acquistato. Scegli un altro piano.',
+    errorProcessingRequest: 'Errore nell\'elaborazione della richiesta. Riprova.',
+    securePayment: 'Pagamento Sicuro',
+    pciCertified: 'Certificato PCI DSS',
+    fraudProtection: 'Protezione Antifrode',
     
     // Support
     whatsappSupport: 'Supporto WhatsApp',
     
     // Footer
-    copyright: '© 2025 Consultazione Brevetti. Tutti i diritti riservati.'
+    copyright: '© 2025 Consultazione Brevetti. Tutti i diritti riservati.',
+    
+    // Sidebar
+    newChallenge: 'Nuova Sfida',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Sfide',
+    
+    // Countries
+    brazil: 'Brasile',
+    unitedStates: 'Stati Uniti',
+    germany: 'Germania',
+    france: 'Francia',
+    unitedKingdom: 'Regno Unito',
+    japan: 'Giappone',
+    china: 'Cina',
+    southKorea: 'Corea del Sud',
+    canada: 'Canada',
+    australia: 'Australia',
+    india: 'India',
+    italy: 'Italia',
+    spain: 'Spagna',
+    netherlands: 'Paesi Bassi',
+    switzerland: 'Svizzera',
+    sweden: 'Svezia',
+    norway: 'Norvegia',
+    denmark: 'Danimarca',
+    finland: 'Finlandia',
+    belgium: 'Belgio',
+    austria: 'Austria',
+    portugal: 'Portogallo',
+    mexico: 'Messico',
+    argentina: 'Argentina',
+    chile: 'Cile',
+    colombia: 'Colombia',
+    peru: 'Perù',
+    uruguay: 'Uruguay',
+    russia: 'Russia',
+    southAfrica: 'Sudafrica',
+    israel: 'Israele',
+    singapore: 'Singapore',
+    thailand: 'Tailandia',
+    malaysia: 'Malesia',
+    indonesia: 'Indonesia',
+    philippines: 'Filippine',
+    vietnam: 'Vietnam',
+    taiwan: 'Taiwan',
+    hongKong: 'Hong Kong',
+    newZealand: 'Nuova Zelanda',
+    europeanUnion: 'Unione Europea',
+    international: 'Internazionale'
   },
   
   es: {
@@ -728,17 +1058,83 @@ const translations: Record<Language, Translations> = {
     privacy: 'Privacidad',
     allRightsReserved: 'Todos los derechos reservados',
     
-    // Plans
+    // Plans - EXPANDED
     planPesquisador: 'Investigador',
     planAnalista: 'Analista',
     planEspecialista: 'Especialista',
     planDiretor: 'Director',
+    planPesquisadorDescription: 'Plan inicial para investigadores que comienzan su análisis de patentes',
+    planAnalistaDescription: 'Plan para analistas que necesitan consultas regulares de patentes farmacéuticas',
+    planEspecialistaDescription: 'Plan para especialistas en propiedad intelectual farmacéutica',
+    planDiretorDescription: 'Plan para directores de I+D que gestionan carteras extensas de patentes',
+    choosePlan: 'Elige Tu Plan',
+    unlockPowerDescription: 'Desbloquea el poder del análisis de patentes con nuestros planes especializados',
+    mostPopular: 'Más Popular',
+    free: 'Gratuito',
+    consultations: 'consultas',
+    initialPlan: 'Plan Inicial',
+    currentPlan: 'Plan Actual',
+    startNow: 'Comenzar Ahora',
+    researcherPlanError: 'El plan Investigador es el plan inicial y no se puede comprar. Elige otro plan.',
+    errorProcessingRequest: 'Error al procesar tu solicitud. Inténtalo de nuevo.',
+    securePayment: 'Pago Seguro',
+    pciCertified: 'Certificado PCI DSS',
+    fraudProtection: 'Protección Antifraude',
     
     // Support
     whatsappSupport: 'Soporte WhatsApp',
     
     // Footer
-    copyright: '© 2025 Consulta de Patentes. Todos los derechos reservados.'
+    copyright: '© 2025 Consulta de Patentes. Todos los derechos reservados.',
+    
+    // Sidebar
+    newChallenge: 'Nuevo Desafío',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Desafíos',
+    
+    // Countries
+    brazil: 'Brasil',
+    unitedStates: 'Estados Unidos',
+    germany: 'Alemania',
+    france: 'Francia',
+    unitedKingdom: 'Reino Unido',
+    japan: 'Japón',
+    china: 'China',
+    southKorea: 'Corea del Sur',
+    canada: 'Canadá',
+    australia: 'Australia',
+    india: 'India',
+    italy: 'Italia',
+    spain: 'España',
+    netherlands: 'Países Bajos',
+    switzerland: 'Suiza',
+    sweden: 'Suecia',
+    norway: 'Noruega',
+    denmark: 'Dinamarca',
+    finland: 'Finlandia',
+    belgium: 'Bélgica',
+    austria: 'Austria',
+    portugal: 'Portugal',
+    mexico: 'México',
+    argentina: 'Argentina',
+    chile: 'Chile',
+    colombia: 'Colombia',
+    peru: 'Perú',
+    uruguay: 'Uruguay',
+    russia: 'Rusia',
+    southAfrica: 'Sudáfrica',
+    israel: 'Israel',
+    singapore: 'Singapur',
+    thailand: 'Tailandia',
+    malaysia: 'Malasia',
+    indonesia: 'Indonesia',
+    philippines: 'Filipinas',
+    vietnam: 'Vietnam',
+    taiwan: 'Taiwán',
+    hongKong: 'Hong Kong',
+    newZealand: 'Nueva Zelanda',
+    europeanUnion: 'Unión Europea',
+    international: 'Internacional'
   }
 };
 

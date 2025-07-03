@@ -24,7 +24,7 @@ const Plans = () => {
       id: 'pesquisador',
       name: t.planPesquisador,
       icon: Microscope,
-      description: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
+      description: t.planPesquisadorDescription || 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
       tokens: 100,
       price: 0,
       highlight: false,
@@ -34,7 +34,7 @@ const Plans = () => {
       id: 'analista',
       name: t.planAnalista,
       icon: Pill,
-      description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
+      description: t.planAnalistaDescription || 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
       tokens: 1000,
       price: 5000,
       highlight: true,
@@ -44,7 +44,7 @@ const Plans = () => {
       id: 'especialista',
       name: t.planEspecialista,
       icon: Dna,
-      description: 'Plano para especialistas em propriedade intelectual farmacêutica',
+      description: t.planEspecialistaDescription || 'Plano para especialistas em propriedade intelectual farmacêutica',
       tokens: 3000,
       price: 13000,
       highlight: false,
@@ -54,7 +54,7 @@ const Plans = () => {
       id: 'diretor',
       name: t.planDiretor,
       icon: Sparkles,
-      description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
+      description: t.planDiretorDescription || 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
       tokens: 11000,
       price: 25000,
       highlight: false,
@@ -86,7 +86,7 @@ const Plans = () => {
     }
 
     if (plan.id === 'pesquisador') {
-      setError('O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.');
+      setError(t.researcherPlanError || 'O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.');
       return;
     }
 
@@ -104,7 +104,7 @@ const Plans = () => {
       window.location.href = plan.stripeLink;
     } catch (error) {
       console.error('Error recording plan click:', error);
-      setError('Erro ao processar sua solicitação. Por favor, tente novamente.');
+      setError(t.errorProcessingRequest || 'Erro ao processar sua solicitação. Por favor, tente novamente.');
     }
   };
 
@@ -132,8 +132,8 @@ const Plans = () => {
             <ArrowLeft size={24} />
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu {t.plans}</h1>
-            <p className="text-gray-600 text-lg">Desbloqueie o poder da análise de patentes com nossos planos especializados</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">{t.choosePlan || 'Escolha seu Plano'}</h1>
+            <p className="text-gray-600 text-lg">{t.unlockPowerDescription || 'Desbloqueie o poder da análise de patentes com nossos planos especializados'}</p>
           </div>
           <div className="w-8" />
         </div>
@@ -159,7 +159,7 @@ const Plans = () => {
               >
                 {plan.highlight && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm">
-                    Mais Popular
+                    {t.mostPopular || 'Mais Popular'}
                   </div>
                 )}
                 
@@ -174,9 +174,9 @@ const Plans = () => {
                 
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-gray-900 mb-2">
-                    {plan.price === 0 ? 'Gratuito' : formatPrice(plan.price)}
+                    {plan.price === 0 ? (t.free || 'Gratuito') : formatPrice(plan.price)}
                   </div>
-                  <div className="text-blue-600">{plan.tokens} consultas</div>
+                  <div className="text-blue-600">{plan.tokens} {t.consultations || 'consultas'}</div>
                 </div>
 
                 <button
@@ -189,10 +189,10 @@ const Plans = () => {
                   }`}
                 >
                   {isPesquisador 
-                    ? 'Plano Inicial' 
+                    ? (t.initialPlan || 'Plano Inicial')
                     : isDisabled 
-                      ? 'Plano Atual' 
-                      : 'Começar Agora'
+                      ? (t.currentPlan || 'Plano Atual')
+                      : (t.startNow || 'Começar Agora')
                   }
                 </button>
               </div>
@@ -202,13 +202,13 @@ const Plans = () => {
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Shield} text="Pagamento Seguro" />
+            <SecurityBadge icon={Shield} text={t.securePayment || "Pagamento Seguro"} />
           </div>
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Lock} text="Certificado PCI DSS" />
+            <SecurityBadge icon={Lock} text={t.pciCertified || "Certificado PCI DSS"} />
           </div>
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Shield} text="Proteção Antifraude" />
+            <SecurityBadge icon={Shield} text={t.fraudProtection || "Proteção Antifraude"} />
           </div>
         </div>
       </div>
