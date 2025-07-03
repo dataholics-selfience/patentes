@@ -4,7 +4,6 @@ import { Microscope, Pill, Dna, Sparkles, ArrowLeft, Shield, Lock } from 'lucide
 import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { PlanType } from '../types';
-import { useTranslation } from '../utils/i18n';
 
 const SecurityBadge = ({ icon: Icon, text }: { icon: any; text: string }) => (
   <div className="flex items-center gap-2 text-gray-600">
@@ -14,7 +13,6 @@ const SecurityBadge = ({ icon: Icon, text }: { icon: any; text: string }) => (
 );
 
 const Plans = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
@@ -22,9 +20,9 @@ const Plans = () => {
   const plans: PlanType[] = [
     {
       id: 'pesquisador',
-      name: t.planPesquisador,
+      name: 'Pesquisador',
       icon: Microscope,
-      description: t.planPesquisadorDescription || 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
+      description: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
       tokens: 100,
       price: 0,
       highlight: false,
@@ -32,9 +30,9 @@ const Plans = () => {
     },
     {
       id: 'analista',
-      name: t.planAnalista,
+      name: 'Analista',
       icon: Pill,
-      description: t.planAnalistaDescription || 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
+      description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
       tokens: 1000,
       price: 5000,
       highlight: true,
@@ -42,9 +40,9 @@ const Plans = () => {
     },
     {
       id: 'especialista',
-      name: t.planEspecialista,
+      name: 'Especialista',
       icon: Dna,
-      description: t.planEspecialistaDescription || 'Plano para especialistas em propriedade intelectual farmacêutica',
+      description: 'Plano para especialistas em propriedade intelectual farmacêutica',
       tokens: 3000,
       price: 13000,
       highlight: false,
@@ -52,9 +50,9 @@ const Plans = () => {
     },
     {
       id: 'diretor',
-      name: t.planDiretor,
+      name: 'Diretor',
       icon: Sparkles,
-      description: t.planDiretorDescription || 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
+      description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
       tokens: 11000,
       price: 25000,
       highlight: false,
@@ -86,7 +84,7 @@ const Plans = () => {
     }
 
     if (plan.id === 'pesquisador') {
-      setError(t.researcherPlanError || 'O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.');
+      setError('O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.');
       return;
     }
 
@@ -104,7 +102,7 @@ const Plans = () => {
       window.location.href = plan.stripeLink;
     } catch (error) {
       console.error('Error recording plan click:', error);
-      setError(t.errorProcessingRequest || 'Erro ao processar sua solicitação. Por favor, tente novamente.');
+      setError('Erro ao processar sua solicitação. Por favor, tente novamente.');
     }
   };
 
@@ -132,8 +130,8 @@ const Plans = () => {
             <ArrowLeft size={24} />
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">{t.choosePlan || 'Escolha seu Plano'}</h1>
-            <p className="text-gray-600 text-lg">{t.unlockPowerDescription || 'Desbloqueie o poder da análise de patentes com nossos planos especializados'}</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu Plano</h1>
+            <p className="text-gray-600 text-lg">Desbloqueie o poder da análise de patentes com nossos planos especializados</p>
           </div>
           <div className="w-8" />
         </div>
@@ -159,7 +157,7 @@ const Plans = () => {
               >
                 {plan.highlight && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white px-4 py-1 rounded-full text-sm">
-                    {t.mostPopular || 'Mais Popular'}
+                    Mais Popular
                   </div>
                 )}
                 
@@ -174,9 +172,9 @@ const Plans = () => {
                 
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-gray-900 mb-2">
-                    {plan.price === 0 ? (t.free || 'Gratuito') : formatPrice(plan.price)}
+                    {plan.price === 0 ? 'Gratuito' : formatPrice(plan.price)}
                   </div>
-                  <div className="text-blue-600">{plan.tokens} {t.consultations || 'consultas'}</div>
+                  <div className="text-blue-600">{plan.tokens} consultas</div>
                 </div>
 
                 <button
@@ -189,10 +187,10 @@ const Plans = () => {
                   }`}
                 >
                   {isPesquisador 
-                    ? (t.initialPlan || 'Plano Inicial')
+                    ? 'Plano Inicial' 
                     : isDisabled 
-                      ? (t.currentPlan || 'Plano Atual')
-                      : (t.startNow || 'Começar Agora')
+                      ? 'Plano Atual' 
+                      : 'Começar Agora'
                   }
                 </button>
               </div>
@@ -202,13 +200,13 @@ const Plans = () => {
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Shield} text={t.securePayment || "Pagamento Seguro"} />
+            <SecurityBadge icon={Shield} text="Pagamento Seguro" />
           </div>
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Lock} text={t.pciCertified || "Certificado PCI DSS"} />
+            <SecurityBadge icon={Lock} text="Certificado PCI DSS" />
           </div>
           <div className="bg-gray-50 p-6 rounded-xl">
-            <SecurityBadge icon={Shield} text={t.fraudProtection || "Proteção Antifraude"} />
+            <SecurityBadge icon={Shield} text="Proteção Antifraude" />
           </div>
         </div>
       </div>

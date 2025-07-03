@@ -6,7 +6,6 @@ import { auth, db } from '../firebase';
 import { doc, getDoc, collection, query, where, getDocs, deleteDoc } from 'firebase/firestore';
 import UserProfile from './UserProfile';
 import LanguageSelector from './LanguageSelector';
-import TokenUsageChart from './TokenUsageChart';
 import { ChallengeType, StartupListType } from '../types';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -27,24 +26,6 @@ const Sidebar = ({ isOpen, toggleSidebar, challenges, currentChallengeId, onSele
   const [savedStartupsCount, setSavedStartupsCount] = useState(0);
   const [deletingChallengeId, setDeletingChallengeId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
-  const [tokenUsage, setTokenUsage] = useState<any>(null);
-
-  useEffect(() => {
-    const fetchTokenUsage = async () => {
-      if (!auth.currentUser) return;
-      
-      try {
-        const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
-        if (tokenDoc.exists()) {
-          setTokenUsage(tokenDoc.data());
-        }
-      } catch (error) {
-        console.error('Error fetching token usage:', error);
-      }
-    };
-
-    fetchTokenUsage();
-  }, []);
 
   useEffect(() => {
     const fetchStartupLists = async () => {
@@ -167,16 +148,6 @@ const Sidebar = ({ isOpen, toggleSidebar, challenges, currentChallengeId, onSele
         <div className="px-3 py-2 border-b border-gray-800">
           <LanguageSelector />
         </div>
-
-        {/* Token Usage Chart */}
-        {tokenUsage && (
-          <div className="px-3 py-2 border-b border-gray-800">
-            <TokenUsageChart
-              totalTokens={tokenUsage.totalTokens}
-              usedTokens={tokenUsage.usedTokens}
-            />
-          </div>
-        )}
 
         <div className="flex-1 overflow-y-auto scrollbar">
           <div className="p-3 space-y-2">
