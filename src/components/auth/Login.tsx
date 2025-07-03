@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase';
 import { FlaskConical, ArrowLeft } from 'lucide-react';
-import { useTranslation } from '../../utils/i18n';
+import { useTranslation } from '../../utils/i18n.tsx';
 
 const Login = () => {
   const { t } = useTranslation();
@@ -112,7 +112,7 @@ const Login = () => {
             </Link>
             <div className="flex items-center gap-3">
               <FlaskConical size={48} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">{t.appName}</h1>
+              <h1 className="text-3xl font-bold text-gray-900">{t.patentConsultation}</h1>
             </div>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>

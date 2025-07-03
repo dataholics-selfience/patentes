@@ -3,7 +3,7 @@ import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, 
 import { PatentResultType, TokenUsageType } from '../types';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
-import { useTranslation } from '../utils/i18n';
+import { useTranslation, getLanguageTag } from '../utils/i18n.tsx';
 import { CountryFlag } from '../utils/countryFlags';
 
 interface PatentConsultationProps {
@@ -12,7 +12,7 @@ interface PatentConsultationProps {
 }
 
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [produto, setProduto] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
@@ -30,7 +30,11 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       // Generate a unique sessionId for this consultation
       const sessionId = uuidv4().replace(/-/g, '');
       
-      const resultado = await onConsultation(produto.trim(), sessionId);
+      // Add language tag to the product name for the webhook
+      const languageTag = getLanguageTag(language);
+      const productWithLanguage = `${produto.trim()} <${languageTag}>`;
+      
+      const resultado = await onConsultation(productWithLanguage, sessionId);
       setResult(resultado);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.error);
@@ -45,7 +49,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.newConsultation}</h2>
-        <p className="text-gray-600">Digite o nome do produto ou substância para verificar o status da patente</p>
+        <p className="text-gray-600">{t.consultationPlaceholder}</p>
       </div>
 
       <div className="p-6">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, Globe } from 'lucide-react';
-import { useTranslation, Language } from '../utils/i18n';
+import { useTranslation, Language } from '../utils/i18n.tsx';
 
 const LanguageSelector = () => {
   const { t, language, setLanguage } = useTranslation();

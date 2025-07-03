@@ -8,7 +8,7 @@ import TokenUsageChart from './TokenUsageChart';
 import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from '../utils/i18n';
+import { useTranslation } from '../utils/i18n.tsx';
 import LanguageSelector from './LanguageSelector';
 
 const Layout = () => {
@@ -180,7 +180,9 @@ const Layout = () => {
       
       // Set the product name from input if not present in response
       if (!resultado.substancia || resultado.substancia === 'Produto consultado') {
-        resultado.substancia = produto;
+        // Extract the product name without the language tag
+        const productName = produto.replace(/<[^>]+>$/, '').trim();
+        resultado.substancia = productName;
       }
 
       console.log('Final resultado:', resultado);
@@ -232,7 +234,7 @@ const Layout = () => {
             </button>
             <div className="flex items-center gap-3">
               <FlaskConical size={32} className="text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">{t.appName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{t.patentConsultation}</h1>
             </div>
           </div>
           
@@ -268,7 +270,7 @@ const Layout = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <FlaskConical size={24} className="text-blue-600" />
-                  <span className="font-bold text-gray-900">{t.appName}</span>
+                  <span className="font-bold text-gray-900">{t.patentConsultation}</span>
                 </div>
                 <button
                   onClick={() => setShowSidebar(false)}
@@ -338,7 +340,7 @@ const Layout = () => {
               className="flex items-center gap-2 bg-white text-green-600 border-2 border-green-600 hover:bg-green-50 px-6 py-3 rounded-lg font-medium transition-colors"
             >
               <MessageCircle size={20} />
-              Suporte via WhatsApp
+              {t.whatsappSupport}
             </a>
 
             {/* Patent Agencies Logos - Right */}
@@ -361,7 +363,7 @@ const Layout = () => {
 
           {/* Copyright */}
           <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
-            <p>&copy; 2025 {t.appName}. {t.allRightsReserved}.</p>
+            <p>{t.copyright}</p>
           </div>
         </div>
       </footer>

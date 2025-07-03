@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { LanguageProvider } from './utils/i18n';
+import { LanguageProvider } from './utils/i18n.tsx';
 import Layout from './components/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';

@@ -4,6 +4,7 @@ import { Microscope, Pill, Dna, Sparkles, ArrowLeft, Shield, Lock } from 'lucide
 import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { PlanType } from '../types';
+import { useTranslation } from '../utils/i18n';
 
 const SecurityBadge = ({ icon: Icon, text }: { icon: any; text: string }) => (
   <div className="flex items-center gap-2 text-gray-600">
@@ -13,6 +14,7 @@ const SecurityBadge = ({ icon: Icon, text }: { icon: any; text: string }) => (
 );
 
 const Plans = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
@@ -20,7 +22,7 @@ const Plans = () => {
   const plans: PlanType[] = [
     {
       id: 'pesquisador',
-      name: 'Pesquisador',
+      name: t.planPesquisador,
       icon: Microscope,
       description: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
       tokens: 100,
@@ -30,7 +32,7 @@ const Plans = () => {
     },
     {
       id: 'analista',
-      name: 'Analista',
+      name: t.planAnalista,
       icon: Pill,
       description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
       tokens: 1000,
@@ -40,7 +42,7 @@ const Plans = () => {
     },
     {
       id: 'especialista',
-      name: 'Especialista',
+      name: t.planEspecialista,
       icon: Dna,
       description: 'Plano para especialistas em propriedade intelectual farmacêutica',
       tokens: 3000,
@@ -50,7 +52,7 @@ const Plans = () => {
     },
     {
       id: 'diretor',
-      name: 'Diretor',
+      name: t.planDiretor,
       icon: Sparkles,
       description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
       tokens: 11000,
@@ -130,7 +132,7 @@ const Plans = () => {
             <ArrowLeft size={24} />
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu Plano</h1>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu {t.plans}</h1>
             <p className="text-gray-600 text-lg">Desbloqueie o poder da análise de patentes com nossos planos especializados</p>
           </div>
           <div className="w-8" />

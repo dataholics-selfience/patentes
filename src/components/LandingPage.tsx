@@ -377,7 +377,7 @@ const LandingPage = () => {
               className="border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold inline-flex items-center gap-2"
             >
               <MessageCircle size={20} />
-              Suporte via WhatsApp
+              {t.whatsappSupport}
             </a>
           </div>
         </div>
@@ -403,7 +403,7 @@ const LandingPage = () => {
                   className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
                 >
                   <MessageCircle size={20} />
-                  Suporte via WhatsApp
+                  {t.whatsappSupport}
                 </a>
               </div>
             </div>
@@ -448,7 +448,7 @@ const LandingPage = () => {
             </div>
             
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 {t.patentConsultation}. {t.allRightsReserved}.</p>
+              <p>{t.copyright}</p>
             </div>
           </div>
         </div>
