@@ -66,11 +66,11 @@ const Layout = () => {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
     }
 
-    const CONSULTATION_TOKEN_COST = 10;
+    const CONSULTATION_TOKEN_COST = 1; // Agora cada consulta custa 1 token
     const remainingTokens = tokenUsage.totalTokens - tokenUsage.usedTokens;
     
     if (remainingTokens < CONSULTATION_TOKEN_COST) {
-      throw new Error(`Tokens insuficientes. Você possui ${remainingTokens} tokens restantes. Esta consulta custa ${CONSULTATION_TOKEN_COST} tokens.`);
+      throw new Error(`Consultas esgotadas. Você não possui consultas restantes. Adquira um novo plano para continuar.`);
     }
 
     try {

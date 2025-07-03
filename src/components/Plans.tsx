@@ -22,8 +22,8 @@ const Plans = () => {
       id: 'pesquisador',
       name: 'Pesquisador',
       icon: Microscope,
-      description: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
-      tokens: 100,
+      description: 'Plano gratuito para pesquisadores iniciantes com consultas mensais limitadas',
+      tokens: 10,
       price: 0,
       highlight: false,
       stripeLink: ''
@@ -33,7 +33,7 @@ const Plans = () => {
       name: 'Analista',
       icon: Pill,
       description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
-      tokens: 1000,
+      tokens: 150,
       price: 5000,
       highlight: true,
       stripeLink: 'https://buy.stripe.com/7sYfZh7uLdra4wT7aPfYY0r'
@@ -43,7 +43,7 @@ const Plans = () => {
       name: 'Especialista',
       icon: Dna,
       description: 'Plano para especialistas em propriedade intelectual farmacêutica',
-      tokens: 3000,
+      tokens: 300,
       price: 13000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/5kQ3cvbL19aUe7t3YDfYY0s'
@@ -53,7 +53,7 @@ const Plans = () => {
       name: 'Diretor',
       icon: Sparkles,
       description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
-      tokens: 11000,
+      tokens: 700,
       price: 25000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/bJeaEXcP50Eo2oL52HfYY0t'
@@ -84,7 +84,7 @@ const Plans = () => {
     }
 
     if (plan.id === 'pesquisador') {
-      setError('O plano Pesquisador é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.');
+      setError('O plano Pesquisador é o plano gratuito inicial e não pode ser contratado. Por favor, escolha outro plano.');
       return;
     }
 
@@ -132,6 +132,11 @@ const Plans = () => {
           <div className="text-center flex-1">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu Plano</h1>
             <p className="text-gray-600 text-lg">Desbloqueie o poder da análise de patentes com nossos planos especializados</p>
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 font-medium">
+                ⚠️ <strong>Nova Política:</strong> Consultas mensais sem renovação automática. Quando suas consultas acabarem, será necessário adquirir um novo plano.
+              </p>
+            </div>
           </div>
           <div className="w-8" />
         </div>
@@ -174,7 +179,12 @@ const Plans = () => {
                   <div className="text-3xl font-bold text-gray-900 mb-2">
                     {plan.price === 0 ? 'Gratuito' : formatPrice(plan.price)}
                   </div>
-                  <div className="text-blue-600">{plan.tokens} consultas</div>
+                  <div className="text-blue-600">{plan.tokens} consultas/mês</div>
+                  {!isPesquisador && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      Sem renovação automática
+                    </div>
+                  )}
                 </div>
 
                 <button
@@ -187,7 +197,7 @@ const Plans = () => {
                   }`}
                 >
                   {isPesquisador 
-                    ? 'Plano Inicial' 
+                    ? 'Plano Gratuito' 
                     : isDisabled 
                       ? 'Plano Atual' 
                       : 'Começar Agora'

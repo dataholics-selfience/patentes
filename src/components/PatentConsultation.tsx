@@ -213,6 +213,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
   };
 
   const remainingTokens = tokenUsage ? tokenUsage.totalTokens - tokenUsage.usedTokens : 0;
+  const isAccountExpired = remainingTokens <= 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -222,6 +223,27 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       </div>
 
       <div className="p-6">
+        {/* Account Expired Warning */}
+        {isAccountExpired && (
+          <div className="mb-6 p-6 bg-red-50 border-2 border-red-200 rounded-lg">
+            <div className="flex items-center gap-3 mb-4">
+              <XCircle size={24} className="text-red-600" />
+              <h3 className="text-lg font-bold text-red-800">Conta Expirada</h3>
+            </div>
+            <p className="text-red-700 mb-4">
+              Suas consultas mensais foram esgotadas. Para continuar usando a plataforma, 
+              você precisa adquirir um novo plano.
+            </p>
+            <Link
+              to="/plans"
+              className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-semibold"
+            >
+              <CreditCard size={20} />
+              Ver Planos Disponíveis
+            </Link>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="mb-6">
           <div className="flex gap-3">
             <div className="flex-1">
@@ -230,19 +252,34 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 value={produto}
                 onChange={(e) => setProduto(e.target.value)}
                 placeholder="Ex: Minoxidil, Paracetamol, Ibuprofeno..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading || remainingTokens < 10}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                  isAccountExpired 
+                    ? 'border-red-300 bg-red-50 text-red-500 placeholder-red-400 cursor-not-allowed'
+                    : 'border-gray-300 focus:ring-blue-500'
+                }`}
+                disabled={isLoading || isAccountExpired}
               />
             </div>
             <button
               type="submit"
-              disabled={!produto.trim() || isLoading || remainingTokens < 10}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+              disabled={!produto.trim() || isLoading || isAccountExpired}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                isAccountExpired
+                  ? 'bg-red-400 text-white cursor-not-allowed opacity-50'
+                  : !produto.trim() || isLoading
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
             >
               {isLoading ? (
                 <>
                   <Loader2 size={20} className="animate-spin" />
                   Consultando...
+                </>
+              ) : isAccountExpired ? (
+                <>
+                  <XCircle size={20} />
+                  Expirado
                 </>
               ) : (
                 <>
@@ -252,9 +289,17 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
               )}
             </button>
           </div>
-          {remainingTokens < 10 && (
-            <div className="mt-2 text-sm text-orange-600">
-              Tokens insuficientes para consulta. <Link to="/plans" className="text-blue-600 hover:underline">Adquirir mais tokens</Link>
+          
+          {!isAccountExpired && (
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-gray-600">
+                Consultas restantes: <span className="font-semibold text-blue-600">{remainingTokens}</span>
+              </span>
+              {remainingTokens <= 5 && remainingTokens > 0 && (
+                <Link to="/plans" className="text-orange-600 hover:text-orange-700 font-medium">
+                  Adquirir mais consultas →
+                </Link>
+              )}
             </div>
           )}
         </form>

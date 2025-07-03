@@ -2,12 +2,12 @@ import { doc, getDoc, setDoc, collection, updateDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { deleteUser } from "firebase/auth";
 
-type Plan = "jedi" | "mestrejedi" | "mestreyoda";
+type Plan = "analista" | "especialista" | "diretor";
 
 export const planData: Record<Plan, { name: string; tokens: number }> = {
-  jedi: { name: "Jedi", tokens: 1000 },
-  mestrejedi: { name: "Mestre Jedi", tokens: 3000 },
-  mestreyoda: { name: "Mestre Yoda", tokens: 11000 },
+  analista: { name: "Analista", tokens: 150 },
+  especialista: { name: "Especialista", tokens: 300 },
+  diretor: { name: "Diretor", tokens: 700 },
 };
 
 export async function handlePlanSuccess(plan: Plan) {
@@ -82,7 +82,7 @@ export async function handlePlanSuccess(plan: Plan) {
     transactionId
   });
 
-  // Update token usage
+  // Update token usage - NO EXPIRATION DATE (no auto-renewal)
   await setDoc(doc(db, 'tokenUsage', user.uid), {
     uid: user.uid,
     email: user.email,
@@ -90,7 +90,8 @@ export async function handlePlanSuccess(plan: Plan) {
     totalTokens: planInfo.tokens,
     usedTokens: 0,
     lastUpdated: now.toISOString(),
-    expirationDate: new Date(now.setMonth(now.getMonth() + 1)).toISOString()
+    // Remove expirationDate to prevent auto-renewal
+    purchasedAt: now.toISOString()
   });
 
   // Record plan hire

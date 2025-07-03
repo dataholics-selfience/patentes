@@ -14,6 +14,11 @@ import UserManagement from './components/UserProfile/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
 
+// Import success pages
+import AnalistaSuccess from './pages/plans/success/analista';
+import EspecialistaSuccess from './pages/plans/success/especialista';
+import DiretorSuccess from './pages/plans/success/diretor';
+
 function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -63,6 +68,11 @@ function App() {
         <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/account-deleted" element={<AccountDeleted />} />
+        
+        {/* Plan success routes */}
+        <Route path="/sucesso/analista" element={<AnalistaSuccess />} />
+        <Route path="/sucesso/especialista" element={<EspecialistaSuccess />} />
+        <Route path="/sucesso/diretor" element={<DiretorSuccess />} />
         
         {/* Protected routes */}
         <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
