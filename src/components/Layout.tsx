@@ -8,6 +8,7 @@ import TokenUsageChart from './TokenUsageChart';
 import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
+import { parsePatentResponse } from '../utils/patentParser';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -60,139 +61,6 @@ const Layout = () => {
     fetchTokenUsage();
   }, []);
 
-  const parsePatentResponse = (rawResponse: any): PatentResultType => {
-    console.log('Raw response received:', rawResponse);
-    
-    let jsonString = '';
-    
-    // Handle nested array structure
-    if (Array.isArray(rawResponse) && rawResponse.length > 0) {
-      if (rawResponse[0].output) {
-        // Check if it's a nested structure
-        if (typeof rawResponse[0].output === 'string') {
-          try {
-            const parsed = JSON.parse(rawResponse[0].output);
-            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
-              jsonString = parsed[0].output;
-            } else {
-              jsonString = rawResponse[0].output;
-            }
-          } catch {
-            jsonString = rawResponse[0].output;
-          }
-        } else {
-          jsonString = JSON.stringify(rawResponse[0].output);
-        }
-      }
-    }
-    
-    // Remove markdown code block fences
-    jsonString = jsonString.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    
-    console.log('Cleaned JSON string:', jsonString);
-    
-    // Parse the actual patent data - handle both array and object formats
-    let parsedData;
-    try {
-      const parsed = JSON.parse(jsonString);
-      // If it's an array, take the first element
-      parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
-    } catch (error) {
-      console.error('Error parsing JSON:', error);
-      throw new Error('Invalid JSON response from API');
-    }
-    
-    console.log('Parsed data:', parsedData);
-    
-    // Parse countries from string if needed
-    const parseCountries = (countriesData: any): string[] => {
-      if (Array.isArray(countriesData)) {
-        return countriesData;
-      }
-      if (typeof countriesData === 'string') {
-        // Split by common separators and clean up
-        return countriesData
-          .split(/[,;]/)
-          .map(country => country.trim())
-          .filter(country => country.length > 0);
-      }
-      return [];
-    };
-
-    // Parse risks from string if needed
-    const parseRisks = (risksData: any): string[] => {
-      if (Array.isArray(risksData)) {
-        return risksData;
-      }
-      if (typeof risksData === 'string') {
-        // If it's a single string, return as array with one element
-        return [risksData];
-      }
-      return [];
-    };
-
-    // Parse alternatives from string if needed
-    const parseAlternatives = (alternativesData: any): string[] => {
-      if (Array.isArray(alternativesData)) {
-        return alternativesData;
-      }
-      if (typeof alternativesData === 'string') {
-        // Split by common separators and clean up
-        return alternativesData
-          .split(/[,;]/)
-          .map(alt => alt.trim())
-          .filter(alt => alt.length > 0);
-      }
-      return [];
-    };
-    
-    // Map the fields to match PatentResultType interface with improved field mapping
-    const resultado: PatentResultType = {
-      substancia: parsedData.substancia || parsedData.produto || parsedData.substance || 'Produto consultado',
-      patente_vigente: Boolean(parsedData.patente_vigente || parsedData.patent_valid || false),
-      data_expiracao_patente_principal: parsedData.data_expiracao_patente_principal || 
-                                       parsedData.data_estimativa_expiracao || 
-                                       parsedData.data_vencimento_patente ||
-                                       parsedData.expiration_date ||
-                                       'Não informado',
-      paises_registrados: parseCountries(
-        parsedData.paises_registrados || 
-        parsedData.paises_registro ||
-        parsedData.registered_countries ||
-        parsedData.countries ||
-        []
-      ),
-      exploracao_comercial: Boolean(
-        parsedData.exploracao_comercial || 
-        parsedData.explorada_comercialmente ||
-        parsedData.commercial_exploitation ||
-        false
-      ),
-      riscos_regulatorios_eticos: parseRisks(
-        parsedData.riscos_regulatorios_eticos || 
-        parsedData.riscos_regulatorios_ou_eticos ||
-        parsedData.regulatory_risks ||
-        parsedData.risks ||
-        'Não informado'
-      ),
-      data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente_novo_produto || 
-                                          parsedData.data_vencimento_para_novo_produto || 
-                                          parsedData.data_vencimento_patente ||
-                                          parsedData.new_product_expiration ||
-                                          null,
-      alternativas_compostos: parseAlternatives(
-        parsedData.alternativas_compostos ||
-        parsedData.alternativas_de_compostos_analogos ||
-        parsedData.alternative_compounds ||
-        parsedData.alternatives ||
-        []
-      )
-    };
-    
-    console.log('Final resultado:', resultado);
-    return resultado;
-  };
-
   const handleConsultation = async (produto: string, sessionId: string): Promise<PatentResultType> => {
     if (!auth.currentUser || !tokenUsage) {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
@@ -206,6 +74,8 @@ const Layout = () => {
     }
 
     try {
+      console.log('🚀 Starting patent consultation for:', produto);
+      
       // Call webhook with sessionId
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
@@ -221,11 +91,13 @@ const Layout = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao consultar patente');
+        const errorText = await response.text();
+        console.error('❌ Webhook response error:', response.status, errorText);
+        throw new Error(`Erro na consulta: ${response.status} - ${errorText}`);
       }
 
       const rawResponse = await response.json();
-      console.log('Raw response:', rawResponse);
+      console.log('📥 Raw webhook response:', rawResponse);
       
       // Parse the response using the improved parser
       const resultado = parsePatentResponse(rawResponse);
@@ -235,7 +107,7 @@ const Layout = () => {
         resultado.substancia = produto;
       }
 
-      console.log('Final resultado:', resultado);
+      console.log('✅ Final consultation result:', resultado);
 
       // Update token usage
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
@@ -249,8 +121,20 @@ const Layout = () => {
 
       return resultado;
     } catch (error) {
-      console.error('Error in consultation:', error);
-      throw error;
+      console.error('💥 Error in consultation:', error);
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to parse')) {
+          throw new Error('Erro ao processar resposta da consulta. Tente novamente em alguns instantes.');
+        }
+        if (error.message.includes('Invalid JSON')) {
+          throw new Error('Resposta inválida do servidor. Verifique sua conexão e tente novamente.');
+        }
+        throw error;
+      }
+      
+      throw new Error('Erro inesperado na consulta. Tente novamente.');
     }
   };
 
