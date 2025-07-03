@@ -23,7 +23,7 @@ const Plans = () => {
       name: 'Pesquisador',
       icon: Microscope,
       description: 'Plano gratuito para pesquisadores iniciantes com consultas mensais limitadas',
-      tokens: 10,
+      tokens: 10, // ALTERADO DE 100 PARA 10
       price: 0,
       highlight: false,
       stripeLink: ''

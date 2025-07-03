@@ -94,7 +94,7 @@ Para ativar sua conta e começar a usar nossa plataforma de análise de patentes
 ${verificationLink}
 
 ✅ *Benefícios da sua conta:*
-• 100 consultas gratuitas
+• 10 consultas gratuitas
 • Análise instantânea de patentes
 • Verificação de riscos regulatórios
 • Identificação de compostos alternativos
@@ -203,11 +203,12 @@ Precisa de ajuda? Responda esta mensagem.
 
       await setDoc(doc(db, 'users', user.uid), userData);
 
+      // CORREÇÃO: Plano gratuito agora tem 10 consultas em vez de 100
       await setDoc(doc(db, 'tokenUsage', user.uid), {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
         plan: 'Pesquisador',
-        totalTokens: 100,
+        totalTokens: 10, // ALTERADO DE 100 PARA 10
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),
         expirationDate: expirationDate.toISOString()
