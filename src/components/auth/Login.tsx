@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
 import { FlaskConical, ArrowLeft } from 'lucide-react';
+import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -35,6 +37,60 @@ const Login = () => {
     return true;
   };
 
+  // Função para configurar usuário com acesso irrestrito
+  const setupUnrestrictedUser = async (user: any) => {
+    try {
+      console.log(`🔧 Configurando usuário com acesso irrestrito: ${user.email}`);
+      
+      const now = new Date();
+      const transactionId = crypto.randomUUID();
+
+      // 1. Criar/atualizar documento do usuário
+      await setDoc(doc(db, 'users', user.uid), {
+        uid: user.uid,
+        name: UNRESTRICTED_USER_CONFIG.name,
+        email: user.email,
+        cpf: UNRESTRICTED_USER_CONFIG.cpf,
+        company: UNRESTRICTED_USER_CONFIG.company,
+        phone: UNRESTRICTED_USER_CONFIG.phone,
+        plan: UNRESTRICTED_USER_CONFIG.plan,
+        activated: true,
+        activatedAt: now.toISOString(),
+        unrestrictedAccess: true,
+        createdAt: now.toISOString(),
+        acceptedTerms: true,
+        termsAcceptanceId: transactionId
+      }, { merge: true });
+
+      // 2. Criar/atualizar token usage
+      await setDoc(doc(db, 'tokenUsage', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        plan: UNRESTRICTED_USER_CONFIG.plan,
+        totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
+        usedTokens: 0,
+        lastUpdated: now.toISOString(),
+        purchasedAt: now.toISOString()
+      }, { merge: true });
+
+      // 3. Registrar compliance GDPR
+      await setDoc(doc(db, 'gdprCompliance', transactionId), {
+        uid: user.uid,
+        email: user.email,
+        type: 'unrestricted_access_setup',
+        unrestrictedAccess: true,
+        grantedAt: now.toISOString(),
+        transactionId
+      });
+
+      console.log(`✅ Usuário com acesso irrestrito configurado com sucesso: ${user.email}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Erro ao configurar usuário com acesso irrestrito:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -63,6 +119,24 @@ const Login = () => {
         throw new Error('No user data available');
       }
 
+      // Verificar se o usuário tem acesso irrestrito
+      if (hasUnrestrictedAccess(user.email)) {
+        console.log(`✅ Login com acesso irrestrito: ${user.email}`);
+        
+        // Configurar estrutura completa do usuário
+        const setupSuccess = await setupUnrestrictedUser(user);
+        
+        if (setupSuccess) {
+          setError('');
+          navigate('/dashboard', { replace: true });
+          return;
+        } else {
+          setError('Erro ao configurar conta com acesso irrestrito. Tente novamente.');
+          return;
+        }
+      }
+
+      // Verificação normal de e-mail para outros usuários
       if (!user.emailVerified) {
         await auth.signOut();
         setError('Por favor, verifique seu email antes de fazer login.');
@@ -120,7 +194,11 @@ const Login = () => {
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="text-red-600 text-center bg-red-50 p-3 rounded-md border border-red-200">
+            <div className={`text-center p-3 rounded-md border ${
+              error.includes('irrestrito') || error.includes('acesso liberado')
+                ? 'text-green-600 bg-green-50 border-green-200'
+                : 'text-red-600 bg-red-50 border-red-200'
+            }`}>
               {error}
             </div>
           )}
@@ -137,6 +215,20 @@ const Login = () => {
                 disabled={isLoading}
                 autoComplete="email"
               />
+              {/* Indicador visual para e-mails com acesso irrestrito */}
+              {email.trim() && hasUnrestrictedAccess(email.trim()) && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
+                  </div>
+                  <div className="text-xs text-green-600 mt-1">
+                    • {UNRESTRICTED_USER_CONFIG.totalTokens.toLocaleString()} consultas incluídas<br/>
+                    • Plano: {UNRESTRICTED_USER_CONFIG.plan}<br/>
+                    • Sem necessidade de verificação de e-mail
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <input

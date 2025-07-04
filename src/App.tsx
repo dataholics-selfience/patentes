@@ -13,6 +13,7 @@ import Plans from './components/Plans';
 import UserManagement from './components/UserProfile/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
+import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
 
 // Import success pages
 import AnalistaSuccess from './pages/plans/success/analista';
@@ -47,6 +48,20 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // Função para verificar se o usuário pode acessar o dashboard
+  const canAccessDashboard = (user: any): boolean => {
+    if (!user) return false;
+    
+    // Verificar se o e-mail tem acesso irrestrito
+    if (hasUnrestrictedAccess(user.email)) {
+      console.log(`✅ Acesso irrestrito concedido para: ${user.email}`);
+      return true;
+    }
+    
+    // Caso contrário, verificar se o e-mail foi verificado
+    return user.emailVerified;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -75,11 +90,19 @@ function App() {
         <Route path="/sucesso/diretor" element={<DiretorSuccess />} />
         
         {/* Protected routes */}
-        <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
+        <Route path="/profile" element={
+          user && canAccessDashboard(user) ? (
+            <UserManagement />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
         <Route path="/plans" element={<Plans />} />
         <Route path="/dashboard" element={
           user ? (
-            user.emailVerified ? (
+            canAccessDashboard(user) ? (
               <Layout />
             ) : (
               <Navigate to="/verify-email" replace />
@@ -92,7 +115,7 @@ function App() {
         {/* Default routes */}
         <Route path="/" element={
           user ? (
-            user.emailVerified ? (
+            canAccessDashboard(user) ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <Navigate to="/verify-email" replace />

@@ -9,6 +9,7 @@ import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { parsePatentResponse } from '../utils/patentParser';
+import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -39,14 +40,73 @@ const Layout = () => {
     }
   ];
 
+  // Função para configurar usuário com acesso irrestrito se necessário
+  const ensureUnrestrictedUserSetup = async () => {
+    if (!auth.currentUser) return;
+
+    if (hasUnrestrictedAccess(auth.currentUser.email)) {
+      try {
+        console.log(`🔧 Verificando configuração do usuário irrestrito: ${auth.currentUser.email}`);
+        
+        // Verificar se o usuário já tem dados configurados
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
+        
+        const now = new Date();
+        const transactionId = crypto.randomUUID();
+
+        // Se não tem dados do usuário, criar
+        if (!userDoc.exists() || !userDoc.data()?.unrestrictedAccess) {
+          console.log('📝 Criando dados do usuário irrestrito...');
+          await setDoc(doc(db, 'users', auth.currentUser.uid), {
+            uid: auth.currentUser.uid,
+            name: UNRESTRICTED_USER_CONFIG.name,
+            email: auth.currentUser.email,
+            cpf: UNRESTRICTED_USER_CONFIG.cpf,
+            company: UNRESTRICTED_USER_CONFIG.company,
+            phone: UNRESTRICTED_USER_CONFIG.phone,
+            plan: UNRESTRICTED_USER_CONFIG.plan,
+            activated: true,
+            activatedAt: now.toISOString(),
+            unrestrictedAccess: true,
+            createdAt: now.toISOString(),
+            acceptedTerms: true,
+            termsAcceptanceId: transactionId
+          }, { merge: true });
+        }
+
+        // Se não tem dados de token, criar
+        if (!tokenDoc.exists()) {
+          console.log('🎫 Criando dados de token para usuário irrestrito...');
+          await setDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
+            uid: auth.currentUser.uid,
+            email: auth.currentUser.email,
+            plan: UNRESTRICTED_USER_CONFIG.plan,
+            totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
+            usedTokens: 0,
+            lastUpdated: now.toISOString(),
+            purchasedAt: now.toISOString()
+          });
+        }
+
+        console.log(`✅ Configuração do usuário irrestrito verificada/criada: ${auth.currentUser.email}`);
+      } catch (error) {
+        console.error('❌ Erro ao configurar usuário irrestrito:', error);
+      }
+    }
+  };
+
   useEffect(() => {
     if (!auth.currentUser) {
       setIsLoading(false);
       return;
     }
 
-    // Fetch token usage
-    const fetchTokenUsage = async () => {
+    // Configurar usuário irrestrito se necessário e buscar dados
+    const initializeUser = async () => {
+      await ensureUnrestrictedUserSetup();
+      
+      // Fetch token usage
       try {
         const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser!.uid));
         if (tokenDoc.exists()) {
@@ -58,7 +118,7 @@ const Layout = () => {
       setIsLoading(false);
     };
 
-    fetchTokenUsage();
+    initializeUser();
   }, []);
 
   const handleConsultation = async (produto: string, sessionId: string): Promise<PatentResultType> => {
@@ -173,6 +233,13 @@ const Layout = () => {
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
+            {/* Mostrar indicador de acesso irrestrito se aplicável */}
+            {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                Acesso Corporativo
+              </div>
+            )}
             <Link
               to="/plans"
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -220,6 +287,19 @@ const Layout = () => {
                   totalTokens={tokenUsage.totalTokens}
                   usedTokens={tokenUsage.usedTokens}
                 />
+              )}
+              
+              {/* Indicador de acesso irrestrito no sidebar */}
+              {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-800 text-sm font-medium mb-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Acesso Corporativo
+                  </div>
+                  <div className="text-xs text-green-600">
+                    {UNRESTRICTED_USER_CONFIG.company}
+                  </div>
+                </div>
               )}
               
               <Link
