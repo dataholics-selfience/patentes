@@ -39,14 +39,33 @@ export interface PatentConsultationType {
   consultedAt: string;
 }
 
+export interface PatentByCountry {
+  pais: string;
+  data_expiracao: string;
+  tipos: string[];
+}
+
+export interface CommercialExplorationByCountry {
+  pais: string;
+  data_disponivel: string;
+  tipos_liberados: string[];
+}
+
 export interface PatentResultType {
   substancia: string;
   patente_vigente: boolean;
   data_expiracao_patente_principal: string;
-  paises_registrados: string[];
+  patentes_por_pais: PatentByCountry[];
+  exploracao_comercial_por_pais: CommercialExplorationByCountry[];
   exploracao_comercial: boolean;
-  riscos_regulatorios_eticos: string[];
-  data_vencimento_patente_novo_produto: string | null;
+  riscos_regulatorios_ou_eticos: string;
+  data_vencimento_para_novo_produto: string;
+  alternativas_de_compostos_analogos: string[];
+  fonte_estimativa: string[];
+  // Legacy fields for backward compatibility
+  paises_registrados?: string[];
+  riscos_regulatorios_eticos?: string[];
+  data_vencimento_patente_novo_produto?: string | null;
   alternativas_compostos?: string[];
 }
 

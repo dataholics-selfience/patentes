@@ -1,6 +1,6 @@
-import { PatentResultType } from '../types';
+import { PatentResultType, PatentByCountry, CommercialExplorationByCountry } from '../types';
 
-// Função robusta para parse de resposta de patentes
+// Função robusta para parse de resposta de patentes - NOVO FORMATO
 export const parsePatentResponse = (rawResponse: any): PatentResultType => {
   console.log('🔍 Raw response received:', rawResponse);
   
@@ -15,8 +15,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         if (typeof rawResponse[0].output === 'string') {
           try {
             const parsed = JSON.parse(rawResponse[0].output);
-            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].output) {
-              jsonString = parsed[0].output;
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              parsedData = parsed[0]; // Take first element from array
             } else {
               jsonString = rawResponse[0].output;
             }
@@ -24,46 +24,53 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
             jsonString = rawResponse[0].output;
           }
         } else {
-          jsonString = JSON.stringify(rawResponse[0].output);
+          parsedData = rawResponse[0].output;
         }
+      } else {
+        // Direct array with patent data
+        parsedData = rawResponse[0];
       }
     } else if (typeof rawResponse === 'string') {
       jsonString = rawResponse;
     } else if (typeof rawResponse === 'object' && rawResponse !== null) {
-      jsonString = JSON.stringify(rawResponse);
+      parsedData = rawResponse;
     }
     
-    // Remove markdown code block fences and clean up
-    jsonString = jsonString
-      .replace(/```json\n?/g, '')
-      .replace(/```\n?/g, '')
-      .replace(/^\s*\[?\s*/, '') // Remove leading array bracket and whitespace
-      .replace(/\s*\]?\s*$/, '') // Remove trailing array bracket and whitespace
-      .trim();
-    
-    console.log('🧹 Cleaned JSON string:', jsonString);
-    
-    // Parse the actual patent data - handle both array and object formats
-    try {
-      const parsed = JSON.parse(jsonString);
-      // If it's an array, take the first element
-      parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
-    } catch (parseError) {
-      console.error('❌ Error parsing JSON:', parseError);
-      console.log('📝 Attempting alternative parsing...');
+    // If we still have a string, parse it
+    if (jsonString && !parsedData) {
+      // Remove markdown code block fences and clean up
+      jsonString = jsonString
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .replace(/^\s*\[?\s*/, '') // Remove leading array bracket and whitespace
+        .replace(/\s*\]?\s*$/, '') // Remove trailing array bracket and whitespace
+        .trim();
       
-      // Try to extract JSON from text using regex
-      const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          parsedData = JSON.parse(jsonMatch[0]);
-          console.log('✅ Alternative parsing successful');
-        } catch (altError) {
-          console.error('❌ Alternative parsing failed:', altError);
-          throw new Error('Invalid JSON response from API');
+      console.log('🧹 Cleaned JSON string:', jsonString);
+      
+      // Parse the actual patent data
+      try {
+        const parsed = JSON.parse(jsonString);
+        // If it's an array, take the first element
+        parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
+      } catch (parseError) {
+        console.error('❌ Error parsing JSON:', parseError);
+        console.log('📝 Attempting alternative parsing...');
+        
+        // Try to extract JSON from text using regex
+        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
+            console.log('✅ Alternative parsing successful');
+          } catch (altError) {
+            console.error('❌ Alternative parsing failed:', altError);
+            throw new Error('Invalid JSON response from API');
+          }
+        } else {
+          throw new Error('No valid JSON found in response');
         }
-      } else {
-        throw new Error('No valid JSON found in response');
       }
     }
     
@@ -79,39 +86,33 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Invalid patent data structure received');
   }
 
-  // Parse countries from various formats
-  const parseCountries = (countriesData: any): string[] => {
-    console.log('🌍 Parsing countries:', countriesData);
+  // Parse patents by country
+  const parsePatentsByCountry = (patentsData: any): PatentByCountry[] => {
+    console.log('🌍 Parsing patents by country:', patentsData);
     
-    if (Array.isArray(countriesData)) {
-      return countriesData.filter(country => country && typeof country === 'string');
-    }
-    
-    if (typeof countriesData === 'string') {
-      // Split by common separators and clean up
-      const countries = countriesData
-        .split(/[,;]/)
-        .map(country => country.trim())
-        .filter(country => country.length > 0);
-      
-      console.log('🌍 Parsed countries from string:', countries);
-      return countries;
+    if (Array.isArray(patentsData)) {
+      return patentsData.map(patent => ({
+        pais: patent.pais || patent.country || 'Desconhecido',
+        data_expiracao: patent.data_expiracao || patent.expiration_date || 'Não informado',
+        tipos: Array.isArray(patent.tipos) ? patent.tipos : 
+               Array.isArray(patent.types) ? patent.types : []
+      }));
     }
     
     return [];
   };
 
-  // Parse risks from various formats
-  const parseRisks = (risksData: any): string[] => {
-    console.log('⚠️ Parsing risks:', risksData);
+  // Parse commercial exploration by country
+  const parseCommercialExplorationByCountry = (explorationData: any): CommercialExplorationByCountry[] => {
+    console.log('💼 Parsing commercial exploration by country:', explorationData);
     
-    if (Array.isArray(risksData)) {
-      return risksData.filter(risk => risk && typeof risk === 'string');
-    }
-    
-    if (typeof risksData === 'string') {
-      // If it's a single string, return as array with one element
-      return [risksData];
+    if (Array.isArray(explorationData)) {
+      return explorationData.map(exploration => ({
+        pais: exploration.pais || exploration.country || 'Desconhecido',
+        data_disponivel: exploration.data_disponivel || exploration.available_date || 'Não informado',
+        tipos_liberados: Array.isArray(exploration.tipos_liberados) ? exploration.tipos_liberados :
+                        Array.isArray(exploration.released_types) ? exploration.released_types : []
+      }));
     }
     
     return [];
@@ -144,6 +145,21 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     return [];
   };
 
+  // Parse sources
+  const parseSources = (sourcesData: any): string[] => {
+    console.log('📚 Parsing sources:', sourcesData);
+    
+    if (Array.isArray(sourcesData)) {
+      return sourcesData.filter(source => source && typeof source === 'string');
+    }
+    
+    if (typeof sourcesData === 'string') {
+      return [sourcesData];
+    }
+    
+    return [];
+  };
+
   // Parse boolean values safely
   const parseBoolean = (value: any): boolean => {
     if (typeof value === 'boolean') return value;
@@ -155,7 +171,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     return false;
   };
 
-  // Map the fields to match PatentResultType interface with improved field mapping
+  // Map the fields to match PatentResultType interface with NEW FORMAT
   const resultado: PatentResultType = {
     substancia: parsedData.substancia || 
                parsedData.produto || 
@@ -177,15 +193,20 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
                                      parsedData.expiration_date ||
                                      parsedData.main_patent_expiration ||
                                      'Não informado',
-                                     
-    paises_registrados: parseCountries(
-      parsedData.paises_registrados || 
-      parsedData.paises_registro ||
-      parsedData.registered_countries ||
-      parsedData.countries ||
+
+    // NEW FIELDS
+    patentes_por_pais: parsePatentsByCountry(
+      parsedData.patentes_por_pais || 
+      parsedData.patents_by_country ||
       []
     ),
-    
+
+    exploracao_comercial_por_pais: parseCommercialExplorationByCountry(
+      parsedData.exploracao_comercial_por_pais ||
+      parsedData.commercial_exploration_by_country ||
+      []
+    ),
+                                     
     exploracao_comercial: parseBoolean(
       parsedData.exploracao_comercial || 
       parsedData.explorada_comercialmente ||
@@ -194,28 +215,56 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       false
     ),
     
-    riscos_regulatorios_eticos: parseRisks(
-      parsedData.riscos_regulatorios_eticos || 
-      parsedData.riscos_regulatorios_ou_eticos ||
-      parsedData.regulatory_risks ||
-      parsedData.risks ||
-      parsedData.regulatory_ethical_risks ||
-      'Não informado'
-    ),
+    riscos_regulatorios_ou_eticos: parsedData.riscos_regulatorios_ou_eticos || 
+                                  parsedData.riscos_regulatorios_eticos ||
+                                  parsedData.regulatory_risks ||
+                                  parsedData.risks ||
+                                  parsedData.regulatory_ethical_risks ||
+                                  'Não informado',
     
-    data_vencimento_patente_novo_produto: parsedData.data_vencimento_patente_novo_produto || 
-                                        parsedData.data_vencimento_para_novo_produto || 
-                                        parsedData.data_vencimento_patente ||
-                                        parsedData.new_product_expiration ||
-                                        parsedData.new_patent_expiration ||
-                                        null,
+    data_vencimento_para_novo_produto: parsedData.data_vencimento_para_novo_produto || 
+                                      parsedData.data_vencimento_patente_novo_produto || 
+                                      parsedData.data_vencimento_para_novo_produto || 
+                                      parsedData.new_product_expiration ||
+                                      parsedData.new_patent_expiration ||
+                                      'Não informado',
                                         
-    alternativas_compostos: parseAlternatives(
-      parsedData.alternativas_compostos ||
+    alternativas_de_compostos_analogos: parseAlternatives(
       parsedData.alternativas_de_compostos_analogos ||
+      parsedData.alternativas_compostos ||
       parsedData.alternative_compounds ||
       parsedData.alternatives ||
       parsedData.analogs ||
+      []
+    ),
+
+    fonte_estimativa: parseSources(
+      parsedData.fonte_estimativa ||
+      parsedData.sources ||
+      parsedData.estimation_sources ||
+      []
+    ),
+
+    // Legacy fields for backward compatibility
+    paises_registrados: parsePatentsByCountry(
+      parsedData.patentes_por_pais || 
+      parsedData.patents_by_country ||
+      parsedData.paises_registrados ||
+      parsedData.registered_countries ||
+      []
+    ).map(p => p.pais),
+
+    riscos_regulatorios_eticos: [parsedData.riscos_regulatorios_ou_eticos || 
+                                parsedData.riscos_regulatorios_eticos ||
+                                'Não informado'].filter(r => r !== 'Não informado'),
+
+    data_vencimento_patente_novo_produto: parsedData.data_vencimento_para_novo_produto || 
+                                        parsedData.data_vencimento_patente_novo_produto || 
+                                        null,
+
+    alternativas_compostos: parseAlternatives(
+      parsedData.alternativas_de_compostos_analogos ||
+      parsedData.alternativas_compostos ||
       []
     )
   };
