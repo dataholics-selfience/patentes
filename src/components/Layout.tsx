@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
@@ -185,12 +185,17 @@ const Layout = () => {
       
       // Provide more specific error messages
       if (error instanceof Error) {
-        if (error.message.includes('Failed to parse')) {
-          throw new Error('Erro ao processar resposta da consulta. Tente novamente em alguns instantes.');
+        // Check for specific parsing errors
+        if (error.message.includes('texto ao invés de dados estruturados') || 
+            error.message.includes('formato dos dados não pôde ser processado') ||
+            error.message.includes('dados em formato inválido')) {
+          throw new Error('O servidor está retornando dados em formato inesperado. Isso pode indicar uma sobrecarga temporária. Aguarde alguns minutos e tente novamente.');
         }
-        if (error.message.includes('Invalid JSON')) {
-          throw new Error('Resposta inválida do servidor. Verifique sua conexão e tente novamente.');
+        
+        if (error.message.includes('Failed to parse') || error.message.includes('Invalid JSON')) {
+          throw new Error('Erro ao processar resposta da consulta. O servidor pode estar sobrecarregado. Tente novamente em alguns instantes.');
         }
+        
         throw error;
       }
       

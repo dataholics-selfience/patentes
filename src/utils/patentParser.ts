@@ -32,12 +32,19 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       }
     } else if (typeof rawResponse === 'string') {
       jsonString = rawResponse;
-    } else if (typeof rawResponse === object && rawResponse !== null) {
+    } else if (typeof rawResponse === 'object' && rawResponse !== null) {
       parsedData = rawResponse;
     }
     
     // If we still have a string, parse it
     if (jsonString && !parsedData) {
+      // Check if the string looks like conversational text instead of JSON
+      const trimmedString = jsonString.trim();
+      if (!trimmedString.startsWith('{') && !trimmedString.startsWith('[')) {
+        console.warn('⚠️ Response appears to be conversational text, not JSON:', trimmedString.substring(0, 100));
+        throw new Error('O servidor retornou uma resposta em texto ao invés de dados estruturados. Tente novamente em alguns instantes.');
+      }
+      
       // Remove markdown code block fences and clean up
       jsonString = jsonString
         .replace(/```json\n?/g, '')
@@ -66,10 +73,10 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
             console.log('✅ Alternative parsing successful');
           } catch (altError) {
             console.error('❌ Alternative parsing failed:', altError);
-            throw new Error('Invalid JSON response from API');
+            throw new Error('Resposta inválida do servidor. O formato dos dados não pôde ser processado.');
           }
         } else {
-          throw new Error('No valid JSON found in response');
+          throw new Error('Nenhum dado estruturado válido encontrado na resposta do servidor.');
         }
       }
     }
@@ -78,12 +85,23 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     
   } catch (error) {
     console.error('💥 Critical parsing error:', error);
-    throw new Error(`Failed to parse patent response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    
+    // Provide more specific error messages based on error type
+    if (error instanceof SyntaxError) {
+      throw new Error('O servidor retornou dados em formato inválido. Verifique sua conexão e tente novamente.');
+    }
+    
+    if (error instanceof Error) {
+      // Re-throw our custom error messages
+      throw error;
+    }
+    
+    throw new Error(`Erro ao processar resposta da consulta: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 
   // Validate that we have some data
   if (!parsedData || typeof parsedData !== 'object') {
-    throw new Error('Invalid patent data structure received');
+    throw new Error('Estrutura de dados de patente inválida recebida do servidor');
   }
 
   // Parse patents data
