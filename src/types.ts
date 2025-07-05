@@ -41,7 +41,8 @@ export interface PatentConsultationType {
 
 export interface PatentByCountry {
   pais: string;
-  data_expiracao: string;
+  data_expiracao_primaria: string;
+  data_expiracao_secundaria: string;
   tipos: string[];
 }
 
@@ -51,10 +52,52 @@ export interface CommercialExplorationByCountry {
   tipos_liberados: string[];
 }
 
-export interface PatentResultType {
-  substancia: string;
+export interface ChemicalData {
+  iupac_name: string;
+  molecular_formula: string;
+  molecular_weight: string;
+  smiles: string;
+  inchi_key: string;
+  topological_polar_surface_area: string;
+  hydrogen_bond_acceptors: string;
+  hydrogen_bond_donors: string;
+  rotatable_bonds: string;
+}
+
+export interface ClinicalTrialsData {
+  ativos: string;
+  fase_avancada: boolean;
+  paises: string[];
+  principais_indicacoes_estudadas: string[];
+}
+
+export interface OrangeBookData {
+  tem_generico: boolean;
+  nda_number: string;
+  genericos_aprovados: string[];
+  data_ultimo_generico: string;
+}
+
+export interface RegulationByCountry {
+  pais: string;
+  agencia: string;
+  classificacao: string;
+  restricoes: string[];
+  facilidade_registro_generico: string;
+}
+
+export interface ScientificEvidence {
+  titulo: string;
+  autores: string[];
+  ano: string;
+  resumo: string;
+  doi: string;
+}
+
+export interface PatentData {
   patente_vigente: boolean;
   data_expiracao_patente_principal: string;
+  data_expiracao_patente_secundaria: string;
   patentes_por_pais: PatentByCountry[];
   exploracao_comercial_por_pais: CommercialExplorationByCountry[];
   exploracao_comercial: boolean;
@@ -62,7 +105,28 @@ export interface PatentResultType {
   data_vencimento_para_novo_produto: string;
   alternativas_de_compostos_analogos: string[];
   fonte_estimativa: string[];
+}
+
+export interface PatentResultType {
+  patentes: PatentData[];
+  quimica: ChemicalData;
+  ensaios_clinicos: ClinicalTrialsData;
+  orange_book: OrangeBookData;
+  regulacao_por_pais: RegulationByCountry[];
+  evidencia_cientifica_recente: ScientificEvidence[];
+  estrategias_de_formulacao: string[];
+  
   // Legacy fields for backward compatibility
+  substancia?: string;
+  patente_vigente?: boolean;
+  data_expiracao_patente_principal?: string;
+  exploracao_comercial?: boolean;
+  riscos_regulatorios_ou_eticos?: string;
+  data_vencimento_para_novo_produto?: string;
+  alternativas_de_compostos_analogos?: string[];
+  fonte_estimativa?: string[];
+  patentes_por_pais?: PatentByCountry[];
+  exploracao_comercial_por_pais?: CommercialExplorationByCountry[];
   paises_registrados?: string[];
   riscos_regulatorios_eticos?: string[];
   data_vencimento_patente_novo_produto?: string | null;
