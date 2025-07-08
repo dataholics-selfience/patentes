@@ -5,15 +5,19 @@ import { auth, db } from '../firebase';
 import { format } from 'date-fns';
 import { ptBR, enUS, fr, de, it } from 'date-fns/locale';
 import { useTranslation } from '../utils/i18n';
+import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 
 interface TokenUsageChartProps {
   totalTokens: number;
   usedTokens: number;
+  autoRenewal?: boolean;
+  renewalDate?: string;
 }
 
-const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
+const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: TokenUsageChartProps) => {
   const { t, language } = useTranslation();
   const [purchaseDate, setPurchaseDate] = useState<Date | null>(null);
+  const [nextRenewal, setNextRenewal] = useState<Date | null>(null);
   const percentage = Math.min((usedTokens / totalTokens) * 100, 100);
   const remainingTokens = totalTokens - usedTokens;
 
@@ -35,6 +39,9 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
         const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
         if (tokenDoc.exists() && tokenDoc.data().purchasedAt) {
           setPurchaseDate(new Date(tokenDoc.data().purchasedAt));
+        }
+        if (tokenDoc.exists() && tokenDoc.data().renewalDate) {
+          setNextRenewal(new Date(tokenDoc.data().renewalDate));
         }
       } catch (error) {
         console.error('Error fetching purchase date:', error);
@@ -62,6 +69,25 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
   };
 
   const formattedPurchaseDate = getFormattedPurchaseDate();
+  
+  const getFormattedRenewalDate = () => {
+    if (!nextRenewal) return null;
+    
+    switch (language) {
+      case 'pt':
+        return format(nextRenewal, "dd 'de' MMMM", { locale: ptBR });
+      case 'fr':
+        return format(nextRenewal, "dd MMMM", { locale: fr });
+      case 'de':
+        return format(nextRenewal, "dd. MMMM", { locale: de });
+      case 'it':
+        return format(nextRenewal, "dd MMMM", { locale: it });
+      default:
+        return format(nextRenewal, "MMMM dd", { locale: enUS });
+    }
+  };
+
+  const formattedRenewalDate = getFormattedRenewalDate();
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -79,28 +105,36 @@ const TokenUsageChart = ({ totalTokens, usedTokens }: TokenUsageChartProps) => {
 
       {formattedPurchaseDate && (
         <div className="mt-2 text-xs text-gray-600">
-          Adquirido em {formattedPurchaseDate}
+          {autoRenewal ? 'Renovação mensal desde' : 'Adquirido em'} {formattedPurchaseDate}
+        </div>
+      )}
+      
+      {autoRenewal && formattedRenewalDate && (
+        <div className="mt-1 text-xs text-green-600 font-medium">
+          Próxima renovação: {formattedRenewalDate}
         </div>
       )}
 
       {remainingTokens <= 5 && (
         <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-700">
-          ⚠️ Poucas consultas restantes
+          {autoRenewal ? '⚠️ Poucas consultas restantes (renovação automática)' : '⚠️ Poucas consultas restantes'}
         </div>
       )}
 
       {remainingTokens === 0 && (
         <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
-          🚫 Consultas esgotadas
+          {autoRenewal ? '🚫 Consultas esgotadas (renovação automática em breve)' : '🚫 Consultas esgotadas'}
         </div>
       )}
 
-      <Link 
-        to="/plans" 
-        className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
-      >
-        {remainingTokens === 0 ? 'Adquirir novo plano' : 'Ver outros planos'}
-      </Link>
+      {!auth.currentUser?.email || !hasUnrestrictedAccess(auth.currentUser.email) ? (
+        <Link 
+          to="/plans" 
+          className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+        >
+          {remainingTokens === 0 ? 'Adquirir novo plano' : 'Ver outros planos'}
+        </Link>
+      ) : null}
     </div>
   );
 };

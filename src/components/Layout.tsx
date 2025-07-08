@@ -78,14 +78,17 @@ const Layout = () => {
         // Se não tem dados de token, criar
         if (!tokenDoc.exists()) {
           console.log('🎫 Criando dados de token para usuário irrestrito...');
+          const now = new Date();
           await setDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
             uid: auth.currentUser.uid,
             email: auth.currentUser.email,
             plan: UNRESTRICTED_USER_CONFIG.plan,
             totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
             usedTokens: 0,
-            lastUpdated: now.toISOString(),
-            purchasedAt: now.toISOString()
+            lastUpdated: now.toISOString(), 
+            purchasedAt: now.toISOString(),
+            renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
+            autoRenewal: true
           });
         }
 
@@ -247,6 +250,7 @@ const Layout = () => {
             )}
             <Link
               to="/plans"
+              style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'flex' }}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <CreditCard size={16} />
@@ -309,6 +313,7 @@ const Layout = () => {
               
               <Link
                 to="/plans"
+                style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'block' }}
                 className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 onClick={() => setShowSidebar(false)}
               >
