@@ -14,12 +14,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         // Check if it's a nested structure
         if (typeof rawResponse[0].output === 'string') {
           try {
-            const parsed = JSON.parse(rawResponse[0].output);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              parsedData = parsed[0]; // Take first element from array
-            } else {
-              jsonString = rawResponse[0].output;
-            }
+            parsedData = JSON.parse(rawResponse[0].output);
           } catch {
             jsonString = rawResponse[0].output;
           }
@@ -49,17 +44,13 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       jsonString = jsonString
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
-        .replace(/^\s*\[?\s*/, '') // Remove leading array bracket and whitespace
-        .replace(/\s*\]?\s*$/, '') // Remove trailing array bracket and whitespace
         .trim();
       
       console.log('🧹 Cleaned JSON string:', jsonString);
       
       // Parse the actual patent data
       try {
-        const parsed = JSON.parse(jsonString);
-        // If it's an array, take the first element
-        parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
+        parsedData = JSON.parse(jsonString);
       } catch (parseError) {
         console.error('❌ Error parsing JSON:', parseError);
         console.log('📝 Attempting alternative parsing...');
@@ -68,8 +59,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
-            const parsed = JSON.parse(jsonMatch[0]);
-            parsedData = Array.isArray(parsed) ? parsed[0] : parsed;
+            parsedData = JSON.parse(jsonMatch[0]);
             console.log('✅ Alternative parsing successful');
           } catch (altError) {
             console.error('❌ Alternative parsing failed:', altError);
@@ -104,6 +94,12 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Estrutura de dados de patente inválida recebida do servidor');
   }
 
+  // Ensure we're working with the correct data structure
+  // The response should have the main patent data structure
+  if (!parsedData.patentes && !parsedData.quimica && !parsedData.ensaios_clinicos) {
+    throw new Error('Estrutura de dados de patente incompleta - campos obrigatórios não encontrados');
+  }
+
   // Parse patents data
   const parsePatentsData = (patentsArray: any[]): PatentData[] => {
     if (!Array.isArray(patentsArray)) return [];
@@ -124,41 +120,48 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
 
   // Parse chemical data
   const parseChemicalData = (quimica: any): ChemicalData => {
+    console.log('🧪 Parsing chemical data:', quimica);
+
     return {
-      iupac_name: quimica?.iupac_name || 'Não informado',
-      molecular_formula: quimica?.molecular_formula || 'Não informado',
-      molecular_weight: quimica?.molecular_weight || 'Não informado',
-      smiles: quimica?.smiles || 'Não informado',
-      inchi_key: quimica?.inchi_key || 'Não informado',
-      topological_polar_surface_area: quimica?.topological_polar_surface_area || 'Não informado',
-      hydrogen_bond_acceptors: quimica?.hydrogen_bond_acceptors || 'Não informado',
-      hydrogen_bond_donors: quimica?.hydrogen_bond_donors || 'Não informado',
-      rotatable_bonds: quimica?.rotatable_bonds || 'Não informado'
+      iupac_name: (quimica && quimica.iupac_name) ? quimica.iupac_name : 'Não informado',
+      molecular_formula: (quimica && quimica.molecular_formula) ? quimica.molecular_formula : 'Não informado',
+      molecular_weight: (quimica && quimica.molecular_weight) ? quimica.molecular_weight.toString() : 'Não informado',
+      smiles: (quimica && quimica.smiles) ? quimica.smiles : 'Não informado',
+      inchi_key: (quimica && quimica.inchi_key) ? quimica.inchi_key : 'Não informado',
+      topological_polar_surface_area: (quimica && quimica.topological_polar_surface_area !== undefined) ? quimica.topological_polar_surface_area.toString() : 'Não informado',
+      hydrogen_bond_acceptors: (quimica && quimica.hydrogen_bond_acceptors !== undefined) ? quimica.hydrogen_bond_acceptors.toString() : 'Não informado',
+      hydrogen_bond_donors: (quimica && quimica.hydrogen_bond_donors !== undefined) ? quimica.hydrogen_bond_donors.toString() : 'Não informado',
+      rotatable_bonds: (quimica && quimica.rotatable_bonds !== undefined) ? quimica.rotatable_bonds.toString() : 'Não informado'
     };
   };
 
   // Parse clinical trials data
   const parseClinicalTrialsData = (ensaios: any): ClinicalTrialsData => {
+    console.log('🧬 Parsing clinical trials data:', ensaios);
+
     return {
-      ativos: ensaios?.ativos || 'Não informado',
-      fase_avancada: Boolean(ensaios?.fase_avancada),
-      paises: Array.isArray(ensaios?.paises) ? ensaios.paises : [],
-      principais_indicacoes_estudadas: Array.isArray(ensaios?.principais_indicacoes_estudadas) ? ensaios.principais_indicacoes_estudadas : []
+      ativos: (ensaios && ensaios.ativos !== undefined) ? ensaios.ativos.toString() : 'Não informado',
+      fase_avancada: (ensaios && ensaios.fase_avancada !== undefined) ? Boolean(ensaios.fase_avancada) : false,
+      paises: (ensaios && Array.isArray(ensaios.paises)) ? ensaios.paises : [],
+      principais_indicacoes_estudadas: (ensaios && Array.isArray(ensaios.principais_indicacoes_estudadas)) ? ensaios.principais_indicacoes_estudadas : []
     };
   };
 
   // Parse Orange Book data
   const parseOrangeBookData = (orangeBook: any): OrangeBookData => {
+    console.log('📚 Parsing Orange Book data:', orangeBook);
+
     return {
-      tem_generico: Boolean(orangeBook?.tem_generico),
-      nda_number: orangeBook?.nda_number || 'Não informado',
-      genericos_aprovados: Array.isArray(orangeBook?.genericos_aprovados) ? orangeBook.genericos_aprovados : [],
-      data_ultimo_generico: orangeBook?.data_ultimo_generico || 'Não informado'
+      tem_generico: (orangeBook && orangeBook.tem_generico !== undefined) ? Boolean(orangeBook.tem_generico) : false,
+      nda_number: (orangeBook && orangeBook.nda_number) ? orangeBook.nda_number : 'Não informado',
+      genericos_aprovados: (orangeBook && Array.isArray(orangeBook.genericos_aprovados)) ? orangeBook.genericos_aprovados : [],
+      data_ultimo_generico: (orangeBook && orangeBook.data_ultimo_generico) ? orangeBook.data_ultimo_generico : 'Não informado'
     };
   };
 
   // Parse regulation by country
   const parseRegulationByCountry = (regulacao: any[]): RegulationByCountry[] => {
+    console.log('🏛️ Parsing regulation data:', regulacao);
     if (!Array.isArray(regulacao)) return [];
     
     return regulacao.map(reg => ({
@@ -172,12 +175,13 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
 
   // Parse scientific evidence
   const parseScientificEvidence = (evidencia: any[]): ScientificEvidence[] => {
+    console.log('📄 Parsing scientific evidence:', evidencia);
     if (!Array.isArray(evidencia)) return [];
     
     return evidencia.map(ev => ({
       titulo: ev.titulo || 'Não informado',
       autores: Array.isArray(ev.autores) ? ev.autores : [],
-      ano: ev.ano || 'Não informado',
+      ano: ev.ano?.toString() || 'Não informado',
       resumo: ev.resumo || 'Não informado',
       doi: ev.doi || 'Não informado'
     }));

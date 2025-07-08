@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { PatentResultType, TokenUsageType } from '../types';
-import { PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';

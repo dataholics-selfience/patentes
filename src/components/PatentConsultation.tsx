@@ -4,6 +4,8 @@ import { PatentResultType, TokenUsageType, PatentByCountry, CommercialExploratio
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Flag from 'react-world-flags';
+import PatentLoadingAnimation from './PatentLoadingAnimation';
+import PatentResultsPage from './PatentResultsPage';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -221,6 +223,8 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
   const [produto, setProduto] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
+  const [showResultsPage, setShowResultsPage] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
 
@@ -229,6 +233,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     if (!produto.trim() || isLoading) return;
 
     setIsLoading(true);
+    setShowLoadingAnimation(true);
     setError('');
     setResult(null);
 
@@ -236,9 +241,15 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', produto, 'SessionId:', sessionId);
       const resultado = await onConsultation(produto.trim(), sessionId);
+      console.log('📊 Resultado final recebido:', resultado);
+      
+      // Webhook responded, show results immediately
       setResult(resultado);
+      setShowLoadingAnimation(false);
+      setShowResultsPage(true);
     } catch (err) {
       console.error('❌ Erro na consulta:', err);
+      setShowLoadingAnimation(false);
       setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
     } finally {
       setIsLoading(false);
@@ -247,6 +258,28 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
   const remainingTokens = tokenUsage ? tokenUsage.totalTokens - tokenUsage.usedTokens : 0;
   const isAccountExpired = remainingTokens <= 0;
+
+  // Show loading animation
+  if (showLoadingAnimation) {
+    return (
+      <PatentLoadingAnimation isVisible={showLoadingAnimation} />
+    );
+  }
+
+  // Show results page
+  if (showResultsPage && result) {
+    return (
+      <PatentResultsPage
+        result={result}
+        searchTerm={produto}
+        onBack={() => {
+          setShowResultsPage(false);
+          setResult(null);
+          setProduto('');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -371,6 +404,170 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 {result.patentes.map((patent, index) => (
                   <PatentDataCard key={index} patent={patent} index={index} />
                 ))}
+              </div>
+            )}
+
+            {/* Dados Químicos */}
+            {result.quimica && (
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                    <Beaker size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Dados Químicos</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 break-words">{result.quimica.iupac_name}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.quimica.molecular_formula}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.molecular_weight}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">SMILES</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.smiles}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">InChI Key</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.inchi_key}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Área Polar Topológica</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.topological_polar_surface_area}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Aceptores de Ligação H</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.hydrogen_bond_acceptors}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Doadores de Ligação H</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.hydrogen_bond_donors}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Ligações Rotacionáveis</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.rotatable_bonds}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Ensaios Clínicos */}
+            {result.ensaios_clinicos && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <TestTube size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <span className="text-sm font-medium text-gray-600">Status dos Ensaios</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.ensaios_clinicos.ativos}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-600">Fase Avançada</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      result.ensaios_clinicos.fase_avancada ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span className="text-lg font-bold">{result.ensaios_clinicos.fase_avancada ? '✓' : '✗'}</span>
+                      <span className="font-semibold">{result.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {result.ensaios_clinicos.paises && result.ensaios_clinicos.paises.length > 0 && (
+                  <div className="mb-4">
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">Países com Ensaios</span>
+                    <div className="flex flex-wrap gap-2">
+                      {result.ensaios_clinicos.paises.map((pais, idx) => (
+                        <CountryFlag key={idx} countryName={pais} size={20} className="bg-white px-3 py-1 rounded-full border border-green-200" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {result.ensaios_clinicos.principais_indicacoes_estudadas && result.ensaios_clinicos.principais_indicacoes_estudadas.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações Estudadas</span>
+                    <div className="flex flex-wrap gap-2">
+                      {result.ensaios_clinicos.principais_indicacoes_estudadas.map((indicacao, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          {indicacao}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Orange Book */}
+            {result.orange_book && (
+              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center">
+                    <FileText size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Regulação Farmacêutica</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-600">Possui Genérico</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      result.orange_book.tem_generico ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span className="text-lg font-bold">{result.orange_book.tem_generico ? '✓' : '✗'}</span>
+                      <span className="font-semibold">{result.orange_book.tem_generico ? 'SIM' : 'NÃO'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <span className="text-sm font-medium text-gray-600">Número NDA</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.orange_book.nda_number}</p>
+                  </div>
+                  
+                  {result.orange_book.genericos_aprovados && result.orange_book.genericos_aprovados.length > 0 && (
+                    <div className="bg-white p-4 rounded-lg border border-orange-100 md:col-span-2">
+                      <span className="text-sm font-medium text-gray-600 mb-2 block">Genéricos Aprovados</span>
+                      <div className="flex flex-wrap gap-2">
+                        {result.orange_book.genericos_aprovados.map((generico, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                            {generico}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
