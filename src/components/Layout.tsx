@@ -250,14 +250,16 @@ const Layout = () => {
                 Acesso Corporativo
               </div>
             )}
-            <Link
-              to="/plans"
-              style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'flex' }}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <CreditCard size={16} />
-              Planos
-            </Link>
+            {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
+            {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
+              <Link
+                to="/plans"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <CreditCard size={16} />
+                Planos
+              </Link>
+            )}
             <UserProfile />
             <button
               onClick={handleLogout}
@@ -313,15 +315,17 @@ const Layout = () => {
                 </div>
               )}
               
-              <Link
-                to="/plans"
-                style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'block' }}
-                className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={() => setShowSidebar(false)}
-              >
-                <CreditCard size={16} />
-                Planos
-              </Link>
+              {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
+              {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
+                <Link
+                  to="/plans"
+                  className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => setShowSidebar(false)}
+                >
+                  <CreditCard size={16} />
+                  Planos
+                </Link>
+              )}
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>

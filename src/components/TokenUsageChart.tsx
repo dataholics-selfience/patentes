@@ -134,7 +134,11 @@ const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: 
         >
           {remainingTokens === 0 ? 'Adquirir novo plano' : 'Ver outros planos'}
         </Link>
-      ) : null}
+      ) : (
+        <div className="mt-3 text-center text-sm text-green-600 font-medium">
+          Acesso Corporativo - Renovação Automática
+        </div>
+      )}
     </div>
   );
 };

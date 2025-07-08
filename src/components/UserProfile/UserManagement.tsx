@@ -21,6 +21,7 @@ import { auth, db } from '../../firebase';
 import { UserType, TokenUsageType } from '../../types';
 import TokenUsageChart from '../TokenUsageChart';
 import { useTranslation } from '../../utils/i18n';
+import { hasUnrestrictedAccess } from '../../utils/unrestrictedEmails';
 
 const UserManagement = () => {
   const { t } = useTranslation();
@@ -253,18 +254,18 @@ const UserManagement = () => {
           <ArrowLeft size={24} />
         </button>
         <h1 className="text-2xl font-bold text-white">{t.profile}</h1>
-        {!userData?.unrestrictedAccess && (
+        {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
+        {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? (
+          <div className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg">
+            Acesso Corporativo
+          </div>
+        ) : (
           <Link
             to="/plans"
             className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl"
           >
             {userData?.plan || 'Pesquisador'} →
           </Link>
-        )}
-        {userData?.unrestrictedAccess && (
-          <div className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg">
-            Acesso Corporativo
-          </div>
         )}
       </div>
 

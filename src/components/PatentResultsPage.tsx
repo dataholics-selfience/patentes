@@ -317,6 +317,27 @@ Relatório gerado pela Plataforma de Consulta de Patentes
                   </div>
                 </div>
               )}
+
+              {/* Exploração Comercial por País */}
+              {patent.exploracao_comercial_por_pais && patent.exploracao_comercial_por_pais.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Building2 size={20} className="text-purple-600" />
+                    Exploração Comercial por País
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {patent.exploracao_comercial_por_pais.map((exploration, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
+                        <CountryFlag countryName={exploration.pais} size={24} className="mb-3 font-medium" />
+                        <div className="space-y-2 text-sm">
+                          <div><strong>Disponível em:</strong> {exploration.data_disponivel}</div>
+                          <div><strong>Tipos Liberados:</strong> {exploration.tipos_liberados.join(', ')}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

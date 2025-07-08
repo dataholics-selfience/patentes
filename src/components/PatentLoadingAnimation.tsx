@@ -123,38 +123,41 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
         {/* Animated Test Tube */}
         <div className="mb-12 relative">
           <div className="relative mx-auto w-32 h-48">
-            {/* Test tube container */}
-            <div className="absolute inset-x-0 top-8 bottom-0 w-16 mx-auto">
-              <div className="w-full h-full bg-gradient-to-b from-transparent via-blue-200/30 to-blue-400/50 rounded-b-full border-4 border-white/40 relative overflow-hidden">
+            {/* Tubo de ensaio simplificado - apenas parte inferior cônica */}
+            <div className="absolute inset-x-0 top-12 bottom-4 mx-auto" style={{ width: '5rem' }}>
+              <div 
+                className="relative w-full h-full bg-gradient-to-b from-transparent via-blue-200/30 to-blue-400/50 border-4 border-white/40 overflow-hidden"
+                style={{
+                  clipPath: 'polygon(20% 0%, 80% 0%, 95% 100%, 5% 100%)',
+                  borderRadius: '0 0 2.5rem 2.5rem'
+                }}
+              >
                 {/* Liquid animation based on overall progress */}
                 <div 
                   className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${currentStageData?.color || 'from-blue-400 to-blue-600'} transition-all duration-500 ease-out rounded-b-full`}
                   style={{ height: `${overallProgress}%` }}
                 >
-                  {/* Hollow bubbles with 20% opacity */}
+                  {/* Bolhinhas animadas com movimento lento */}
                   <div className="absolute inset-0">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(6)].map((_, i) => (
                       <div
                         key={i}
-                        className="absolute border-4 border-white rounded-full animate-bubble-slow"
+                        className="absolute border-3 border-white rounded-full"
                         style={{
-                          width: `${16 + (i % 3) * 8}px`,
-                          height: `${16 + (i % 3) * 8}px`,
-                          left: `${15 + (i * 10)}%`,
-                          bottom: `${5 + (i * 8)}%`,
-                          opacity: 0.09,
+                          width: `${12 + (i % 3) * 6}px`,
+                          height: `${12 + (i % 3) * 6}px`,
+                          left: `${20 + (i * 12)}%`,
+                          bottom: `${10 + (i * 15)}%`,
+                          opacity: 0.15,
                           backgroundColor: 'transparent',
-                          animationDelay: `${i * 4}s`,
-                          animationDuration: `${33 + (i % 2) * 2}s`
+                          animation: `bubble-float-gentle ${8 + (i % 3) * 2}s ease-in-out infinite`,
+                          animationDelay: `${i * 1.5}s`
                         }}
                       />
                     ))}
                   </div>
                 </div>
               </div>
-              
-              {/* Test tube top */}
-              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 w-8 h-8 bg-white/40 rounded-t-lg border-4 border-white/40" />
             </div>
 
             {/* Rotating molecules around test tube */}
