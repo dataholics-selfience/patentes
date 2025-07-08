@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
-  Download, 
-  Share2, 
-  Printer,
+  Download,
   FlaskConical,
   Shield,
   Globe,
@@ -23,6 +21,8 @@ import {
 } from 'lucide-react';
 import { PatentResultType } from '../types';
 import Flag from 'react-world-flags';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface PatentResultsPageProps {
   result: PatentResultType;
@@ -102,81 +102,256 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
   const navigate = useNavigate();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
+  const generatePDFContent = (result: PatentResultType, searchTerm: string): string => {
+    const patent = result.patentes?.[0];
+    const currentDate = new Date().toLocaleDateString('pt-BR');
+    const currentTime = new Date().toLocaleTimeString('pt-BR');
+    
+    let content = `RELATÓRIO DE ANÁLISE DE PATENTE FARMACÊUTICA
+
+================================================================
+
+Substância Analisada: ${searchTerm}
+Data da Consulta: ${currentDate} às ${currentTime}
+
+================================================================
+RESUMO EXECUTIVO
+================================================================
+
+`;
+
+    if (patent) {
+      content += `Status da Patente: ${patent.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
+Data de Expiração Principal: ${patent.data_expiracao_patente_principal}
+Exploração Comercial: ${patent.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
+
+`;
+    }
+
+    // Dados Químicos
+    if (result.quimica) {
+      content += `================================================================
+DADOS QUÍMICOS
+================================================================
+
+Nome IUPAC: ${result.quimica.iupac_name}
+Fórmula Molecular: ${result.quimica.molecular_formula}
+Peso Molecular: ${result.quimica.molecular_weight}
+SMILES: ${result.quimica.smiles}
+InChI Key: ${result.quimica.inchi_key}
+Área Polar Topológica: ${result.quimica.topological_polar_surface_area}
+Aceptores de Ligação H: ${result.quimica.hydrogen_bond_acceptors}
+Doadores de Ligação H: ${result.quimica.hydrogen_bond_donors}
+Ligações Rotacionáveis: ${result.quimica.rotatable_bonds}
+
+`;
+    }
+
+    // Patentes por País
+    if (patent?.patentes_por_pais && patent.patentes_por_pais.length > 0) {
+      content += `================================================================
+PATENTES POR PAÍS
+================================================================
+
+`;
+      patent.patentes_por_pais.forEach((country, index) => {
+        content += `${index + 1}. ${country.pais}
+   Expiração Primária: ${country.data_expiracao_primaria}
+   Expiração Secundária: ${country.data_expiracao_secundaria}
+   Tipos: ${country.tipos.join(', ')}
+
+`;
+      });
+    }
+
+    // Exploração Comercial por País
+    if (patent?.exploracao_comercial_por_pais && patent.exploracao_comercial_por_pais.length > 0) {
+      content += `================================================================
+EXPLORAÇÃO COMERCIAL POR PAÍS
+================================================================
+
+`;
+      patent.exploracao_comercial_por_pais.forEach((exploration, index) => {
+        content += `${index + 1}. ${exploration.pais}
+   Disponível em: ${exploration.data_disponivel}
+   Tipos Liberados: ${exploration.tipos_liberados.join(', ')}
+
+`;
+      });
+    }
+
+    // Ensaios Clínicos
+    if (result.ensaios_clinicos) {
+      content += `================================================================
+ENSAIOS CLÍNICOS
+================================================================
+
+Ensaios Ativos: ${result.ensaios_clinicos.ativos}
+Fase Avançada: ${result.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}
+Países com Ensaios: ${result.ensaios_clinicos.paises.join(', ')}
+Principais Indicações: ${result.ensaios_clinicos.principais_indicacoes_estudadas.join(', ')}
+
+`;
+    }
+
+    // Orange Book
+    if (result.orange_book) {
+      content += `================================================================
+FDA ORANGE BOOK
+================================================================
+
+Possui Genérico: ${result.orange_book.tem_generico ? 'SIM' : 'NÃO'}
+Número NDA: ${result.orange_book.nda_number}
+Genéricos Aprovados: ${result.orange_book.genericos_aprovados.join(', ')}
+Data Último Genérico: ${result.orange_book.data_ultimo_generico}
+
+`;
+    }
+
+    // Alternativas de Compostos
+    if (patent?.alternativas_de_compostos_analogos && patent.alternativas_de_compostos_analogos.length > 0) {
+      content += `================================================================
+ALTERNATIVAS DE COMPOSTOS ANÁLOGOS
+================================================================
+
+`;
+      patent.alternativas_de_compostos_analogos.forEach((compound, index) => {
+        content += `${index + 1}. ${compound}
+`;
+      });
+      content += `
+`;
+    }
+
+    // Riscos Regulatórios
+    if (patent?.riscos_regulatorios_ou_eticos && patent.riscos_regulatorios_ou_eticos !== 'Não informado') {
+      content += `================================================================
+RISCOS REGULATÓRIOS E ÉTICOS
+================================================================
+
+${patent.riscos_regulatorios_ou_eticos}
+
+`;
+    }
+
+    // Estratégias de Formulação
+    if (result.estrategias_de_formulacao && result.estrategias_de_formulacao.length > 0) {
+      content += `================================================================
+ESTRATÉGIAS DE FORMULAÇÃO
+================================================================
+
+`;
+      result.estrategias_de_formulacao.forEach((strategy, index) => {
+        content += `${index + 1}. ${strategy}
+`;
+      });
+      content += `
+`;
+    }
+
+    content += `================================================================
+RODAPÉ
+================================================================
+
+Relatório gerado pela Plataforma de Consulta de Patentes
+Data: ${currentDate} às ${currentTime}
+Substância: ${searchTerm}
+
+IMPORTANTE: Este relatório é baseado em dados públicos e deve ser usado
+apenas para fins informativos. Para decisões legais ou regulatórias,
+consulte sempre as fontes oficiais e profissionais especializados.
+
+© 2025 Consulta de Patentes - Todos os direitos reservados
+`;
+
+    return content;
+  };
+
   const handleSavePDF = async () => {
     setIsGeneratingPDF(true);
     
     try {
-      // Simulate PDF generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Generate PDF content
+      const pdfContent = generatePDFContent(result, searchTerm);
       
-      // Create a simple text content for download
-      const content = `
-RELATÓRIO DE ANÁLISE DE PATENTE
-================================
-
-Substância Analisada: ${searchTerm}
-Data da Consulta: ${new Date().toLocaleDateString('pt-BR')}
-
-RESUMO EXECUTIVO
-================
-${result.patentes?.[0] ? `
-Status da Patente: ${result.patentes[0].patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
-Data de Expiração: ${result.patentes[0].data_expiracao_patente_principal}
-Exploração Comercial: ${result.patentes[0].exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
-` : 'Dados de patente não disponíveis'}
-
-DADOS QUÍMICOS
-==============
-Nome IUPAC: ${result.quimica?.iupac_name || 'Não informado'}
-Fórmula Molecular: ${result.quimica?.molecular_formula || 'Não informado'}
-Peso Molecular: ${result.quimica?.molecular_weight || 'Não informado'}
-
-ENSAIOS CLÍNICOS
-================
-Ensaios Ativos: ${result.ensaios_clinicos?.ativos || 'Não informado'}
-Fase Avançada: ${result.ensaios_clinicos?.fase_avancada ? 'SIM' : 'NÃO'}
-
-REGULAÇÃO FARMACÊUTICA
-======================
-Possui Genérico: ${result.orange_book?.tem_generico ? 'SIM' : 'NÃO'}
-Número NDA: ${result.orange_book?.nda_number || 'Não informado'}
-
----
-Relatório gerado pela Plataforma de Consulta de Patentes
-      `;
-
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `relatorio-patente-${searchTerm.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.txt`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      const lineHeight = 6;
+      const maxWidth = pageWidth - (margin * 2);
+      
+      // Split content into lines
+      const lines = pdfContent.split('\n');
+      let yPosition = margin;
+      
+      // Set font
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(10);
+      
+      lines.forEach((line) => {
+        // Check if we need a new page
+        if (yPosition > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+        
+        // Handle different line types
+        if (line.includes('RELATÓRIO DE ANÁLISE DE PATENTE')) {
+          pdf.setFontSize(16);
+          pdf.setFont('helvetica', 'bold');
+          const textLines = pdf.splitTextToSize(line, maxWidth);
+          textLines.forEach((textLine: string) => {
+            pdf.text(textLine, margin, yPosition);
+            yPosition += lineHeight + 2;
+          });
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+        } else if (line.includes('================================================================')) {
+          // Skip separator lines but add some space
+          yPosition += 3;
+        } else if (line.includes('RESUMO EXECUTIVO') || 
+                   line.includes('DADOS QUÍMICOS') || 
+                   line.includes('PATENTES POR PAÍS') ||
+                   line.includes('EXPLORAÇÃO COMERCIAL') ||
+                   line.includes('ENSAIOS CLÍNICOS') ||
+                   line.includes('FDA ORANGE BOOK') ||
+                   line.includes('ALTERNATIVAS DE COMPOSTOS') ||
+                   line.includes('RISCOS REGULATÓRIOS') ||
+                   line.includes('ESTRATÉGIAS DE FORMULAÇÃO') ||
+                   line.includes('RODAPÉ')) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          const textLines = pdf.splitTextToSize(line, maxWidth);
+          textLines.forEach((textLine: string) => {
+            pdf.text(textLine, margin, yPosition);
+            yPosition += lineHeight + 1;
+          });
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+        } else if (line.trim()) {
+          // Regular content
+          const textLines = pdf.splitTextToSize(line, maxWidth);
+          textLines.forEach((textLine: string) => {
+            pdf.text(textLine, margin, yPosition);
+            yPosition += lineHeight;
+          });
+        } else {
+          // Empty line
+          yPosition += lineHeight / 2;
+        }
+      });
+      
+      // Save PDF
+      const fileName = `relatorio-patente-${searchTerm.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      pdf.save(fileName);
       
     } catch (error) {
       console.error('Error generating PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
     } finally {
       setIsGeneratingPDF(false);
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `Análise de Patente - ${searchTerm}`,
-          text: `Confira a análise completa de patente para ${searchTerm}`,
-          url: window.location.href
-        });
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href);
-      alert('Link copiado para a área de transferência!');
     }
   };
 
@@ -208,14 +383,6 @@ Relatório gerado pela Plataforma de Consulta de Patentes
 
             <div className="flex items-center gap-3">
               <button
-                onClick={handleShare}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 border border-gray-300 rounded-lg hover:border-blue-300 transition-colors"
-              >
-                <Share2 size={16} />
-                <span>Compartilhar</span>
-              </button>
-              
-              <button
                 onClick={handleSavePDF}
                 disabled={isGeneratingPDF}
                 className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -223,7 +390,7 @@ Relatório gerado pela Plataforma de Consulta de Patentes
                 {isGeneratingPDF ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Gerando...</span>
+                    <span>Gerando PDF...</span>
                   </>
                 ) : (
                   <>
@@ -338,6 +505,36 @@ Relatório gerado pela Plataforma de Consulta de Patentes
                   </div>
                 </div>
               )}
+
+              {/* Alternativas de Compostos */}
+              {patent?.alternativas_de_compostos_analogos && patent.alternativas_de_compostos_analogos.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Target size={20} className="text-green-600" />
+                    Alternativas de Compostos Análogos
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {patent.alternativas_de_compostos_analogos.map((compound, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <Beaker size={16} className="text-purple-600" />
+                          <span className="font-medium text-gray-900">{compound}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            
+            {/* Debug para alternativas */}
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-bold text-yellow-800 mb-2">🐛 Debug - Alternativas de Compostos:</h4>
+              <div className="text-sm text-yellow-700 space-y-1">
+                <div><strong>Patent alternativas:</strong> {JSON.stringify(patent?.alternativas_de_compostos_analogos)}</div>
+                <div><strong>Result alternativas:</strong> {JSON.stringify(result.alternativas_de_compostos_analogos)}</div>
+                <div><strong>Result legacy:</strong> {JSON.stringify(result.alternativas_compostos)}</div>
+              </div>
+            </div>
             </div>
           )}
 
