@@ -17,6 +17,7 @@ const Layout = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Patent agencies data
   const patentAgencies = [
     {
       name: "INPI Brasil",
@@ -78,14 +79,17 @@ const Layout = () => {
         // Se não tem dados de token, criar
         if (!tokenDoc.exists()) {
           console.log('🎫 Criando dados de token para usuário irrestrito...');
+          const now = new Date();
           await setDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
             uid: auth.currentUser.uid,
             email: auth.currentUser.email,
             plan: UNRESTRICTED_USER_CONFIG.plan,
             totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
             usedTokens: 0,
-            lastUpdated: now.toISOString(),
-            purchasedAt: now.toISOString()
+            lastUpdated: now.toISOString(), 
+            purchasedAt: now.toISOString(),
+            renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
+            autoRenewal: true
           });
         }
 
@@ -136,7 +140,7 @@ const Layout = () => {
     try {
       console.log('🚀 Starting patent consultation for:', produto);
       
-      // Call webhook with sessionId
+      // Call the correct webhook endpoint for patents
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
         headers: {
@@ -144,7 +148,8 @@ const Layout = () => {
         },
         body: JSON.stringify({
           produto: produto,
-          sessionId: sessionId,
+          sessionId: sessionId, 
+          query: produto,
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
@@ -157,7 +162,7 @@ const Layout = () => {
       }
 
       const rawResponse = await response.json();
-      console.log('📥 Raw webhook response:', rawResponse);
+      console.log('📥 Raw patent webhook response:', rawResponse);
       
       // Parse the response using the improved parser
       const resultado = parsePatentResponse(rawResponse);
@@ -167,7 +172,7 @@ const Layout = () => {
         resultado.substancia = produto;
       }
 
-      console.log('✅ Final consultation result:', resultado);
+      console.log('✅ Final patent consultation result:', resultado);
 
       // Update token usage
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
@@ -181,7 +186,7 @@ const Layout = () => {
 
       return resultado;
     } catch (error) {
-      console.error('💥 Error in consultation:', error);
+      console.error('💥 Error in patent consultation:', error);
       
       // Provide more specific error messages
       if (error instanceof Error) {
@@ -199,7 +204,7 @@ const Layout = () => {
         throw error;
       }
       
-      throw new Error('Erro inesperado na consulta. Tente novamente.');
+      throw new Error('Erro inesperado na consulta de patente. Tente novamente.');
     }
   };
 
@@ -247,6 +252,7 @@ const Layout = () => {
             )}
             <Link
               to="/plans"
+              style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'flex' }}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <CreditCard size={16} />
@@ -309,6 +315,7 @@ const Layout = () => {
               
               <Link
                 to="/plans"
+                style={{ display: auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? 'none' : 'block' }}
                 className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 onClick={() => setShowSidebar(false)}
               >

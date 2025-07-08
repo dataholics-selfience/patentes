@@ -4,6 +4,8 @@ import { PatentResultType, TokenUsageType, PatentByCountry, CommercialExploratio
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Flag from 'react-world-flags';
+import PatentLoadingAnimation from './PatentLoadingAnimation';
+import PatentResultsPage from './PatentResultsPage';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -218,238 +220,11 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
   );
 };
 
-// Componente para dados químicos
-const ChemicalDataCard: React.FC<{ chemistry: ChemicalData }> = ({ chemistry }) => {
-  return (
-    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-          <FlaskConical size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Dados Químicos</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">Nome IUPAC</div>
-          <div className="font-medium text-gray-900">{chemistry.iupac_name}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">Fórmula Molecular</div>
-          <div className="font-medium text-gray-900">{chemistry.molecular_formula}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">Peso Molecular</div>
-          <div className="font-medium text-gray-900">{chemistry.molecular_weight}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">SMILES</div>
-          <div className="font-medium text-gray-900 text-xs break-all">{chemistry.smiles}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">InChI Key</div>
-          <div className="font-medium text-gray-900 text-xs break-all">{chemistry.inchi_key}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-purple-100">
-          <div className="text-sm text-gray-600 mb-1">Área Polar Topológica</div>
-          <div className="font-medium text-gray-900">{chemistry.topological_polar_surface_area}</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente para ensaios clínicos
-const ClinicalTrialsCard: React.FC<{ trials: ClinicalTrialsData }> = ({ trials }) => {
-  return (
-    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-          <TestTube size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="bg-white p-4 rounded-lg border border-green-100">
-          <div className="text-sm text-gray-600 mb-1">Status dos Ensaios</div>
-          <div className="font-medium text-gray-900">{trials.ativos}</div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-green-100">
-          <div className="text-sm text-gray-600 mb-1">Fase Avançada</div>
-          <div className={`font-medium ${trials.fase_avancada ? 'text-green-600' : 'text-gray-600'}`}>
-            {trials.fase_avancada ? 'SIM' : 'NÃO'}
-          </div>
-        </div>
-      </div>
-
-      {trials.paises.length > 0 && (
-        <div className="mb-4">
-          <div className="text-sm text-gray-600 mb-2">Países com Ensaios</div>
-          <div className="flex flex-wrap gap-2">
-            {trials.paises.map((pais, idx) => (
-              <CountryFlag key={idx} countryName={pais} size={20} className="text-sm" />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {trials.principais_indicacoes_estudadas.length > 0 && (
-        <div>
-          <div className="text-sm text-gray-600 mb-2">Principais Indicações</div>
-          <div className="flex flex-wrap gap-2">
-            {trials.principais_indicacoes_estudadas.map((indicacao, idx) => (
-              <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                {indicacao}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Componente para Orange Book
-const OrangeBookCard: React.FC<{ orangeBook: OrangeBookData }> = ({ orangeBook }) => {
-  return (
-    <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center">
-          <Pill size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Regulação Farmacêutica</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-orange-100">
-          <div className="text-sm text-gray-600 mb-1">Possui Genérico</div>
-          <div className={`font-medium text-lg ${orangeBook.tem_generico ? 'text-green-600' : 'text-red-600'}`}>
-            {orangeBook.tem_generico ? 'SIM' : 'NÃO'}
-          </div>
-        </div>
-        <div className="bg-white p-4 rounded-lg border border-orange-100">
-          <div className="text-sm text-gray-600 mb-1">Número NDA</div>
-          <div className="font-medium text-gray-900">{orangeBook.nda_number}</div>
-        </div>
-      </div>
-
-      {orangeBook.genericos_aprovados.length > 0 && (
-        <div className="mt-4">
-          <div className="text-sm text-gray-600 mb-2">Genéricos Aprovados</div>
-          <div className="flex flex-wrap gap-2">
-            {orangeBook.genericos_aprovados.map((generico, idx) => (
-              <span key={idx} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
-                {generico}
-              </span>
-            ))}
-          </div>
-          {orangeBook.data_ultimo_generico !== 'Não informado' && (
-            <div className="mt-2 text-sm text-gray-600">
-              Último genérico aprovado: {orangeBook.data_ultimo_generico}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Componente para regulação por país
-const RegulationCard: React.FC<{ regulations: RegulationByCountry[] }> = ({ regulations }) => {
-  return (
-    <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 border border-red-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-          <Building2 size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Regulação por País</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {regulations.map((reg, idx) => (
-          <div key={idx} className="bg-white p-4 rounded-lg border border-red-100">
-            <CountryFlag countryName={reg.pais} size={24} className="mb-3 font-medium" />
-            <div className="space-y-2 text-sm">
-              <div><strong>Agência:</strong> {reg.agencia}</div>
-              <div><strong>Classificação:</strong> {reg.classificacao}</div>
-              <div><strong>Restrições:</strong> {reg.restricoes.join(', ')}</div>
-              <div><strong>Facilidade Registro Genérico:</strong> {reg.facilidade_registro_generico}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Componente para evidência científica
-const ScientificEvidenceCard: React.FC<{ evidence: ScientificEvidence[] }> = ({ evidence }) => {
-  return (
-    <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
-          <BookOpen size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Evidência Científica Recente</h3>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {evidence.map((ev, idx) => (
-          <div key={idx} className="bg-white p-4 rounded-lg border border-indigo-100">
-            <div className="font-medium text-gray-900 mb-2">{ev.titulo}</div>
-            <div className="text-sm text-gray-600 mb-2">
-              <strong>Autores:</strong> {ev.autores.join(', ')} ({ev.ano})
-            </div>
-            <div className="text-sm text-gray-700 mb-2">{ev.resumo}</div>
-            {ev.doi !== 'Não informado' && (
-              <div className="text-xs text-indigo-600">DOI: {ev.doi}</div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Componente para estratégias de formulação
-const FormulationStrategiesCard: React.FC<{ strategies: string[] }> = ({ strategies }) => {
-  return (
-    <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center">
-          <Zap size={24} className="text-white" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Estratégias de Formulação</h3>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {strategies.map((strategy, idx) => (
-          <div key={idx} className="bg-white p-4 rounded-lg border border-teal-100 flex items-center gap-3">
-            <Award size={16} className="text-teal-600 flex-shrink-0" />
-            <span className="text-gray-900">{strategy}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
   const [produto, setProduto] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
+  const [showResultsPage, setShowResultsPage] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
 
@@ -458,14 +233,23 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     if (!produto.trim() || isLoading) return;
 
     setIsLoading(true);
+    setShowLoadingAnimation(true);
     setError('');
     setResult(null);
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
+      console.log('🚀 Iniciando consulta de patente:', produto, 'SessionId:', sessionId);
       const resultado = await onConsultation(produto.trim(), sessionId);
+      console.log('📊 Resultado final recebido:', resultado);
+      
+      // Webhook responded, show results immediately
       setResult(resultado);
+      setShowLoadingAnimation(false);
+      setShowResultsPage(true);
     } catch (err) {
+      console.error('❌ Erro na consulta:', err);
+      setShowLoadingAnimation(false);
       setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
     } finally {
       setIsLoading(false);
@@ -474,6 +258,28 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
   const remainingTokens = tokenUsage ? tokenUsage.totalTokens - tokenUsage.usedTokens : 0;
   const isAccountExpired = remainingTokens <= 0;
+
+  // Show loading animation
+  if (showLoadingAnimation) {
+    return (
+      <PatentLoadingAnimation isVisible={showLoadingAnimation} />
+    );
+  }
+
+  // Show results page
+  if (showResultsPage && result) {
+    return (
+      <PatentResultsPage
+        result={result}
+        searchTerm={produto}
+        onBack={() => {
+          setShowResultsPage(false);
+          setResult(null);
+          setProduto('');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -509,7 +315,6 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
             <div className="flex-1">
               <input
                 type="text"
-                value={produto}
                 onChange={(e) => setProduto(e.target.value)}
                 placeholder="Ex: Minoxidil, Paracetamol, Ibuprofeno..."
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
@@ -603,32 +408,166 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
             {/* Dados Químicos */}
             {result.quimica && (
-              <ChemicalDataCard chemistry={result.quimica} />
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                    <Beaker size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Dados Químicos</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 break-words">{result.quimica.iupac_name}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.quimica.molecular_formula}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.molecular_weight}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">SMILES</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.smiles}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">InChI Key</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.inchi_key}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Área Polar Topológica</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.topological_polar_surface_area}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Aceptores de Ligação H</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.hydrogen_bond_acceptors}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Doadores de Ligação H</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.hydrogen_bond_donors}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-purple-100">
+                    <span className="text-sm font-medium text-gray-600">Ligações Rotacionáveis</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.rotatable_bonds}</p>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Ensaios Clínicos */}
             {result.ensaios_clinicos && (
-              <ClinicalTrialsCard trials={result.ensaios_clinicos} />
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                    <TestTube size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <span className="text-sm font-medium text-gray-600">Status dos Ensaios</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.ensaios_clinicos.ativos}</p>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-600">Fase Avançada</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      result.ensaios_clinicos.fase_avancada ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span className="text-lg font-bold">{result.ensaios_clinicos.fase_avancada ? '✓' : '✗'}</span>
+                      <span className="font-semibold">{result.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {result.ensaios_clinicos.paises && result.ensaios_clinicos.paises.length > 0 && (
+                  <div className="mb-4">
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">Países com Ensaios</span>
+                    <div className="flex flex-wrap gap-2">
+                      {result.ensaios_clinicos.paises.map((pais, idx) => (
+                        <CountryFlag key={idx} countryName={pais} size={20} className="bg-white px-3 py-1 rounded-full border border-green-200" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {result.ensaios_clinicos.principais_indicacoes_estudadas && result.ensaios_clinicos.principais_indicacoes_estudadas.length > 0 && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações Estudadas</span>
+                    <div className="flex flex-wrap gap-2">
+                      {result.ensaios_clinicos.principais_indicacoes_estudadas.map((indicacao, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                          {indicacao}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Orange Book */}
             {result.orange_book && (
-              <OrangeBookCard orangeBook={result.orange_book} />
-            )}
-
-            {/* Regulação por País */}
-            {result.regulacao_por_pais && result.regulacao_por_pais.length > 0 && (
-              <RegulationCard regulations={result.regulacao_por_pais} />
-            )}
-
-            {/* Evidência Científica */}
-            {result.evidencia_cientifica_recente && result.evidencia_cientifica_recente.length > 0 && (
-              <ScientificEvidenceCard evidence={result.evidencia_cientifica_recente} />
-            )}
-
-            {/* Estratégias de Formulação */}
-            {result.estrategias_de_formulacao && result.estrategias_de_formulacao.length > 0 && (
-              <FormulationStrategiesCard strategies={result.estrategias_de_formulacao} />
+              <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center">
+                    <FileText size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Regulação Farmacêutica</h3>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-600">Possui Genérico</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      result.orange_book.tem_generico ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span className="text-lg font-bold">{result.orange_book.tem_generico ? '✓' : '✗'}</span>
+                      <span className="font-semibold">{result.orange_book.tem_generico ? 'SIM' : 'NÃO'}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <span className="text-sm font-medium text-gray-600">Número NDA</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.orange_book.nda_number}</p>
+                  </div>
+                  
+                  {result.orange_book.genericos_aprovados && result.orange_book.genericos_aprovados.length > 0 && (
+                    <div className="bg-white p-4 rounded-lg border border-orange-100 md:col-span-2">
+                      <span className="text-sm font-medium text-gray-600 mb-2 block">Genéricos Aprovados</span>
+                      <div className="flex flex-wrap gap-2">
+                        {result.orange_book.genericos_aprovados.map((generico, idx) => (
+                          <span key={idx} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                            {generico}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         )}

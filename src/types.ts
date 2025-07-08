@@ -27,6 +27,9 @@ export interface TokenUsageType {
   usedTokens: number;
   lastUpdated: string;
   expirationDate: string;
+  autoRenewal?: boolean;
+  renewalDate?: string;
+  purchasedAt?: string;
 }
 
 export interface PatentConsultationType {

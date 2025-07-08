@@ -16,7 +16,7 @@ import Terms from './components/Terms';
 import PharmaceuticalDataViewer from './components/PharmaceuticalDataViewer';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
 
-// Import success pages
+// Import success pages - only the ones being used
 import AnalistaSuccess from './pages/plans/success/analista';
 import EspecialistaSuccess from './pages/plans/success/especialista';
 import DiretorSuccess from './pages/plans/success/diretor';
@@ -88,7 +88,7 @@ function App() {
         <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/account-deleted" element={<AccountDeleted />} />
         
-        {/* Plan success routes */}
+        {/* Plan success routes - only active ones */}
         <Route path="/sucesso/analista" element={<AnalistaSuccess />} />
         <Route path="/sucesso/especialista" element={<EspecialistaSuccess />} />
         <Route path="/sucesso/diretor" element={<DiretorSuccess />} />
@@ -103,7 +103,13 @@ function App() {
             <Navigate to="/login" replace />
           )
         } />
-        <Route path="/plans" element={<Plans />} />
+        <Route path="/plans" element={
+          user && hasUnrestrictedAccess(user.email) ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Plans />
+          )
+        } />
         <Route path="/dashboard" element={
           user ? (
             canAccessDashboard(user) ? (

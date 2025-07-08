@@ -118,20 +118,6 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center z-50">
       {/* Background particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(30)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full opacity-30 animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`
-            }}
-          />
-        ))}
-      </div>
 
       <div className="relative z-10 text-center max-w-2xl mx-auto px-6">
         {/* Animated Test Tube */}
@@ -150,16 +136,16 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
                     {[...Array(8)].map((_, i) => (
                       <div
                         key={i}
-                        className="absolute border-2 border-white rounded-full animate-bounce"
+                        className="absolute border-4 border-white rounded-full animate-bubble-slow"
                         style={{
-                          width: `${8 + (i % 3) * 4}px`,
-                          height: `${8 + (i % 3) * 4}px`,
+                          width: `${16 + (i % 3) * 8}px`,
+                          height: `${16 + (i % 3) * 8}px`,
                           left: `${15 + (i * 10)}%`,
                           bottom: `${5 + (i * 8)}%`,
-                          opacity: 0.2,
+                          opacity: 0.09,
                           backgroundColor: 'transparent',
-                          animationDelay: `${i * 0.3}s`,
-                          animationDuration: `${1.5 + (i % 2) * 0.5}s`
+                          animationDelay: `${i * 4}s`,
+                          animationDuration: `${33 + (i % 2) * 2}s`
                         }}
                       />
                     ))}

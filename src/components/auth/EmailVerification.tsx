@@ -45,7 +45,9 @@ const EmailVerification = () => {
         totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
         usedTokens: 0,
         lastUpdated: now.toISOString(),
-        purchasedAt: now.toISOString()
+        purchasedAt: now.toISOString(),
+        renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(), // Primeiro dia do próximo mês
+        autoRenewal: true
       }, { merge: true });
 
       // 3. Registrar compliance GDPR
@@ -202,9 +204,10 @@ const EmailVerification = () => {
                   <div className="font-medium mb-2">Configuração Automática:</div>
                   <div className="text-left space-y-1">
                     <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                    <div>• Consultas: {UNRESTRICTED_USER_CONFIG.totalTokens.toLocaleString()}</div>
+                    • {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais<br/>
                     <div>• Empresa: {UNRESTRICTED_USER_CONFIG.company}</div>
-                    <div>• Status: Ativação automática</div>
+                    • Renovação automática todo mês<br/>
+                    • Sem necessidade de verificação de e-mail
                   </div>
                 </div>
               </div>
