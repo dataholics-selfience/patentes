@@ -273,6 +273,8 @@ const UserManagement = () => {
           <TokenUsageChart
             totalTokens={tokenUsage.totalTokens}
             usedTokens={tokenUsage.usedTokens}
+            autoRenewal={tokenUsage.autoRenewal}
+            renewalDate={tokenUsage.renewalDate}
           />
         </div>
       )}

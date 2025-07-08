@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { PatentResultType, TokenUsageType } from '../types';
+import { PatentResultType, TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
@@ -17,6 +18,7 @@ const Layout = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Patent agencies data
   const patentAgencies = [
     {
       name: "INPI Brasil",
@@ -139,7 +141,7 @@ const Layout = () => {
     try {
       console.log('🚀 Starting patent consultation for:', produto);
       
-      // Call webhook with sessionId
+      // Call the correct webhook endpoint for patents
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
         headers: {
@@ -147,7 +149,8 @@ const Layout = () => {
         },
         body: JSON.stringify({
           produto: produto,
-          sessionId: sessionId,
+          sessionId: sessionId, 
+          query: produto,
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
@@ -160,7 +163,7 @@ const Layout = () => {
       }
 
       const rawResponse = await response.json();
-      console.log('📥 Raw webhook response:', rawResponse);
+      console.log('📥 Raw patent webhook response:', rawResponse);
       
       // Parse the response using the improved parser
       const resultado = parsePatentResponse(rawResponse);
@@ -170,7 +173,7 @@ const Layout = () => {
         resultado.substancia = produto;
       }
 
-      console.log('✅ Final consultation result:', resultado);
+      console.log('✅ Final patent consultation result:', resultado);
 
       // Update token usage
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
@@ -184,7 +187,7 @@ const Layout = () => {
 
       return resultado;
     } catch (error) {
-      console.error('💥 Error in consultation:', error);
+      console.error('💥 Error in patent consultation:', error);
       
       // Provide more specific error messages
       if (error instanceof Error) {
@@ -202,7 +205,7 @@ const Layout = () => {
         throw error;
       }
       
-      throw new Error('Erro inesperado na consulta. Tente novamente.');
+      throw new Error('Erro inesperado na consulta de patente. Tente novamente.');
     }
   };
 
