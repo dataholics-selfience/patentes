@@ -1,8 +1,7 @@
 // Lista de e-mails com acesso irrestrito (não precisam verificar e-mail)
 export const UNRESTRICTED_EMAILS = [
-  'dproenca@its.jnj.com',
-  'innovagenoi7@gmail.com',
-  'robert.filho@hypofarma.com.br'
+  'dproenca@its.jnj.com'
+  'innovagenoi7@gmail.com'
 ];
 
 // Função para verificar se um e-mail tem acesso irrestrito
@@ -19,12 +18,13 @@ export const addUnrestrictedEmail = (email: string): void => {
   }
 };
 
+
 // Configuração padrão para usuários com acesso irrestrito - PLANO GRATUITO
 export const UNRESTRICTED_USER_CONFIG = {
   plan: 'Pesquisador',
-  totalTokens: 25, // 25 consultas mensais (renovação automática)
+  totalTokens: 10, // 10 consultas (plano gratuito)
   name: 'Usuário Corporativo',
-  company: 'Hypofarma',
+  company: 'Johnson & Johnson',
   cpf: '000.000.000-00',
-  phone: '+55-000-000-0000'
+  phone: '+1-000-000-0000'
 };

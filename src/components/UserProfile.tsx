@@ -54,17 +54,12 @@ const UserProfile = ({ hideText = false }: UserProfileProps) => {
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-900">{firstName}</span>
-            {!userData.unrestrictedAccess && (
-              <span className="text-xs text-gray-600">({userData.plan || 'Pesquisador'})</span>
-            )}
-            {userData.unrestrictedAccess && (
-              <span className="text-xs text-green-600 font-medium">(Acesso Corporativo)</span>
-            )}
+            <span className="text-xs text-gray-600">({userData.plan || 'Pesquisador'})</span>
           </div>
           {tokenUsage && (
             <div className="text-xs">
               <span className="text-blue-600">{tokenUsage.totalTokens - tokenUsage.usedTokens}</span>
-              <span className="text-gray-600"> de {tokenUsage.totalTokens} consultas{tokenUsage.autoRenewal ? ' (mensal)' : ''}</span>
+              <span className="text-gray-600"> de {tokenUsage.totalTokens} consultas</span>
             </div>
           )}
         </div>

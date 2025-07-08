@@ -70,9 +70,7 @@ const Login = () => {
         totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
         usedTokens: 0,
         lastUpdated: now.toISOString(),
-        purchasedAt: now.toISOString(),
-        renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(), // Primeiro dia do próximo mês
-        autoRenewal: true
+        purchasedAt: now.toISOString()
       }, { merge: true });
 
       // 3. Registrar compliance GDPR
@@ -225,9 +223,8 @@ const Login = () => {
                     <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
                   </div>
                   <div className="text-xs text-green-600 mt-1">
-                    • {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais<br/>
+                    • {UNRESTRICTED_USER_CONFIG.totalTokens.toLocaleString()} consultas incluídas<br/>
                     • Plano: {UNRESTRICTED_USER_CONFIG.plan}<br/>
-                    • Renovação automática todo mês<br/>
                     • Sem necessidade de verificação de e-mail
                   </div>
                 </div>

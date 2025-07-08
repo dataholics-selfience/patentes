@@ -20,35 +20,6 @@
   animation: fade-in 0.5s ease-out;
 }
 
-/* Additional animations for patent loading */
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
-  50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), 0 0 40px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.5); }
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
-}
-
-/* Hollow bubble animation */
-@keyframes bubble-float {
-  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.2; }
-  50% { transform: translateY(-15px) scale(1.1); opacity: 0.4; }
-}
-
-.animate-bubble {
-  animation: bubble-float 2s ease-in-out infinite;
-}
-
 /* Custom scrollbar styles */
 .scrollbar::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
