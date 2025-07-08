@@ -1,6 +1,6 @@
 // Lista de e-mails com acesso irrestrito (não precisam verificar e-mail)
 export const UNRESTRICTED_EMAILS = [
-  'dproenca@its.jnj.com'
+  'dproenca@its.jnj.com',
   'innovagenoi7@gmail.com'
 ];
 
