@@ -7,7 +7,7 @@ interface PatentLoadingAnimationProps {
 }
 
 const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimationProps) => {
-  const [currentStage, setCurrentStage] = useState(0);
+  const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
 
@@ -18,7 +18,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Consultando Instituto Nacional da Propriedade Industrial",
       icon: Building2,
       color: "from-green-400 to-green-600",
-      duration: 6000 // 6 seconds
+      duration: 11400 // 11.4 seconds (20% of 57s)
     },
     {
       id: 1,
@@ -26,7 +26,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Acessando European Patent Office e União Europeia",
       icon: Globe,
       color: "from-blue-400 to-blue-600",
-      duration: 6000 // 6 seconds
+      duration: 11400 // 11.4 seconds
     },
     {
       id: 2,
@@ -34,7 +34,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Consultando USPTO - United States Patent Office",
       icon: Building2,
       color: "from-red-400 to-red-600",
-      duration: 6000 // 6 seconds
+      duration: 11400 // 11.4 seconds
     },
     {
       id: 3,
@@ -42,7 +42,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Verificando patentes em países latino-americanos",
       icon: MapPin,
       color: "from-yellow-400 to-orange-600",
-      duration: 6000 // 6 seconds
+      duration: 11400 // 11.4 seconds
     },
     {
       id: 4,
@@ -50,11 +50,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Analisando oportunidades de mercado e riscos regulatórios",
       icon: TrendingUp,
       color: "from-purple-400 to-purple-600",
-      duration: 6000 // 6 seconds
+      duration: 11400 // 11.4 seconds (20% of 57s)
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 30 seconds total
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 57 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
@@ -126,7 +126,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
             {/* Tubo de ensaio simplificado - apenas parte inferior cônica */}
             <div className="absolute inset-x-0 top-12 bottom-4 mx-auto" style={{ width: '5rem' }}>
               <div 
-                className="relative w-full h-full bg-gradient-to-b from-transparent via-blue-200/30 to-blue-400/50 border-4 border-white/40 overflow-hidden"
+                className="h-full bg-blue-500 rounded-full transition-all duration-100 ease-out shadow-lg"
                 style={{
                   clipPath: 'polygon(20% 0%, 80% 0%, 95% 100%, 5% 100%)',
                   borderRadius: '0 0 2.5rem 2.5rem'
@@ -216,13 +216,13 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </div>
           <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden shadow-inner">
             <div 
-              className="h-full bg-gradient-to-r from-blue-400 via-purple-500 to-green-500 rounded-full transition-all duration-200 ease-out shadow-lg"
+              className="h-full bg-blue-500 rounded-full transition-all duration-200 ease-out shadow-lg"
               style={{ width: `${overallProgress}%` }}
             />
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 30)}s / 30s</span>
+            <span>{Math.round((overallProgress / 100) * 57)}s / 57s</span>
           </div>
         </div>
 

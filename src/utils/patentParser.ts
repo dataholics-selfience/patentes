@@ -107,11 +107,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     return patentsArray.map(patent => {
       console.log('🔬 Parsing individual patent:', patent);
       
-      // Log específico para alternativas de compostos
-      console.log('🧪 Alternativas no patent original:', patent.alternativas_de_compostos_analogos);
-      console.log('🧪 Alternativas alternativas:', patent.alternativas_compostos);
-      console.log('🧪 Alternativas de compostos:', patent.alternativas_de_compostos);
-      
       // Parse patentes por país
       const parsePatentsByCountry = (patentsByCountry: any[]): PatentByCountry[] => {
         if (!Array.isArray(patentsByCountry)) return [];
@@ -144,7 +139,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         exploracao_comercial: Boolean(patent.exploracao_comercial),
         riscos_regulatorios_ou_eticos: patent.riscos_regulatorios_ou_eticos || 'Não informado',
         data_vencimento_para_novo_produto: patent.data_vencimento_para_novo_produto || 'Não informado',
-        alternativas_de_compostos_analogos: Array.isArray(patent.alternativas_de_compostos_analogos) 
+        alternativas_de_compostos_analogos: Array.isArray(patent.alternativas_de_compostos_analogos)
           ? patent.alternativas_de_compostos_analogos 
           : Array.isArray(patent.alternativas_compostos) 
             ? patent.alternativas_compostos
@@ -153,19 +148,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
               : [],
         fonte_estimativa: Array.isArray(patent.fonte_estimativa) ? patent.fonte_estimativa : []
       };
-      
-      console.log('🧪 Alternativas processadas:', {
-        original: patent.alternativas_de_compostos_analogos,
-        processed: Array.isArray(patent.alternativas_de_compostos_analogos) 
-          ? patent.alternativas_de_compostos_analogos 
-          : Array.isArray(patent.alternativas_compostos) 
-            ? patent.alternativas_compostos
-            : Array.isArray(patent.alternativas_de_compostos)
-              ? patent.alternativas_de_compostos
-              : []
-      });
-      
-      return processedPatent;
     });
   };
 
@@ -316,9 +298,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
   };
   
   console.log('✅ Final resultado completo:', resultado);
-  console.log('🧪 Alternativas de compostos:', resultado.alternativas_de_compostos_analogos);
-  console.log('🧪 Primeira patente alternativas:', primeiraPatente?.alternativas_de_compostos_analogos);
-  console.log('🧪 Dados originais alternativas:', parsedData.alternativas_de_compostos_analogos);
   console.log('🌍 Exploração comercial por país:', resultado.exploracao_comercial_por_pais);
   console.log('⚠️ Riscos regulatórios:', resultado.riscos_regulatorios_ou_eticos);
   console.log('🆕 Data vencimento novo produto:', resultado.data_vencimento_para_novo_produto);

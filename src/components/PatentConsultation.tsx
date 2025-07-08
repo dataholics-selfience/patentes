@@ -216,11 +216,6 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
           </div>
         </div>
       )}
-      
-      {/* Debug: Mostrar alternativas mesmo se array vazio para debug */}
-      <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-gray-600">
-        <strong>Debug - Alternativas:</strong> {JSON.stringify(patent.alternativas_de_compostos_analogos)}
-      </div>
     </div>
   );
 };
@@ -574,18 +569,6 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 </div>
               </div>
             )}
-          </div>
-        )}
-        
-        {/* Debug para resultado completo */}
-        {result && (
-          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h4 className="font-bold text-yellow-800 mb-2">🐛 Debug - Resultado Completo:</h4>
-            <div className="text-xs text-yellow-700 space-y-1">
-              <div><strong>Alternativas (novo):</strong> {JSON.stringify(result.alternativas_de_compostos_analogos)}</div>
-              <div><strong>Alternativas (legacy):</strong> {JSON.stringify(result.alternativas_compostos)}</div>
-              <div><strong>Primeira patente:</strong> {JSON.stringify(result.patentes?.[0]?.alternativas_de_compostos_analogos)}</div>
-            </div>
           </div>
         )}
       </div>

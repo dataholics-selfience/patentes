@@ -17,7 +17,6 @@ import {
   Target,
   Microscope,
   BookOpen,
-  Pill
 } from 'lucide-react';
 import { PatentResultType } from '../types';
 import Flag from 'react-world-flags';
@@ -36,6 +35,11 @@ const countryCodeMap: { [key: string]: string } = {
   'Alemanha': 'DE', 'Germany': 'DE', 'França': 'FR', 'France': 'FR', 'Reino Unido': 'GB', 'United Kingdom': 'GB', 'UK': 'GB',
   'Japão': 'JP', 'Japan': 'JP', 'China': 'CN', 'Coreia do Sul': 'KR', 'South Korea': 'KR', 'Canadá': 'CA', 'Canada': 'CA',
   'Austrália': 'AU', 'Australia': 'AU', 'Índia': 'IN', 'India': 'IN', 'Itália': 'IT', 'Italy': 'IT',
+  'México': 'MX', 'Mexico': 'MX', 'Argentina': 'AR', 'Colômbia': 'CO', 'Colombia': 'CO', 
+  'Chile': 'CL', 'Peru': 'PE', 'Uruguai': 'UY', 'Uruguay': 'UY', 'Venezuela': 'VE',
+  'Equador': 'EC', 'Ecuador': 'EC', 'Bolívia': 'BO', 'Bolivia': 'BO', 'Paraguai': 'PY', 'Paraguay': 'PY',
+  'Costa Rica': 'CR', 'Panamá': 'PA', 'Panama': 'PA', 'Guatemala': 'GT', 'Honduras': 'HN',
+  'El Salvador': 'SV', 'Nicarágua': 'NI', 'Nicaragua': 'NI', 'República Dominicana': 'DO', 'Dominican Republic': 'DO',
   'Espanha': 'ES', 'Spain': 'ES', 'Holanda': 'NL', 'Netherlands': 'NL', 'Suíça': 'CH', 'Switzerland': 'CH',
   'Europa': 'EU', 'European Union': 'EU', 'EU': 'EU', 'EPO': 'EU', 'European Patent Office': 'EU', 'União Europeia': 'EU'
 };
@@ -525,16 +529,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   </div>
                 </div>
               )}
-            
-            {/* Debug para alternativas */}
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h4 className="font-bold text-yellow-800 mb-2">🐛 Debug - Alternativas de Compostos:</h4>
-              <div className="text-sm text-yellow-700 space-y-1">
-                <div><strong>Patent alternativas:</strong> {JSON.stringify(patent?.alternativas_de_compostos_analogos)}</div>
-                <div><strong>Result alternativas:</strong> {JSON.stringify(result.alternativas_de_compostos_analogos)}</div>
-                <div><strong>Result legacy:</strong> {JSON.stringify(result.alternativas_compostos)}</div>
-              </div>
-            </div>
             </div>
           )}
 
