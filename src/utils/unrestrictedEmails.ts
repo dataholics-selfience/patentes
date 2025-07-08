@@ -18,6 +18,7 @@ export const addUnrestrictedEmail = (email: string): void => {
   }
 };
 
+
 // Configuração padrão para usuários com acesso irrestrito - PLANO GRATUITO
 export const UNRESTRICTED_USER_CONFIG = {
   plan: 'Pesquisador',
