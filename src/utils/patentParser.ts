@@ -1,9 +1,7 @@
-import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence, PatentByCountry, CommercialExplorationByCountry } from '../types';
+import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence, PatentByCountry, CommercialExplorationByCountry, OpportunityScore } from '../types';
 
 // Função robusta para parse de resposta de patentes - PARSER COMPLETO E MELHORADO
 export const parsePatentResponse = (rawResponse: any): PatentResultType => {
-  console.log('🔍 Raw response received:', rawResponse);
-  
   let jsonString = '';
   let parsedData: any = null;
   
@@ -36,7 +34,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       // Check if the string looks like conversational text instead of JSON
       const trimmedString = jsonString.trim();
       if (!trimmedString.startsWith('{') && !trimmedString.startsWith('[')) {
-        console.warn('⚠️ Response appears to be conversational text, not JSON:', trimmedString.substring(0, 100));
         throw new Error('O servidor retornou uma resposta em texto ao invés de dados estruturados. Tente novamente em alguns instantes.');
       }
       
@@ -46,23 +43,16 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         .replace(/```\n?/g, '')
         .trim();
       
-      console.log('🧹 Cleaned JSON string:', jsonString);
-      
       // Parse the actual patent data
       try {
         parsedData = JSON.parse(jsonString);
       } catch (parseError) {
-        console.error('❌ Error parsing JSON:', parseError);
-        console.log('📝 Attempting alternative parsing...');
-        
         // Try to extract JSON from text using regex
         const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             parsedData = JSON.parse(jsonMatch[0]);
-            console.log('✅ Alternative parsing successful');
           } catch (altError) {
-            console.error('❌ Alternative parsing failed:', altError);
             throw new Error('Resposta inválida do servidor. O formato dos dados não pôde ser processado.');
           }
         } else {
@@ -71,11 +61,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       }
     }
     
-    console.log('📊 Parsed data:', parsedData);
-    
   } catch (error) {
-    console.error('💥 Critical parsing error:', error);
-    
     // Provide more specific error messages based on error type
     if (error instanceof SyntaxError) {
       throw new Error('O servidor retornou dados em formato inválido. Verifique sua conexão e tente novamente.');
@@ -100,13 +86,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Estrutura de dados de patente incompleta - campos obrigatórios não encontrados');
   }
 
-  // Parse patents data - FUNÇÃO MELHORADA
+  // Parse patents data
   const parsePatentsData = (patentsArray: any[]): PatentData[] => {
     if (!Array.isArray(patentsArray)) return [];
     
     return patentsArray.map(patent => {
-      console.log('🔬 Parsing individual patent:', patent);
-      
       // Parse patentes por país
       const parsePatentsByCountry = (patentsByCountry: any[]): PatentByCountry[] => {
         if (!Array.isArray(patentsByCountry)) return [];
@@ -151,10 +135,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     });
   };
 
-  // Parse chemical data - FUNÇÃO MELHORADA
+  // Parse chemical data
   const parseChemicalData = (quimica: any): ChemicalData => {
-    console.log('🧪 Parsing chemical data:', quimica);
-
     if (!quimica || typeof quimica !== 'object') {
       return {
         iupac_name: 'Não informado',
@@ -182,10 +164,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     };
   };
 
-  // Parse clinical trials data - FUNÇÃO MELHORADA
+  // Parse clinical trials data
   const parseClinicalTrialsData = (ensaios: any): ClinicalTrialsData => {
-    console.log('🧬 Parsing clinical trials data:', ensaios);
-
     if (!ensaios || typeof ensaios !== 'object') {
       return {
         ativos: 'Não informado',
@@ -203,10 +183,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     };
   };
 
-  // Parse Orange Book data - FUNÇÃO MELHORADA
+  // Parse Orange Book data
   const parseOrangeBookData = (orangeBook: any): OrangeBookData => {
-    console.log('📚 Parsing Orange Book data:', orangeBook);
-
     if (!orangeBook || typeof orangeBook !== 'object') {
       return {
         tem_generico: false,
@@ -224,9 +202,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     };
   };
 
-  // Parse regulation by country - FUNÇÃO MELHORADA
+  // Parse regulation by country
   const parseRegulationByCountry = (regulacao: any[]): RegulationByCountry[] => {
-    console.log('🏛️ Parsing regulation data:', regulacao);
     if (!Array.isArray(regulacao)) return [];
     
     return regulacao.map(reg => ({
@@ -238,9 +215,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     }));
   };
 
-  // Parse scientific evidence - FUNÇÃO MELHORADA
+  // Parse scientific evidence
   const parseScientificEvidence = (evidencia: any[]): ScientificEvidence[] => {
-    console.log('📄 Parsing scientific evidence:', evidencia);
     if (!Array.isArray(evidencia)) return [];
     
     return evidencia.map(ev => ({
@@ -252,14 +228,22 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     }));
   };
 
+  // Parse opportunity score
+  const parseOpportunityScore = (score: any): OpportunityScore | undefined => {
+    if (!score || typeof score !== 'object') return undefined;
+    
+    return {
+      valor: typeof score.valor === 'number' ? score.valor : 0,
+      classificacao: score.classificacao || 'Não informado',
+      criterios: Array.isArray(score.criterios) ? score.criterios : []
+    };
+  };
+
   // Parse the complete data structure
   const patentesData = parsePatentsData(parsedData.patentes || []);
   const primeiraPatente = patentesData[0]; // Para compatibilidade com campos legacy
 
-  console.log('📋 Parsed patents data:', patentesData);
-  console.log('🔍 First patent for legacy compatibility:', primeiraPatente);
-
-  // Build the new structured result - RESULTADO COMPLETO
+  // Build the new structured result
   const resultado: PatentResultType = {
     // Novos campos estruturados
     patentes: patentesData,
@@ -269,6 +253,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     regulacao_por_pais: parseRegulationByCountry(parsedData.regulacao_por_pais || []),
     evidencia_cientifica_recente: parseScientificEvidence(parsedData.evidencia_cientifica_recente || []),
     estrategias_de_formulacao: Array.isArray(parsedData.estrategias_de_formulacao) ? parsedData.estrategias_de_formulacao : [],
+    score_de_oportunidade: parseOpportunityScore(parsedData.score_de_oportunidade),
 
     // Legacy compatibility - usar dados da primeira patente se disponível
     substancia: 'Produto consultado',
@@ -296,11 +281,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       parsedData.alternativas_de_compostos || 
       []
   };
-  
-  console.log('✅ Final resultado completo:', resultado);
-  console.log('🌍 Exploração comercial por país:', resultado.exploracao_comercial_por_pais);
-  console.log('⚠️ Riscos regulatórios:', resultado.riscos_regulatorios_ou_eticos);
-  console.log('🆕 Data vencimento novo produto:', resultado.data_vencimento_para_novo_produto);
   
   return resultado;
 };

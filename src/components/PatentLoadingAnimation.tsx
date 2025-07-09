@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FlaskConical, Globe, Building2, MapPin, TrendingUp } from 'lucide-react';
+import { FlaskConical, Globe, Building2, MapPin, TrendingUp, FileText, TestTube } from 'lucide-react';
 
 interface PatentLoadingAnimationProps {
   isVisible: boolean;
@@ -14,47 +14,55 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
   const stages = [
     {
       id: 0,
-      title: "Pesquisando no Brasil por acesso ao INPI",
-      subtitle: "Consultando Instituto Nacional da Propriedade Industrial",
+      title: "Consultando bases de patentes globais",
+      subtitle: "Acessando INPI, USPTO, EPO e WIPO",
       icon: Building2,
-      color: "from-green-400 to-green-600",
-      duration: 11400 // 11.4 seconds (20% of 57s)
+      color: "from-blue-400 to-blue-600",
+      duration: 8000 // 8 seconds (16% of 50s)
     },
     {
       id: 1,
-      title: "Pesquisando em centros de propriedade intelectual europeus",
-      subtitle: "Acessando European Patent Office e União Europeia",
+      title: "Analisando propriedade intelectual por país",
+      subtitle: "Verificando status de patentes em múltiplas jurisdições",
       icon: Globe,
-      color: "from-blue-400 to-blue-600",
-      duration: 11400 // 11.4 seconds
+      color: "from-green-400 to-green-600",
+      duration: 8000 // 8 seconds
     },
     {
       id: 2,
-      title: "Buscando nos Estados Unidos a patente",
-      subtitle: "Consultando USPTO - United States Patent Office",
-      icon: Building2,
-      color: "from-red-400 to-red-600",
-      duration: 11400 // 11.4 seconds
+      title: "Consultando ClinicalTrials.gov",
+      subtitle: "Buscando ensaios clínicos ativos e em fase avançada",
+      icon: TestTube,
+      color: "from-purple-400 to-purple-600",
+      duration: 8000 // 8 seconds
     },
     {
       id: 3,
-      title: "Rastreando registros na América Latina",
-      subtitle: "Verificando patentes em países latino-americanos",
-      icon: MapPin,
-      color: "from-yellow-400 to-orange-600",
-      duration: 11400 // 11.4 seconds
+      title: "Verificando FDA Orange Book",
+      subtitle: "Analisando registros de genéricos e NDA",
+      icon: FileText,
+      color: "from-orange-400 to-orange-600",
+      duration: 8000 // 8 seconds
     },
     {
       id: 4,
-      title: "Pesquisando profundamente formas de exploração comercial",
-      subtitle: "Analisando oportunidades de mercado e riscos regulatórios",
+      title: "Analisando dados químicos e moleculares",
+      subtitle: "Processando estruturas químicas e propriedades",
+      icon: FlaskConical,
+      color: "from-pink-400 to-pink-600",
+      duration: 8000 // 8 seconds
+    },
+    {
+      id: 5,
+      title: "Calculando score de oportunidade",
+      subtitle: "Avaliando potencial comercial e riscos regulatórios",
       icon: TrendingUp,
-      color: "from-purple-400 to-purple-600",
-      duration: 11400 // 11.4 seconds (20% of 57s)
+      color: "from-yellow-400 to-yellow-600",
+      duration: 10000 // 10 seconds (20% of 50s)
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 57 seconds total
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 50 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
@@ -117,13 +125,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center z-50">
-      {/* Background particles */}
-
       <div className="relative z-10 text-center max-w-2xl mx-auto px-6">
         {/* Animated Test Tube */}
         <div className="mb-12 relative">
           <div className="relative mx-auto w-32 h-48">
-            {/* Tubo de ensaio simplificado - apenas parte inferior cônica */}
+            {/* Tubo de ensaio simplificado */}
             <div className="absolute inset-x-0 top-12 bottom-4 mx-auto" style={{ width: '5rem' }}>
               <div 
                 className="h-full bg-blue-500 rounded-full transition-all duration-100 ease-out shadow-lg"
@@ -137,7 +143,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
                   className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t ${currentStageData?.color || 'from-blue-400 to-blue-600'} transition-all duration-500 ease-out rounded-b-full`}
                   style={{ height: `${overallProgress}%` }}
                 >
-                  {/* Bolhinhas animadas com movimento lento */}
+                  {/* Bolhinhas animadas */}
                   <div className="absolute inset-0">
                     {[...Array(6)].map((_, i) => (
                       <div
@@ -222,7 +228,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 57)}s / 57s</span>
+            <span>{Math.round((overallProgress / 100) * 50)}s / 50s</span>
           </div>
         </div>
 

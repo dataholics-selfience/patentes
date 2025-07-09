@@ -110,6 +110,11 @@ export interface PatentData {
   fonte_estimativa: string[];
 }
 
+export interface OpportunityScore {
+  valor: number;
+  classificacao: string;
+  criterios: string[];
+}
 export interface PatentResultType {
   patentes: PatentData[];
   quimica: ChemicalData;
@@ -118,6 +123,7 @@ export interface PatentResultType {
   regulacao_por_pais: RegulationByCountry[];
   evidencia_cientifica_recente: ScientificEvidence[];
   estrategias_de_formulacao: string[];
+  score_de_oportunidade?: OpportunityScore;
   
   // Legacy fields for backward compatibility
   substancia?: string;

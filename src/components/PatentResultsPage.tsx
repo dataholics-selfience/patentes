@@ -17,11 +17,13 @@ import {
   Target,
   Microscope,
   BookOpen,
+  TrendingUp,
+  Award,
+  ExternalLink,
 } from 'lucide-react';
 import { PatentResultType } from '../types';
 import Flag from 'react-world-flags';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 interface PatentResultsPageProps {
   result: PatentResultType;
@@ -29,7 +31,6 @@ interface PatentResultsPageProps {
   onBack: () => void;
 }
 
-// Mapeamento de países para códigos de bandeiras
 const countryCodeMap: { [key: string]: string } = {
   'Brasil': 'BR', 'Brazil': 'BR', 'Estados Unidos': 'US', 'United States': 'US', 'USA': 'US', 'US': 'US',
   'Alemanha': 'DE', 'Germany': 'DE', 'França': 'FR', 'France': 'FR', 'Reino Unido': 'GB', 'United Kingdom': 'GB', 'UK': 'GB',
@@ -72,7 +73,7 @@ const CountryFlag: React.FC<{ countryName: string; size?: number; showName?: boo
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div 
-          className="bg-gray-300 rounded-sm flex items-center justify-center text-gray-600 text-xs font-bold"
+          className="bg-gray-300 rounded-md flex items-center justify-center text-gray-600 text-xs font-bold"
           style={{ width: size, height: size * 0.75 }}
         >
           ?
@@ -91,13 +92,72 @@ const CountryFlag: React.FC<{ countryName: string; size?: number; showName?: boo
             width: '100%', 
             height: '100%', 
             objectFit: 'cover',
-            borderRadius: '2px',
+            borderRadius: '4px',
             display: 'block'
           }}
           alt={`${countryName} flag`}
         />
       </div>
       {showName && <span>{countryName}</span>}
+    </div>
+  );
+};
+
+const OpportunityScoreGauge: React.FC<{ score: number; classification: string }> = ({ score, classification }) => {
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return { bg: 'bg-green-500', text: 'text-green-600', ring: 'ring-green-200' };
+    if (score >= 60) return { bg: 'bg-yellow-500', text: 'text-yellow-600', ring: 'ring-yellow-200' };
+    if (score >= 40) return { bg: 'bg-orange-500', text: 'text-orange-600', ring: 'ring-orange-200' };
+    return { bg: 'bg-red-500', text: 'text-red-600', ring: 'ring-red-200' };
+  };
+
+  const colors = getScoreColor(score);
+  const circumference = 2 * Math.PI * 45;
+  const strokeDasharray = circumference;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className={`bg-white rounded-xl p-6 border-2 ${colors.ring} shadow-lg`}>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Score de Oportunidade</h3>
+          <p className={`text-lg font-semibold ${colors.text}`}>{classification}</p>
+        </div>
+        <div className="relative w-24 h-24">
+          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              stroke="#e5e7eb"
+              strokeWidth="8"
+              fill="none"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              stroke="currentColor"
+              strokeWidth="8"
+              fill="none"
+              strokeLinecap="round"
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              className={colors.text}
+              style={{
+                transition: 'stroke-dashoffset 1s ease-in-out',
+              }}
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`text-2xl font-bold ${colors.text}`}>{score}</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Award size={16} className={colors.text} />
+        <span className="text-sm text-gray-600">Baseado em critérios regulatórios e comerciais</span>
+      </div>
     </div>
   );
 };
@@ -124,6 +184,12 @@ RESUMO EXECUTIVO
 
 `;
 
+    if (result.score_de_oportunidade) {
+      content += `Score de Oportunidade: ${result.score_de_oportunidade.valor}/100 (${result.score_de_oportunidade.classificacao})
+
+`;
+    }
+
     if (patent) {
       content += `Status da Patente: ${patent.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
 Data de Expiração Principal: ${patent.data_expiracao_patente_principal}
@@ -132,7 +198,6 @@ Exploração Comercial: ${patent.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'
 `;
     }
 
-    // Dados Químicos
     if (result.quimica) {
       content += `================================================================
 DADOS QUÍMICOS
@@ -151,7 +216,6 @@ Ligações Rotacionáveis: ${result.quimica.rotatable_bonds}
 `;
     }
 
-    // Patentes por País
     if (patent?.patentes_por_pais && patent.patentes_por_pais.length > 0) {
       content += `================================================================
 PATENTES POR PAÍS
@@ -168,7 +232,6 @@ PATENTES POR PAÍS
       });
     }
 
-    // Exploração Comercial por País
     if (patent?.exploracao_comercial_por_pais && patent.exploracao_comercial_por_pais.length > 0) {
       content += `================================================================
 EXPLORAÇÃO COMERCIAL POR PAÍS
@@ -184,7 +247,6 @@ EXPLORAÇÃO COMERCIAL POR PAÍS
       });
     }
 
-    // Ensaios Clínicos
     if (result.ensaios_clinicos) {
       content += `================================================================
 ENSAIOS CLÍNICOS
@@ -198,7 +260,6 @@ Principais Indicações: ${result.ensaios_clinicos.principais_indicacoes_estudad
 `;
     }
 
-    // Orange Book
     if (result.orange_book) {
       content += `================================================================
 FDA ORANGE BOOK
@@ -212,33 +273,39 @@ Data Último Genérico: ${result.orange_book.data_ultimo_generico}
 `;
     }
 
-    // Alternativas de Compostos
-    if (patent?.alternativas_de_compostos_analogos && patent.alternativas_de_compostos_analogos.length > 0) {
+    if (result.regulacao_por_pais && result.regulacao_por_pais.length > 0) {
       content += `================================================================
-ALTERNATIVAS DE COMPOSTOS ANÁLOGOS
+REGULAÇÃO POR PAÍS
 ================================================================
 
 `;
-      patent.alternativas_de_compostos_analogos.forEach((compound, index) => {
-        content += `${index + 1}. ${compound}
+      result.regulacao_por_pais.forEach((regulation, index) => {
+        content += `${index + 1}. ${regulation.pais}
+   Agência: ${regulation.agencia}
+   Classificação: ${regulation.classificacao}
+   Facilidade Registro Genérico: ${regulation.facilidade_registro_generico}
+
 `;
       });
-      content += `
-`;
     }
 
-    // Riscos Regulatórios
-    if (patent?.riscos_regulatorios_ou_eticos && patent.riscos_regulatorios_ou_eticos !== 'Não informado') {
+    if (result.evidencia_cientifica_recente && result.evidencia_cientifica_recente.length > 0) {
       content += `================================================================
-RISCOS REGULATÓRIOS E ÉTICOS
+EVIDÊNCIA CIENTÍFICA RECENTE
 ================================================================
 
-${patent.riscos_regulatorios_ou_eticos}
+`;
+      result.evidencia_cientifica_recente.forEach((evidence, index) => {
+        content += `${index + 1}. ${evidence.titulo}
+   Autores: ${evidence.autores ? evidence.autores.join(', ') : 'Não disponíveis'}
+   Ano: ${evidence.ano}
+   DOI: ${evidence.doi}
+   Resumo: ${evidence.resumo}
 
 `;
+      });
     }
 
-    // Estratégias de Formulação
     if (result.estrategias_de_formulacao && result.estrategias_de_formulacao.length > 0) {
       content += `================================================================
 ESTRATÉGIAS DE FORMULAÇÃO
@@ -249,11 +316,22 @@ ESTRATÉGIAS DE FORMULAÇÃO
         content += `${index + 1}. ${strategy}
 `;
       });
-      content += `
-`;
     }
 
-    content += `================================================================
+    if (result.score_de_oportunidade?.criterios && result.score_de_oportunidade.criterios.length > 0) {
+      content += `================================================================
+CRITÉRIOS DE AVALIAÇÃO DO SCORE
+================================================================
+
+`;
+      result.score_de_oportunidade.criterios.forEach((criterio, index) => {
+        content += `${index + 1}. ${criterio}
+`;
+      });
+    }
+
+    content += `
+================================================================
 RODAPÉ
 ================================================================
 
@@ -275,10 +353,7 @@ consulte sempre as fontes oficiais e profissionais especializados.
     setIsGeneratingPDF(true);
     
     try {
-      // Generate PDF content
       const pdfContent = generatePDFContent(result, searchTerm);
-      
-      // Create PDF
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
@@ -286,22 +361,18 @@ consulte sempre as fontes oficiais e profissionais especializados.
       const lineHeight = 6;
       const maxWidth = pageWidth - (margin * 2);
       
-      // Split content into lines
       const lines = pdfContent.split('\n');
       let yPosition = margin;
       
-      // Set font
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(10);
       
       lines.forEach((line) => {
-        // Check if we need a new page
         if (yPosition > pageHeight - margin) {
           pdf.addPage();
           yPosition = margin;
         }
         
-        // Handle different line types
         if (line.includes('RELATÓRIO DE ANÁLISE DE PATENTE')) {
           pdf.setFontSize(16);
           pdf.setFont('helvetica', 'bold');
@@ -313,7 +384,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
         } else if (line.includes('================================================================')) {
-          // Skip separator lines but add some space
           yPosition += 3;
         } else if (line.includes('RESUMO EXECUTIVO') || 
                    line.includes('DADOS QUÍMICOS') || 
@@ -321,9 +391,10 @@ consulte sempre as fontes oficiais e profissionais especializados.
                    line.includes('EXPLORAÇÃO COMERCIAL') ||
                    line.includes('ENSAIOS CLÍNICOS') ||
                    line.includes('FDA ORANGE BOOK') ||
-                   line.includes('ALTERNATIVAS DE COMPOSTOS') ||
-                   line.includes('RISCOS REGULATÓRIOS') ||
+                   line.includes('REGULAÇÃO POR PAÍS') ||
+                   line.includes('EVIDÊNCIA CIENTÍFICA') ||
                    line.includes('ESTRATÉGIAS DE FORMULAÇÃO') ||
+                   line.includes('CRITÉRIOS DE AVALIAÇÃO') ||
                    line.includes('RODAPÉ')) {
           pdf.setFontSize(12);
           pdf.setFont('helvetica', 'bold');
@@ -335,19 +406,16 @@ consulte sempre as fontes oficiais e profissionais especializados.
           pdf.setFontSize(10);
           pdf.setFont('helvetica', 'normal');
         } else if (line.trim()) {
-          // Regular content
           const textLines = pdf.splitTextToSize(line, maxWidth);
           textLines.forEach((textLine: string) => {
             pdf.text(textLine, margin, yPosition);
             yPosition += lineHeight;
           });
         } else {
-          // Empty line
           yPosition += lineHeight / 2;
         }
       });
       
-      // Save PDF
       const fileName = `relatorio-patente-${searchTerm.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
@@ -363,7 +431,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -379,8 +446,8 @@ consulte sempre as fontes oficiais e profissionais especializados.
               <div className="flex items-center gap-3">
                 <FlaskConical size={32} className="text-blue-600" />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Relatório de Análise</h1>
-                  <p className="text-gray-600">Análise completa de propriedade intelectual</p>
+                  <h1 className="text-2xl font-bold text-gray-900">Análise de Propriedade Intelectual</h1>
+                  <p className="text-gray-600">Relatório completo para P&D farmacêutico</p>
                 </div>
               </div>
             </div>
@@ -399,7 +466,7 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 ) : (
                   <>
                     <Download size={16} />
-                    <span>Salvar PDF</span>
+                    <span>Exportar PDF</span>
                   </>
                 )}
               </button>
@@ -408,20 +475,26 @@ consulte sempre as fontes oficiais e profissionais especializados.
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-8">
-          {/* Substância Analisada */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Microscope size={24} className="text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-900">Substância Analisada</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Microscope size={24} className="text-blue-600" />
+                <h2 className="text-xl font-bold text-gray-900">Substância Analisada</h2>
+              </div>
+              <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
+              <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
             </div>
-            <p className="text-3xl font-bold text-blue-600">{searchTerm}</p>
-            <p className="text-gray-600 mt-2">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+
+            {result.score_de_oportunidade && (
+              <OpportunityScoreGauge 
+                score={result.score_de_oportunidade.valor} 
+                classification={result.score_de_oportunidade.classificacao}
+              />
+            )}
           </div>
 
-          {/* Status da Patente */}
           {patent && (
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
               <div className="flex items-center gap-3 mb-6">
@@ -467,7 +540,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 </div>
               </div>
 
-              {/* Patentes por País */}
               {patent.patentes_por_pais && patent.patentes_por_pais.length > 0 && (
                 <div className="mb-6">
                   <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -477,52 +549,10 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {patent.patentes_por_pais.map((country, idx) => (
                       <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                        <CountryFlag countryName={country.pais} size={24} className="mb-3 font-medium" />
+                        <CountryFlag countryName={country.pais} size={32} className="mb-3 font-medium text-lg" />
                         <div className="space-y-2 text-sm">
                           <div><strong>Expiração Primária:</strong> {country.data_expiracao_primaria}</div>
-                          <div><strong>Expiração Secundária:</strong> {country.data_expiracao_secundaria}</div>
                           <div><strong>Tipos:</strong> {country.tipos.join(', ')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Exploração Comercial por País */}
-              {patent.exploracao_comercial_por_pais && patent.exploracao_comercial_por_pais.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Building2 size={20} className="text-purple-600" />
-                    Exploração Comercial por País
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {patent.exploracao_comercial_por_pais.map((exploration, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                        <CountryFlag countryName={exploration.pais} size={24} className="mb-3 font-medium" />
-                        <div className="space-y-2 text-sm">
-                          <div><strong>Disponível em:</strong> {exploration.data_disponivel}</div>
-                          <div><strong>Tipos Liberados:</strong> {exploration.tipos_liberados.join(', ')}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Alternativas de Compostos */}
-              {patent?.alternativas_de_compostos_analogos && patent.alternativas_de_compostos_analogos.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Target size={20} className="text-green-600" />
-                    Alternativas de Compostos Análogos
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {patent.alternativas_de_compostos_analogos.map((compound, idx) => (
-                      <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <Beaker size={16} className="text-purple-600" />
-                          <span className="font-medium text-gray-900">{compound}</span>
                         </div>
                       </div>
                     ))}
@@ -532,7 +562,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
             </div>
           )}
 
-          {/* Dados Químicos */}
           {result.quimica && (
             <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
               <div className="flex items-center gap-3 mb-6">
@@ -546,39 +575,23 @@ consulte sempre as fontes oficiais e profissionais especializados.
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
-                  <p className="text-lg font-bold text-gray-900 mt-1 break-words">{result.quimica.iupac_name}</p>
-                </div>
-                
-                <div className="bg-white p-4 rounded-lg border border-purple-100">
                   <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
                   <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.quimica.molecular_formula}</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
                   <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
-                  <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.molecular_weight}</p>
-                </div>
-                
-                <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">SMILES</span>
-                  <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.smiles}</p>
-                </div>
-                
-                <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">InChI Key</span>
-                  <p className="text-sm font-mono text-gray-900 mt-1 break-all">{result.quimica.inchi_key}</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.molecular_weight} g/mol</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
                   <span className="text-sm font-medium text-gray-600">Área Polar Topológica</span>
-                  <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.topological_polar_surface_area}</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{result.quimica.topological_polar_surface_area} Ų</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Ensaios Clínicos */}
           {result.ensaios_clinicos && (
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
               <div className="flex items-center gap-3 mb-6">
@@ -587,13 +600,14 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
+                  <p className="text-sm text-gray-600">Dados do ClinicalTrials.gov</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-lg border border-green-100">
-                  <span className="text-sm font-medium text-gray-600">Status dos Ensaios</span>
-                  <p className="text-lg font-bold text-gray-900 mt-1">{result.ensaios_clinicos.ativos}</p>
+                  <span className="text-sm font-medium text-gray-600">Ensaios Ativos</span>
+                  <p className="text-3xl font-bold text-green-600 mt-1">{result.ensaios_clinicos.ativos}</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-green-100">
@@ -612,9 +626,9 @@ consulte sempre as fontes oficiais e profissionais especializados.
               {result.ensaios_clinicos.paises && result.ensaios_clinicos.paises.length > 0 && (
                 <div className="mb-4">
                   <span className="text-sm font-medium text-gray-600 mb-2 block">Países com Ensaios</span>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-3">
                     {result.ensaios_clinicos.paises.map((pais, idx) => (
-                      <CountryFlag key={idx} countryName={pais} size={20} className="bg-white px-3 py-1 rounded-full border border-green-200" />
+                      <CountryFlag key={idx} countryName={pais} size={24} className="bg-white px-3 py-2 rounded-lg border border-green-200" />
                     ))}
                   </div>
                 </div>
@@ -622,7 +636,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
             </div>
           )}
 
-          {/* Orange Book */}
           {result.orange_book && (
             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
               <div className="flex items-center gap-3 mb-6">
@@ -630,7 +643,8 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   <FileText size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Regulação Farmacêutica</h3>
+                  <h3 className="text-xl font-bold text-gray-900">FDA Orange Book</h3>
+                  <p className="text-sm text-gray-600">Registro de medicamentos aprovados</p>
                 </div>
               </div>
               
@@ -651,6 +665,147 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   <span className="text-sm font-medium text-gray-600">Número NDA</span>
                   <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.orange_book.nda_number}</p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {result.regulacao_por_pais && result.regulacao_por_pais.length > 0 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Building2 className="text-red-600" size={24} />
+                Regulação por País
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {result.regulacao_por_pais.map((regulation, index) => (
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CountryFlag countryName={regulation.pais} size={32} showName={false} />
+                      <div>
+                        <h4 className="font-bold text-lg">{regulation.pais}</h4>
+                        <p className="text-sm text-gray-600">{regulation.agencia}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Classificação</label>
+                        <div className="mt-1">
+                          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+                            {regulation.classificacao}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Facilidade Registro Genérico</label>
+                        <div className="mt-1">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            regulation.facilidade_registro_generico === 'Alta' ? 'bg-green-100 text-green-800' :
+                            regulation.facilidade_registro_generico === 'Moderada' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {regulation.facilidade_registro_generico}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.evidencia_cientifica_recente && result.evidencia_cientifica_recente.length > 0 && (
+            <div className="space-y-6">
+              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <BookOpen className="text-indigo-600" size={24} />
+                Evidência Científica Recente
+              </h3>
+              
+              <div className="space-y-4">
+                {result.evidencia_cientifica_recente.map((evidence, index) => (
+                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-bold text-lg text-gray-900">
+                          {evidence.titulo}
+                        </h4>
+                        
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                          <span>
+                            {evidence.autores && evidence.autores.length > 0 ? (
+                              evidence.autores.join(', ')
+                            ) : (
+                              'Autores não disponíveis'
+                            )}
+                          </span>
+                          
+                          <span>({evidence.ano})</span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-gray-700 leading-relaxed">
+                          {evidence.resumo}
+                        </p>
+                      </div>
+                      
+                      {evidence.doi !== 'Não informado' && (
+                        <div className="flex items-center gap-2">
+                          <label className="text-sm font-medium text-gray-600">DOI:</label>
+                          <a 
+                            href={`https://doi.org/${evidence.doi}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                          >
+                            {evidence.doi}
+                            <ExternalLink size={14} />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.estrategias_de_formulacao && result.estrategias_de_formulacao.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Target className="text-teal-600" size={24} />
+                Estratégias de Formulação
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {result.estrategias_de_formulacao.map((strategy, index) => (
+                  <div key={index} className="flex items-center gap-3 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">{index + 1}</span>
+                    </div>
+                    <span className="text-gray-800 font-medium">{strategy}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {result.score_de_oportunidade?.criterios && result.score_de_oportunidade.criterios.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <TrendingUp className="text-blue-600" size={24} />
+                Critérios de Avaliação do Score
+              </h3>
+              
+              <div className="space-y-3">
+                {result.score_de_oportunidade.criterios.map((criterio, index) => (
+                  <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <CheckCircle size={16} className="text-blue-600" />
+                    <span className="text-gray-800 font-mono text-sm">{criterio}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
