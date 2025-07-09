@@ -597,89 +597,89 @@ consulte sempre as fontes oficiais e profissionais especializados.
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-8">
-          {/* Substância Analisada - Box Superior */}
+          {/* Substância Analisada */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 mb-4">
-                <Microscope size={24} className="text-blue-600" />
-                <h2 className="text-xl font-bold text-gray-900">Substância Analisada</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <Microscope size={24} className="text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-900">Substância Analisada</h2>
+            </div>
+            
+            <div className="flex items-start gap-8">
+              <div className="flex-1">
+                <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
+                <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
               </div>
+              
               {result.score_de_oportunidade && (
-                <div className="ml-6">
+                <div className="flex-shrink-0">
                   <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-1">Score de Oportunidade</div>
+                    <div className="text-sm text-gray-600 mb-2">Score de Oportunidade</div>
                     <div className="relative">
-                      <svg width="120" height="80" viewBox="0 0 120 80" className="overflow-visible">
+                      <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
                         {/* Background arc */}
                         <path
-                          d="M 15 65 A 50 50 0 0 1 105 65"
+                          d="M 20 100 A 80 80 0 0 1 180 100"
                           stroke="#e5e7eb"
-                          strokeWidth="8"
+                          strokeWidth="12"
                           fill="none"
                           strokeLinecap="round"
                         />
                         {/* Progress arc */}
                         <path
-                          d="M 15 65 A 50 50 0 0 1 105 65"
+                          d="M 20 100 A 80 80 0 0 1 180 100"
                           stroke={result.score_de_oportunidade.valor >= 80 ? '#10b981' : 
                                  result.score_de_oportunidade.valor >= 60 ? '#f59e0b' : 
                                  result.score_de_oportunidade.valor >= 40 ? '#f97316' : '#ef4444'}
-                          strokeWidth="8"
+                          strokeWidth="12"
                           fill="none"
                           strokeLinecap="round"
-                          strokeDasharray={Math.PI * 50}
-                          strokeDashoffset={Math.PI * 50 - (result.score_de_oportunidade.valor / 100) * Math.PI * 50}
+                          strokeDasharray={Math.PI * 80}
+                          strokeDashoffset={Math.PI * 80 - (result.score_de_oportunidade.valor / 100) * Math.PI * 80}
                           style={{
                             transition: 'stroke-dashoffset 2s ease-in-out',
                           }}
                         />
                         {/* Score text */}
                         <text
-                          x="60"
-                          y="55"
+                          x="100"
+                          y="85"
                           textAnchor="middle"
-                          className="text-2xl font-bold fill-current text-gray-900"
+                          className="text-4xl font-bold fill-current text-gray-900"
                         >
                           {result.score_de_oportunidade.valor}
                         </text>
                         <text
-                          x="60"
-                          y="70"
+                          x="100"
+                          y="105"
                           textAnchor="middle"
-                          className="text-xs fill-current text-gray-600"
+                          className="text-sm fill-current text-gray-600"
                         >
                           de 100
                         </text>
                       </svg>
                     </div>
-                    <div className={`text-sm font-bold mt-1 ${
+                    <div className={`text-lg font-bold mt-2 ${
                       result.score_de_oportunidade.valor >= 80 ? 'text-green-600' : 
                       result.score_de_oportunidade.valor >= 60 ? 'text-yellow-600' : 
                       result.score_de_oportunidade.valor >= 40 ? 'text-orange-600' : 'text-red-600'
-                    }`} style={{ fontSize: '1.33em' }}>
+                    }`}>
                       {result.score_de_oportunidade.classificacao}
                     </div>
                   </div>
                 </div>
               )}
             </div>
-            <div className="flex items-start">
-              <div>
-                <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
-                <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
-              </div>
-            </div>
           </div>
 
-          {/* Critérios para Avaliação do Score - Box Inferior */}
+          {/* Critérios para Avaliação do Score */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <TrendingUp size={24} className="text-green-600" />
               <h2 className="text-xl font-bold text-gray-900">Critérios para Avaliação do Score</h2>
             </div>
             
             {result.score_de_oportunidade ? (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {(() => {
                   const criteria = [];
                   
@@ -738,7 +738,7 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   }
 
                   return criteria.map((criterio, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-3">
                         <span className="text-lg">{criterio.icon}</span>
                         <span className="font-medium text-gray-900">{criterio.label}</span>
@@ -758,17 +758,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
             ) : (
               <p className="text-gray-500">Nenhum critério de avaliação disponível</p>
             )}
-          </div>
-
-          {/* Resto do conteúdo continua igual... */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp size={24} className="text-green-600" />
-                <h2 className="text-xl font-bold text-gray-900">Outros Dados</h2>
-              </div>
-              <p className="text-gray-600">Informações adicionais sobre a consulta...</p>
-            </div>
           </div>
 
           {patent && (

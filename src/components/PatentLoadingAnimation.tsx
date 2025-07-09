@@ -76,22 +76,20 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
   useEffect(() => {
     if (!isVisible) return;
 
-    let progressInterval: NodeJS.Timeout;
-    let stageTimeout: NodeJS.Timeout;
-    let overallProgressInterval: NodeJS.Timeout;
+    const intervals: NodeJS.Timeout[] = [];
+    const timeouts: NodeJS.Timeout[] = [];
     let startTime = Date.now();
 
     // Overall progress tracker
-    overallProgressInterval = setInterval(() => {
+    const overallProgressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const overallProg = Math.min((elapsed / totalDuration) * 100, 100);
       setOverallProgress(overallProg);
     }, 50);
+    intervals.push(overallProgressInterval);
 
     const startStage = (stageIndex: number) => {
       if (stageIndex >= stages.length) {
-        // Animation completed, but don't call onComplete yet
-        // The parent component will call onComplete when webhook responds
         return;
       }
 
@@ -102,7 +100,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       const updateInterval = 50; // Update every 50ms for smooth animation
       const progressIncrement = 100 / (stageDuration / updateInterval);
 
-      progressInterval = setInterval(() => {
+      const progressInterval = setInterval(() => {
         setProgress(prev => {
           const newProgress = prev + progressIncrement;
           if (newProgress >= 100) {
@@ -112,19 +110,21 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           return newProgress;
         });
       }, updateInterval);
+      intervals.push(progressInterval);
 
-      stageTimeout = setTimeout(() => {
+      const stageTimeout = setTimeout(() => {
         clearInterval(progressInterval);
         startStage(stageIndex + 1);
       }, stageDuration);
+      timeouts.push(stageTimeout);
     };
 
     startStage(0);
 
     return () => {
-      clearInterval(progressInterval);
-      clearInterval(overallProgressInterval);
-      clearTimeout(stageTimeout);
+      // Clear all intervals and timeouts
+      intervals.forEach(interval => clearInterval(interval));
+      timeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, [isVisible, totalDuration, searchTerm]);
 
