@@ -106,38 +106,43 @@ const CountryFlag: React.FC<{ countryName: string; size?: number; showName?: boo
 const OpportunityScoreGauge: React.FC<{ 
   score: number; 
   classification: string; 
-  criterios?: string[];
   result: PatentResultType;
-}> = ({ score, classification, criterios = [], result }) => {
+}> = ({ score, classification, result }) => {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   useEffect(() => {
-    // Animate the score number
-    const scoreInterval = setInterval(() => {
+    // Animate both score and progress with same duration (2 seconds)
+    const duration = 2000; // 2 seconds
+    const steps = 60; // 60 steps for smooth animation
+    const stepTime = duration / steps;
+    const scoreIncrement = score / steps;
+    const progressIncrement = score / steps;
+    
+    let currentStep = 0;
+    
+    const animationInterval = setInterval(() => {
+      currentStep++;
+      const newScore = Math.min(Math.round(currentStep * scoreIncrement), score);
+      const newProgress = Math.min(currentStep * progressIncrement, score);
+      
       setAnimatedScore(prev => {
-        if (prev >= score) {
-          clearInterval(scoreInterval);
-          return score;
-        }
-        return Math.min(prev + 1, score);
+        return newScore;
       });
-    }, 30);
-
-    // Animate the progress bar
-    const progressInterval = setInterval(() => {
+      
       setAnimatedProgress(prev => {
-        if (prev >= score) {
-          clearInterval(progressInterval);
-          return score;
-        }
-        return Math.min(prev + 1, score);
+        return newProgress;
       });
-    }, 30);
+      
+      if (currentStep >= steps) {
+        clearInterval(animationInterval);
+        setAnimatedScore(score);
+        setAnimatedProgress(score);
+      }
+    }, stepTime);
 
     return () => {
-      clearInterval(scoreInterval);
-      clearInterval(progressInterval);
+      clearInterval(animationInterval);
     };
   }, [score]);
 
@@ -220,15 +225,15 @@ const OpportunityScoreGauge: React.FC<{
   const extractedCriteria = extractCriteriaFromResult(result);
 
   return (
-    <div className={`bg-white rounded-xl p-8 border-2 ${colors.ring} shadow-lg`}>
-      {/* Header */}
-      <div className="text-center mb-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Score de Oportunidade</h3>
-        <p className={`text-xl font-semibold ${colors.text}`}>{classification}</p>
+    <div className="space-y-6">
+      {/* Score de Oportunidade Header */}
+      <div className="text-center">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Score de Oportunidade</h3>
+        <p className={`text-lg font-semibold ${colors.text}`}>{classification}</p>
       </div>
 
       {/* Semi-circle Gauge */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center mb-6">
         <div className="relative">
           <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
             {/* Background arc */}
@@ -276,7 +281,7 @@ const OpportunityScoreGauge: React.FC<{
 
       {/* Critérios de Avaliação */}
       <div>
-        <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">Critérios para Avaliação do Score</h4>
+        <h4 className="text-lg font-bold text-gray-900 mb-4">Critérios para Avaliação do Score</h4>
         <div className="space-y-3">
           {extractedCriteria.map((criterio, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -295,27 +300,6 @@ const OpportunityScoreGauge: React.FC<{
             </div>
           ))}
         </div>
-        
-        {/* Critérios adicionais do score se disponíveis */}
-        {criterios && criterios.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <h5 className="text-sm font-medium text-gray-700 mb-2">Critérios Adicionais:</h5>
-            <div className="space-y-2">
-              {criterios.map((criterio, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  <span>{criterio}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Footer */}
-      <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-gray-200">
-        <Award size={16} className={colors.text} />
-        <span className="text-sm text-gray-600">Baseado em critérios regulatórios e comerciais</span>
       </div>
     </div>
   );
@@ -953,23 +937,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
             </div>
           )}
 
-          {result.score_de_oportunidade?.criterios && result.score_de_oportunidade.criterios.length > 0 && (
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <TrendingUp className="text-blue-600" size={24} />
-                Critérios de Avaliação do Score
-              </h3>
-              
-              <div className="space-y-3">
-                {result.score_de_oportunidade.criterios.map((criterio, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <CheckCircle size={16} className="text-blue-600" />
-                    <span className="text-gray-800 font-mono text-sm">{criterio}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

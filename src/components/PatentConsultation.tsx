@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, Shield, Beaker, Clock, CreditCard, FileText, Building2, Microscope, FlaskConical, Pill, TestTube, BookOpen, Users, Zap, Target, Award } from 'lucide-react';
+import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, Shield, Beaker, Clock, CreditCard, FileText, Building2, Microscope, FlaskConical, Pill, TestTube, BookOpen, Users, Zap, Target, Award, MessageCircle } from 'lucide-react';
 import { PatentResultType, TokenUsageType, PatentByCountry, CommercialExplorationByCountry, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence } from '../types';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import Flag from 'react-world-flags';
 import PatentLoadingAnimation from './PatentLoadingAnimation';
 import PatentResultsPage from './PatentResultsPage';
+import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
+import { auth } from '../firebase';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;

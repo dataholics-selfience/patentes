@@ -90,7 +90,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       setProgress(0);
 
       const stageDuration = stages[stageIndex].duration;
-      const progressIncrement = 100 / (stageDuration / 50);
+      const progressIncrement = 100 / (stageDuration / 100); // Increased frequency for smoother animation
 
       progressInterval = window.setInterval(() => {
         setProgress(prev => {
@@ -101,7 +101,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           }
           return newProgress;
         });
-      }, 50);
+      }, 100); // Slightly slower update for smoother animation
 
       stageTimeout = window.setTimeout(() => {
         clearInterval(progressInterval);
