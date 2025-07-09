@@ -225,11 +225,11 @@ const OpportunityScoreGauge: React.FC<{
   const extractedCriteria = extractCriteriaFromResult(result);
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       {/* Score de Oportunidade Header */}
-      <div className="text-center">
+      <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-gray-900 mb-2">Score de Oportunidade</h3>
-        <p className={`text-lg font-semibold ${colors.text}`}>{classification}</p>
+        <p className={`text-2xl font-bold ${colors.text}`} style={{ fontSize: '1.33em' }}>{classification}</p>
       </div>
 
       {/* Semi-circle Gauge */}
@@ -276,29 +276,6 @@ const OpportunityScoreGauge: React.FC<{
               de 100
             </text>
           </svg>
-        </div>
-      </div>
-
-      {/* Critérios de Avaliação */}
-      <div>
-        <h4 className="text-lg font-bold text-gray-900 mb-4">Critérios para Avaliação do Score</h4>
-        <div className="space-y-3">
-          {extractedCriteria.map((criterio, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <span className="text-lg">{criterio.icon}</span>
-                <span className="font-medium text-gray-900">{criterio.label}</span>
-              </div>
-              <span className={`font-bold px-3 py-1 rounded-full text-sm ${
-                criterio.status === 'success' ? 'bg-green-100 text-green-800' :
-                criterio.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                criterio.status === 'error' ? 'bg-red-100 text-red-800' :
-                'bg-blue-100 text-blue-800'
-              }`}>
-                {criterio.value}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
     </div>
@@ -620,24 +597,178 @@ consulte sempre as fontes oficiais e profissionais especializados.
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* Substância Analisada - Box Superior */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 mb-4">
                 <Microscope size={24} className="text-blue-600" />
                 <h2 className="text-xl font-bold text-gray-900">Substância Analisada</h2>
               </div>
-              <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
-              <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+              {result.score_de_oportunidade && (
+                <div className="ml-6">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-600 mb-1">Score de Oportunidade</div>
+                    <div className="relative">
+                      <svg width="120" height="80" viewBox="0 0 120 80" className="overflow-visible">
+                        {/* Background arc */}
+                        <path
+                          d="M 15 65 A 50 50 0 0 1 105 65"
+                          stroke="#e5e7eb"
+                          strokeWidth="8"
+                          fill="none"
+                          strokeLinecap="round"
+                        />
+                        {/* Progress arc */}
+                        <path
+                          d="M 15 65 A 50 50 0 0 1 105 65"
+                          stroke={result.score_de_oportunidade.valor >= 80 ? '#10b981' : 
+                                 result.score_de_oportunidade.valor >= 60 ? '#f59e0b' : 
+                                 result.score_de_oportunidade.valor >= 40 ? '#f97316' : '#ef4444'}
+                          strokeWidth="8"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={Math.PI * 50}
+                          strokeDashoffset={Math.PI * 50 - (result.score_de_oportunidade.valor / 100) * Math.PI * 50}
+                          style={{
+                            transition: 'stroke-dashoffset 2s ease-in-out',
+                          }}
+                        />
+                        {/* Score text */}
+                        <text
+                          x="60"
+                          y="55"
+                          textAnchor="middle"
+                          className="text-2xl font-bold fill-current text-gray-900"
+                        >
+                          {result.score_de_oportunidade.valor}
+                        </text>
+                        <text
+                          x="60"
+                          y="70"
+                          textAnchor="middle"
+                          className="text-xs fill-current text-gray-600"
+                        >
+                          de 100
+                        </text>
+                      </svg>
+                    </div>
+                    <div className={`text-sm font-bold mt-1 ${
+                      result.score_de_oportunidade.valor >= 80 ? 'text-green-600' : 
+                      result.score_de_oportunidade.valor >= 60 ? 'text-yellow-600' : 
+                      result.score_de_oportunidade.valor >= 40 ? 'text-orange-600' : 'text-red-600'
+                    }`} style={{ fontSize: '1.33em' }}>
+                      {result.score_de_oportunidade.classificacao}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+            <div className="flex items-start">
+              <div>
+                <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
+                <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+              </div>
+            </div>
+          </div>
 
-            {result.score_de_oportunidade && (
-              <OpportunityScoreGauge 
-                score={result.score_de_oportunidade.valor} 
-                classification={result.score_de_oportunidade.classificacao}
-                criterios={result.score_de_oportunidade.criterios}
-                result={result}
-              />
+          {/* Critérios para Avaliação do Score - Box Inferior */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <TrendingUp size={24} className="text-green-600" />
+              <h2 className="text-xl font-bold text-gray-900">Critérios para Avaliação do Score</h2>
+            </div>
+            
+            {result.score_de_oportunidade ? (
+              <div className="space-y-3">
+                {(() => {
+                  const criteria = [];
+                  
+                  // Exploração Comercial
+                  const patent = result.patentes?.[0];
+                  if (patent?.exploracao_comercial !== undefined) {
+                    criteria.push({
+                      label: 'Exploração Comercial',
+                      value: patent.exploracao_comercial ? 'SIM' : 'NÃO',
+                      status: patent.exploracao_comercial ? 'success' : 'error',
+                      icon: patent.exploracao_comercial ? '✓' : '✗'
+                    });
+                  }
+
+                  // Facilidade de Registro de Genérico
+                  const regulacao = result.regulacao_por_pais?.[0];
+                  if (regulacao?.facilidade_registro_generico) {
+                    criteria.push({
+                      label: 'Facilidade de Registro de Genérico',
+                      value: regulacao.facilidade_registro_generico.toUpperCase(),
+                      status: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? 'success' : 
+                             regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? 'warning' : 'error',
+                      icon: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? '✓' : 
+                            regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? '⚠' : '✗'
+                    });
+                  }
+
+                  // Ensaios Clínicos Ativos
+                  if (result.ensaios_clinicos?.ativos && result.ensaios_clinicos.ativos !== 'Desconhecido') {
+                    criteria.push({
+                      label: 'Ensaios Clínicos Ativos',
+                      value: result.ensaios_clinicos.ativos,
+                      status: 'info',
+                      icon: '📊'
+                    });
+                  }
+
+                  // Patente Vigente
+                  if (patent?.patente_vigente !== undefined) {
+                    criteria.push({
+                      label: 'Patente Vigente',
+                      value: patent.patente_vigente ? 'SIM' : 'NÃO',
+                      status: patent.patente_vigente ? 'error' : 'success', // Invertido: patente vigente é ruim para oportunidade
+                      icon: patent.patente_vigente ? '✗' : '✓'
+                    });
+                  }
+
+                  // Genérico Disponível
+                  if (result.orange_book?.tem_generico !== undefined) {
+                    criteria.push({
+                      label: 'Genérico Disponível',
+                      value: result.orange_book.tem_generico ? 'SIM' : 'NÃO',
+                      status: result.orange_book.tem_generico ? 'success' : 'warning',
+                      icon: result.orange_book.tem_generico ? '✓' : '⚠'
+                    });
+                  }
+
+                  return criteria.map((criterio, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">{criterio.icon}</span>
+                        <span className="font-medium text-gray-900">{criterio.label}</span>
+                      </div>
+                      <span className={`font-bold px-3 py-1 rounded-full text-sm ${
+                        criterio.status === 'success' ? 'bg-green-100 text-green-800' :
+                        criterio.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                        criterio.status === 'error' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {criterio.value}
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            ) : (
+              <p className="text-gray-500">Nenhum critério de avaliação disponível</p>
             )}
+          </div>
+
+          {/* Resto do conteúdo continua igual... */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <TrendingUp size={24} className="text-green-600" />
+                <h2 className="text-xl font-bold text-gray-900">Outros Dados</h2>
+              </div>
+              <p className="text-gray-600">Informações adicionais sobre a consulta...</p>
+            </div>
           </div>
 
           {patent && (

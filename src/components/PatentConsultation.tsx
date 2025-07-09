@@ -264,7 +264,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
   // Show loading animation
   if (showLoadingAnimation) {
     return (
-      <PatentLoadingAnimation isVisible={showLoadingAnimation} />
+      <PatentLoadingAnimation isVisible={showLoadingAnimation} searchTerm={produto} />
     );
   }
 

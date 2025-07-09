@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { FlaskConical, Globe, Building2, MapPin, TrendingUp, FileText, TestTube } from 'lucide-react';
+import { FlaskConical, Globe, Building2, MapPin, TrendingUp, FileText, TestTube, Hourglass } from 'lucide-react';
 
 interface PatentLoadingAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
+  searchTerm?: string;
 }
 
-const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimationProps) => {
+const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamento" }: PatentLoadingAnimationProps) => {
   const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
@@ -18,7 +19,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Acessando INPI, USPTO, EPO e WIPO",
       icon: Building2,
       color: "from-blue-400 to-blue-600",
-      duration: 8000 // 8 seconds (16% of 50s)
+      duration: 8000 // 8 seconds
     },
     {
       id: 1,
@@ -58,22 +59,30 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       subtitle: "Avaliando potencial comercial e riscos regulatórios",
       icon: TrendingUp,
       color: "from-yellow-400 to-yellow-600",
-      duration: 10000 // 10 seconds (20% of 50s)
+      duration: 8000 // 8 seconds
+    },
+    {
+      id: 6,
+      title: `Gerando relatório final de patente de ${searchTerm}`,
+      subtitle: "Aguarde o carregamento...",
+      icon: Hourglass,
+      color: "from-indigo-400 to-indigo-600",
+      duration: 18000 // 18 seconds (para totalizar 66 segundos)
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 50 seconds total
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 66 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
 
-    let progressInterval: number;
-    let stageTimeout: number;
-    let overallProgressInterval: number;
+    let progressInterval: NodeJS.Timeout;
+    let stageTimeout: NodeJS.Timeout;
+    let overallProgressInterval: NodeJS.Timeout;
     let startTime = Date.now();
 
     // Overall progress tracker
-    overallProgressInterval = window.setInterval(() => {
+    overallProgressInterval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const overallProg = Math.min((elapsed / totalDuration) * 100, 100);
       setOverallProgress(overallProg);
@@ -90,9 +99,10 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       setProgress(0);
 
       const stageDuration = stages[stageIndex].duration;
-      const progressIncrement = 100 / (stageDuration / 100); // Increased frequency for smoother animation
+      const updateInterval = 50; // Update every 50ms for smooth animation
+      const progressIncrement = 100 / (stageDuration / updateInterval);
 
-      progressInterval = window.setInterval(() => {
+      progressInterval = setInterval(() => {
         setProgress(prev => {
           const newProgress = prev + progressIncrement;
           if (newProgress >= 100) {
@@ -101,9 +111,9 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           }
           return newProgress;
         });
-      }, 100); // Slightly slower update for smoother animation
+      }, updateInterval);
 
-      stageTimeout = window.setTimeout(() => {
+      stageTimeout = setTimeout(() => {
         clearInterval(progressInterval);
         startStage(stageIndex + 1);
       }, stageDuration);
@@ -116,12 +126,13 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
       clearInterval(overallProgressInterval);
       clearTimeout(stageTimeout);
     };
-  }, [isVisible, totalDuration]);
+  }, [isVisible, totalDuration, searchTerm]);
 
   if (!isVisible) return null;
 
   const currentStageData = stages[currentStage] || stages[stages.length - 1];
   const Icon = currentStageData?.icon || FlaskConical;
+  const isLastStage = currentStage === stages.length - 1;
 
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center z-50">
@@ -200,7 +211,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </p>
         </div>
 
-        {/* Current Stage Progress Bar - CORRIGIDO */}
+        {/* Current Stage Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso do Estágio</span>
@@ -211,13 +222,13 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
               className={`h-full bg-gradient-to-r ${currentStageData?.color || 'from-blue-400 to-blue-600'} rounded-full transition-all duration-100 ease-out shadow-lg`}
               style={{ 
                 width: `${progress}%`,
-                transition: 'width 0.1s ease-out'
+                transition: 'width 0.05s linear'
               }}
             />
           </div>
         </div>
 
-        {/* Overall Progress Bar - CORRIGIDO */}
+        {/* Overall Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso Total</span>
@@ -228,22 +239,22 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
               className="h-full bg-blue-500 rounded-full shadow-lg"
               style={{ 
                 width: `${overallProgress}%`,
-                transition: 'width 0.2s ease-out'
+                transition: 'width 0.05s linear'
               }}
             />
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 50)}s / 50s</span>
+            <span>{Math.round((overallProgress / 100) * 66)}s / 66s</span>
           </div>
         </div>
 
-        {/* Stage Indicators - CORRIGIDO */}
-        <div className="flex justify-center space-x-4 mb-8">
+        {/* Stage Indicators */}
+        <div className="flex justify-center space-x-3 mb-8">
           {stages.map((stage, index) => (
             <div
               key={stage.id}
-              className={`w-4 h-4 rounded-full transition-all duration-300 ${
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${
                 index < currentStage 
                   ? 'bg-green-400 shadow-lg shadow-green-400/50' 
                   : index === currentStage 
@@ -257,14 +268,25 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
         {/* Loading text */}
         <div className="text-blue-200">
           <div className="flex items-center justify-center space-x-2">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-            </div>
-            <span className="text-lg font-medium">
-              {overallProgress >= 100 ? 'Aguardando resposta do servidor...' : 'Analisando propriedade intelectual'}
-            </span>
+            {isLastStage ? (
+              <div className="flex items-center space-x-2">
+                <Hourglass size={20} className="text-yellow-400 animate-pulse" />
+                <span className="text-lg font-medium text-yellow-300">
+                  Aguarde o carregamento...
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+                <span className="text-lg font-medium">
+                  Analisando propriedade intelectual
+                </span>
+              </>
+            )}
           </div>
           
           {overallProgress >= 100 && (
