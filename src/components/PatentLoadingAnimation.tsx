@@ -200,7 +200,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </p>
         </div>
 
-        {/* Current Stage Progress Bar */}
+        {/* Current Stage Progress Bar - CORRIGIDO */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso do Estágio</span>
@@ -209,12 +209,15 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden shadow-inner">
             <div 
               className={`h-full bg-gradient-to-r ${currentStageData?.color || 'from-blue-400 to-blue-600'} rounded-full transition-all duration-100 ease-out shadow-lg`}
-              style={{ width: `${progress}%` }}
+              style={{ 
+                width: `${progress}%`,
+                transition: 'width 0.1s ease-out'
+              }}
             />
           </div>
         </div>
 
-        {/* Overall Progress Bar */}
+        {/* Overall Progress Bar - CORRIGIDO */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso Total</span>
@@ -222,8 +225,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </div>
           <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden shadow-inner">
             <div 
-              className="h-full bg-blue-500 rounded-full transition-all duration-200 ease-out shadow-lg"
-              style={{ width: `${overallProgress}%` }}
+              className="h-full bg-blue-500 rounded-full shadow-lg"
+              style={{ 
+                width: `${overallProgress}%`,
+                transition: 'width 0.2s ease-out'
+              }}
             />
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
@@ -232,7 +238,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete }: PatentLoadingAnimatio
           </div>
         </div>
 
-        {/* Stage Indicators */}
+        {/* Stage Indicators - CORRIGIDO */}
         <div className="flex justify-center space-x-4 mb-8">
           {stages.map((stage, index) => (
             <div

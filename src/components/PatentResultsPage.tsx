@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -103,7 +103,44 @@ const CountryFlag: React.FC<{ countryName: string; size?: number; showName?: boo
   );
 };
 
-const OpportunityScoreGauge: React.FC<{ score: number; classification: string }> = ({ score, classification }) => {
+const OpportunityScoreGauge: React.FC<{ 
+  score: number; 
+  classification: string; 
+  criterios?: string[];
+  result: PatentResultType;
+}> = ({ score, classification, criterios = [], result }) => {
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
+
+  useEffect(() => {
+    // Animate the score number
+    const scoreInterval = setInterval(() => {
+      setAnimatedScore(prev => {
+        if (prev >= score) {
+          clearInterval(scoreInterval);
+          return score;
+        }
+        return Math.min(prev + 1, score);
+      });
+    }, 30);
+
+    // Animate the progress bar
+    const progressInterval = setInterval(() => {
+      setAnimatedProgress(prev => {
+        if (prev >= score) {
+          clearInterval(progressInterval);
+          return score;
+        }
+        return Math.min(prev + 1, score);
+      });
+    }, 30);
+
+    return () => {
+      clearInterval(scoreInterval);
+      clearInterval(progressInterval);
+    };
+  }, [score]);
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return { bg: 'bg-green-500', text: 'text-green-600', ring: 'ring-green-200' };
     if (score >= 60) return { bg: 'bg-yellow-500', text: 'text-yellow-600', ring: 'ring-yellow-200' };
@@ -112,49 +149,171 @@ const OpportunityScoreGauge: React.FC<{ score: number; classification: string }>
   };
 
   const colors = getScoreColor(score);
-  const circumference = 2 * Math.PI * 45;
+  
+  // Semi-circle calculations
+  const radius = 80;
+  const circumference = Math.PI * radius; // Half circle
   const strokeDasharray = circumference;
-  const strokeDashoffset = circumference - (score / 100) * circumference;
+  const strokeDashoffset = circumference - (animatedProgress / 100) * circumference;
+
+  // Função para extrair critérios do resultado
+  const extractCriteriaFromResult = (result: PatentResultType) => {
+    const criteria = [];
+    
+    // Exploração Comercial
+    const patent = result.patentes?.[0];
+    if (patent?.exploracao_comercial) {
+      criteria.push({
+        label: 'Exploração Comercial',
+        value: 'SIM',
+        status: 'success',
+        icon: '✓'
+      });
+    }
+
+    // Facilidade de Registro de Genérico
+    const regulacao = result.regulacao_por_pais?.[0];
+    if (regulacao?.facilidade_registro_generico) {
+      criteria.push({
+        label: 'Facilidade de Registro de Genérico',
+        value: regulacao.facilidade_registro_generico.toUpperCase(),
+        status: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? 'success' : 
+               regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? 'warning' : 'error',
+        icon: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? '✓' : 
+              regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? '⚠' : '✗'
+      });
+    }
+
+    // Ensaios Clínicos Ativos
+    if (result.ensaios_clinicos?.ativos && result.ensaios_clinicos.ativos !== 'Desconhecido') {
+      criteria.push({
+        label: 'Ensaios Clínicos Ativos',
+        value: result.ensaios_clinicos.ativos,
+        status: 'info',
+        icon: '📊'
+      });
+    }
+
+    // Patente Vigente
+    if (patent?.patente_vigente !== undefined) {
+      criteria.push({
+        label: 'Patente Vigente',
+        value: patent.patente_vigente ? 'SIM' : 'NÃO',
+        status: patent.patente_vigente ? 'error' : 'success', // Invertido: patente vigente é ruim para oportunidade
+        icon: patent.patente_vigente ? '✗' : '✓'
+      });
+    }
+
+    // Genérico Disponível
+    if (result.orange_book?.tem_generico !== undefined) {
+      criteria.push({
+        label: 'Genérico Disponível',
+        value: result.orange_book.tem_generico ? 'SIM' : 'NÃO',
+        status: result.orange_book.tem_generico ? 'success' : 'warning',
+        icon: result.orange_book.tem_generico ? '✓' : '⚠'
+      });
+    }
+
+    return criteria;
+  };
+
+  const extractedCriteria = extractCriteriaFromResult(result);
 
   return (
-    <div className={`bg-white rounded-xl p-6 border-2 ${colors.ring} shadow-lg`}>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Score de Oportunidade</h3>
-          <p className={`text-lg font-semibold ${colors.text}`}>{classification}</p>
-        </div>
-        <div className="relative w-24 h-24">
-          <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
+    <div className={`bg-white rounded-xl p-8 border-2 ${colors.ring} shadow-lg`}>
+      {/* Header */}
+      <div className="text-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Score de Oportunidade</h3>
+        <p className={`text-xl font-semibold ${colors.text}`}>{classification}</p>
+      </div>
+
+      {/* Semi-circle Gauge */}
+      <div className="flex justify-center mb-8">
+        <div className="relative">
+          <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
+            {/* Background arc */}
+            <path
+              d="M 20 100 A 80 80 0 0 1 180 100"
               stroke="#e5e7eb"
-              strokeWidth="8"
+              strokeWidth="12"
               fill="none"
+              strokeLinecap="round"
             />
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
+            {/* Progress arc */}
+            <path
+              d="M 20 100 A 80 80 0 0 1 180 100"
               stroke="currentColor"
-              strokeWidth="8"
+              strokeWidth="12"
               fill="none"
               strokeLinecap="round"
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               className={colors.text}
               style={{
-                transition: 'stroke-dashoffset 1s ease-in-out',
+                transition: 'stroke-dashoffset 2s ease-in-out',
               }}
             />
+            {/* Score text */}
+            <text
+              x="100"
+              y="85"
+              textAnchor="middle"
+              className={`text-4xl font-bold fill-current ${colors.text}`}
+            >
+              {animatedScore}
+            </text>
+            <text
+              x="100"
+              y="105"
+              textAnchor="middle"
+              className="text-sm fill-current text-gray-600"
+            >
+              de 100
+            </text>
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-2xl font-bold ${colors.text}`}>{score}</span>
-          </div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+
+      {/* Critérios de Avaliação */}
+      <div>
+        <h4 className="text-lg font-bold text-gray-900 mb-4 text-center">Critérios para Avaliação do Score</h4>
+        <div className="space-y-3">
+          {extractedCriteria.map((criterio, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">{criterio.icon}</span>
+                <span className="font-medium text-gray-900">{criterio.label}</span>
+              </div>
+              <span className={`font-bold px-3 py-1 rounded-full text-sm ${
+                criterio.status === 'success' ? 'bg-green-100 text-green-800' :
+                criterio.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                criterio.status === 'error' ? 'bg-red-100 text-red-800' :
+                'bg-blue-100 text-blue-800'
+              }`}>
+                {criterio.value}
+              </span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Critérios adicionais do score se disponíveis */}
+        {criterios && criterios.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <h5 className="text-sm font-medium text-gray-700 mb-2">Critérios Adicionais:</h5>
+            <div className="space-y-2">
+              {criterios.map((criterio, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span>{criterio}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Footer */}
+      <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-gray-200">
         <Award size={16} className={colors.text} />
         <span className="text-sm text-gray-600">Baseado em critérios regulatórios e comerciais</span>
       </div>
@@ -491,6 +650,8 @@ consulte sempre as fontes oficiais e profissionais especializados.
               <OpportunityScoreGauge 
                 score={result.score_de_oportunidade.valor} 
                 classification={result.score_de_oportunidade.classificacao}
+                criterios={result.score_de_oportunidade.criterios}
+                result={result}
               />
             )}
           </div>
