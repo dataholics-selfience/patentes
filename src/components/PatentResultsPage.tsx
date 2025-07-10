@@ -606,59 +606,127 @@ consulte sempre as fontes oficiais e profissionais especializados.
             
             <div className="flex items-start gap-8">
               <div className="flex-1">
-                <p className="text-3xl font-bold text-blue-600 mb-2">{searchTerm}</p>
-                <p className="text-gray-600">Consulta realizada em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+                <p className="text-3xl font-bold text-blue-600 mb-4">{searchTerm}</p>
+                
+                {/* Critérios compactos */}
+                <div className="space-y-1.5">
+                  {(() => {
+                    const criteria = [];
+                    
+                    // Exploração Comercial
+                    const patent = result.patentes?.[0];
+                    if (patent?.exploracao_comercial !== undefined) {
+                      criteria.push({
+                        label: 'Exploração Comercial',
+                        value: patent.exploracao_comercial ? 'SIM' : 'NÃO',
+                        icon: patent.exploracao_comercial ? '✓' : '✗',
+                        color: patent.exploracao_comercial ? 'text-green-600' : 'text-red-600'
+                      });
+                    }
+
+                    // Facilidade de Registro de Genérico
+                    const regulacao = result.regulacao_por_pais?.[0];
+                    if (regulacao?.facilidade_registro_generico) {
+                      criteria.push({
+                        label: 'Facilidade de Registro de Genérico',
+                        value: regulacao.facilidade_registro_generico.toUpperCase(),
+                        icon: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? '✓' : 
+                              regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? '⚠' : '✗',
+                        color: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? 'text-green-600' : 
+                               regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? 'text-yellow-600' : 'text-red-600'
+                      });
+                    }
+
+                    // Ensaios Clínicos Ativos
+                    if (result.ensaios_clinicos?.ativos && result.ensaios_clinicos.ativos !== 'Desconhecido') {
+                      criteria.push({
+                        label: 'Ensaios Clínicos Ativos',
+                        value: result.ensaios_clinicos.ativos,
+                        icon: '📊',
+                        color: 'text-blue-600'
+                      });
+                    }
+
+                    // Patente Vigente
+                    if (patent?.patente_vigente !== undefined) {
+                      criteria.push({
+                        label: 'Patente Vigente',
+                        value: patent.patente_vigente ? 'SIM' : 'NÃO',
+                        icon: patent.patente_vigente ? '✗' : '✓', // Invertido: patente vigente é ruim para oportunidade
+                        color: patent.patente_vigente ? 'text-red-600' : 'text-green-600'
+                      });
+                    }
+
+                    // Genérico Disponível
+                    if (result.orange_book?.tem_generico !== undefined) {
+                      criteria.push({
+                        label: 'Genérico Disponível',
+                        value: result.orange_book.tem_generico ? 'SIM' : 'NÃO',
+                        icon: result.orange_book.tem_generico ? '✓' : '⚠',
+                        color: result.orange_book.tem_generico ? 'text-green-600' : 'text-yellow-600'
+                      });
+                    }
+
+                    return criteria.map((criterio, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <span className={`text-base ${criterio.color}`}>{criterio.icon}</span>
+                        <span className="text-gray-700">{criterio.label}</span>
+                        <span className={`font-medium ${criterio.color}`}>{criterio.value}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
               </div>
               
               {result.score_de_oportunidade && (
                 <div className="flex-shrink-0">
                   <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Score de Oportunidade</div>
+                    <div className="text-base text-gray-700 mb-3 font-medium">Score de Oportunidade</div>
                     <div className="relative">
-                      <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
+                      <svg width="240" height="140" viewBox="0 0 240 140" className="overflow-visible">
                         {/* Background arc */}
                         <path
-                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          d="M 30 120 A 90 90 0 0 1 210 120"
                           stroke="#e5e7eb"
-                          strokeWidth="12"
+                          strokeWidth="14"
                           fill="none"
                           strokeLinecap="round"
                         />
                         {/* Progress arc */}
                         <path
-                          d="M 20 100 A 80 80 0 0 1 180 100"
+                          d="M 30 120 A 90 90 0 0 1 210 120"
                           stroke={result.score_de_oportunidade.valor >= 80 ? '#10b981' : 
                                  result.score_de_oportunidade.valor >= 60 ? '#f59e0b' : 
                                  result.score_de_oportunidade.valor >= 40 ? '#f97316' : '#ef4444'}
-                          strokeWidth="12"
+                          strokeWidth="14"
                           fill="none"
                           strokeLinecap="round"
-                          strokeDasharray={Math.PI * 80}
-                          strokeDashoffset={Math.PI * 80 - (result.score_de_oportunidade.valor / 100) * Math.PI * 80}
+                          strokeDasharray={Math.PI * 90}
+                          strokeDashoffset={Math.PI * 90 - (result.score_de_oportunidade.valor / 100) * Math.PI * 90}
                           style={{
                             transition: 'stroke-dashoffset 2s ease-in-out',
                           }}
                         />
                         {/* Score text */}
                         <text
-                          x="100"
-                          y="85"
+                          x="120"
+                          y="100"
                           textAnchor="middle"
-                          className="text-4xl font-bold fill-current text-gray-900"
+                          className="text-5xl font-bold fill-current text-gray-900"
                         >
                           {result.score_de_oportunidade.valor}
                         </text>
                         <text
-                          x="100"
-                          y="105"
+                          x="120"
+                          y="125"
                           textAnchor="middle"
-                          className="text-sm fill-current text-gray-600"
+                          className="text-base fill-current text-gray-600"
                         >
                           de 100
                         </text>
                       </svg>
                     </div>
-                    <div className={`text-lg font-bold mt-2 ${
+                    <div className={`text-xl font-bold mt-2 ${
                       result.score_de_oportunidade.valor >= 80 ? 'text-green-600' : 
                       result.score_de_oportunidade.valor >= 60 ? 'text-yellow-600' : 
                       result.score_de_oportunidade.valor >= 40 ? 'text-orange-600' : 'text-red-600'
@@ -669,95 +737,6 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Critérios para Avaliação do Score */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <TrendingUp size={24} className="text-green-600" />
-              <h2 className="text-xl font-bold text-gray-900">Critérios para Avaliação do Score</h2>
-            </div>
-            
-            {result.score_de_oportunidade ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(() => {
-                  const criteria = [];
-                  
-                  // Exploração Comercial
-                  const patent = result.patentes?.[0];
-                  if (patent?.exploracao_comercial !== undefined) {
-                    criteria.push({
-                      label: 'Exploração Comercial',
-                      value: patent.exploracao_comercial ? 'SIM' : 'NÃO',
-                      status: patent.exploracao_comercial ? 'success' : 'error',
-                      icon: patent.exploracao_comercial ? '✓' : '✗'
-                    });
-                  }
-
-                  // Facilidade de Registro de Genérico
-                  const regulacao = result.regulacao_por_pais?.[0];
-                  if (regulacao?.facilidade_registro_generico) {
-                    criteria.push({
-                      label: 'Facilidade de Registro de Genérico',
-                      value: regulacao.facilidade_registro_generico.toUpperCase(),
-                      status: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? 'success' : 
-                             regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? 'warning' : 'error',
-                      icon: regulacao.facilidade_registro_generico.toLowerCase() === 'alta' ? '✓' : 
-                            regulacao.facilidade_registro_generico.toLowerCase() === 'moderada' ? '⚠' : '✗'
-                    });
-                  }
-
-                  // Ensaios Clínicos Ativos
-                  if (result.ensaios_clinicos?.ativos && result.ensaios_clinicos.ativos !== 'Desconhecido') {
-                    criteria.push({
-                      label: 'Ensaios Clínicos Ativos',
-                      value: result.ensaios_clinicos.ativos,
-                      status: 'info',
-                      icon: '📊'
-                    });
-                  }
-
-                  // Patente Vigente
-                  if (patent?.patente_vigente !== undefined) {
-                    criteria.push({
-                      label: 'Patente Vigente',
-                      value: patent.patente_vigente ? 'SIM' : 'NÃO',
-                      status: patent.patente_vigente ? 'error' : 'success', // Invertido: patente vigente é ruim para oportunidade
-                      icon: patent.patente_vigente ? '✗' : '✓'
-                    });
-                  }
-
-                  // Genérico Disponível
-                  if (result.orange_book?.tem_generico !== undefined) {
-                    criteria.push({
-                      label: 'Genérico Disponível',
-                      value: result.orange_book.tem_generico ? 'SIM' : 'NÃO',
-                      status: result.orange_book.tem_generico ? 'success' : 'warning',
-                      icon: result.orange_book.tem_generico ? '✓' : '⚠'
-                    });
-                  }
-
-                  return criteria.map((criterio, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg">{criterio.icon}</span>
-                        <span className="font-medium text-gray-900">{criterio.label}</span>
-                      </div>
-                      <span className={`font-bold px-3 py-1 rounded-full text-sm ${
-                        criterio.status === 'success' ? 'bg-green-100 text-green-800' :
-                        criterio.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                        criterio.status === 'error' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {criterio.value}
-                      </span>
-                    </div>
-                  ));
-                })()}
-              </div>
-            ) : (
-              <p className="text-gray-500">Nenhum critério de avaliação disponível</p>
-            )}
           </div>
 
           {patent && (
