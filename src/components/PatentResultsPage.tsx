@@ -606,7 +606,10 @@ consulte sempre as fontes oficiais e profissionais especializados.
             
             <div className="flex items-start gap-8">
               <div className="flex-1">
-                <p className="text-3xl font-bold text-blue-600 mb-4">{searchTerm}</p>
+                <div className="mb-4">
+                  <p className="text-3xl font-bold text-blue-600">{searchTerm}</p>
+                  <p className="text-sm text-gray-500 mt-1">Termo de busca utilizado na consulta</p>
+                </div>
                 
                 {/* Critérios compactos */}
                 <div className="space-y-1.5">

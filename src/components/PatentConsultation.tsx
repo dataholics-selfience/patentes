@@ -224,6 +224,7 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
 
 const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
   const [produto, setProduto] = useState('');
+  const [nomeComercial, setNomeComercial] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showLoadingAnimation, setShowLoadingAnimation] = useState(false);
   const [showResultsPage, setShowResultsPage] = useState(false);
@@ -232,7 +233,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!produto.trim() || isLoading) return;
+    if ((!produto.trim() && !nomeComercial.trim()) || isLoading) return;
 
     setIsLoading(true);
     setShowLoadingAnimation(true);
@@ -241,8 +242,8 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
-      console.log('🚀 Iniciando consulta de patente:', produto, 'SessionId:', sessionId);
-      const resultado = await onConsultation(produto.trim(), sessionId);
+      console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
+      const resultado = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
       console.log('📊 Resultado final recebido:', resultado);
       
       // Webhook responded, show results immediately
@@ -263,21 +264,24 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
   // Show loading animation
   if (showLoadingAnimation) {
+    const searchTerm = produto.trim() || nomeComercial.trim() || "medicamento";
     return (
-      <PatentLoadingAnimation isVisible={showLoadingAnimation} searchTerm={produto} />
+      <PatentLoadingAnimation isVisible={showLoadingAnimation} searchTerm={searchTerm} />
     );
   }
 
   // Show results page
   if (showResultsPage && result) {
+    const searchTerm = produto.trim() || nomeComercial.trim() || "medicamento";
     return (
       <PatentResultsPage
         result={result}
-        searchTerm={produto}
+        searchTerm={searchTerm}
         onBack={() => {
           setShowResultsPage(false);
           setResult(null);
           setProduto('');
+          setNomeComercial('');
         }}
       />
     );
@@ -287,7 +291,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
       <div className="p-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Nova Consulta de Patente</h2>
-        <p className="text-gray-600">Digite o nome do produto ou substância para análise completa de propriedade intelectual</p>
+        <p className="text-gray-600">Digite o nome da molécula ou nome comercial para análise completa de propriedade intelectual</p>
       </div>
 
       <div className="p-6">
@@ -313,62 +317,94 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
         )}
 
         <form onSubmit={handleSubmit} className="mb-6">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <input
-                type="text"
-                onChange={(e) => setProduto(e.target.value)}
-                placeholder="Ex: Minoxidil, Paracetamol, Ibuprofeno..."
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
-                  isAccountExpired 
-                    ? 'border-red-300 bg-red-50 text-red-500 placeholder-red-400 cursor-not-allowed'
-                    : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                disabled={isLoading || isAccountExpired}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome da Molécula
+                </label>
+                <input
+                  type="text"
+                  value={produto}
+                  onChange={(e) => setProduto(e.target.value)}
+                  placeholder="Ex: Semaglutide, Paracetamol, Ibuprofeno..."
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    isAccountExpired 
+                      ? 'border-red-300 bg-red-50 text-red-500 placeholder-red-400 cursor-not-allowed'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  disabled={isLoading || isAccountExpired}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome Comercial
+                </label>
+                <input
+                  type="text"
+                  value={nomeComercial}
+                  onChange={(e) => setNomeComercial(e.target.value)}
+                  placeholder="Ex: Ozempic, Tylenol, Advil..."
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    isAccountExpired 
+                      ? 'border-red-300 bg-red-50 text-red-500 placeholder-red-400 cursor-not-allowed'
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  disabled={isLoading || isAccountExpired}
+                />
+              </div>
             </div>
-            <button
-              type="submit"
-              disabled={!produto.trim() || isLoading || isAccountExpired}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                isAccountExpired
-                  ? 'bg-red-400 text-white cursor-not-allowed opacity-50'
-                  : !produto.trim() || isLoading
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={20} className="animate-spin" />
-                  Analisando...
-                </>
-              ) : isAccountExpired ? (
-                <>
-                  <XCircle size={20} />
-                  Expirado
-                </>
-              ) : (
-                <>
-                  <Search size={20} />
-                  Analisar
-                </>
-              )}
-            </button>
+            
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={(!produto.trim() && !nomeComercial.trim()) || isLoading || isAccountExpired}
+                className={`px-8 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                  isAccountExpired
+                    ? 'bg-red-400 text-white cursor-not-allowed opacity-50'
+                    : (!produto.trim() && !nomeComercial.trim()) || isLoading
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Analisando...
+                  </>
+                ) : isAccountExpired ? (
+                  <>
+                    <XCircle size={20} />
+                    Expirado
+                  </>
+                ) : (
+                  <>
+                    <Search size={20} />
+                    Analisar Patente
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           
-          {!isAccountExpired && (
-            <div className="mt-2 flex items-center justify-between text-sm">
-              <span className="text-gray-600">
-                Consultas restantes: <span className="font-semibold text-blue-600">{remainingTokens}</span>
-              </span>
-              {remainingTokens <= 5 && remainingTokens > 0 && (
-                <Link to="/plans" className="text-orange-600 hover:text-orange-700 font-medium">
-                  Adquirir mais consultas →
-                </Link>
-              )}
-            </div>
-          )}
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-500 mb-2">
+              Preencha pelo menos um dos campos acima para realizar a consulta
+            </p>
+            {!isAccountExpired && (
+              <div className="flex items-center justify-center gap-4 text-sm">
+                <span className="text-gray-600">
+                  Consultas restantes: <span className="font-semibold text-blue-600">{remainingTokens}</span>
+                </span>
+                {remainingTokens <= 5 && remainingTokens > 0 && (
+                  <Link to="/plans" className="text-orange-600 hover:text-orange-700 font-medium">
+                    Adquirir mais consultas →
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </form>
 
         {error && (
@@ -396,7 +432,20 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 <Microscope size={24} className="text-blue-600" />
                 <h3 className="text-xl font-bold text-gray-900">Substância Analisada</h3>
               </div>
-              <p className="text-2xl font-bold text-blue-600">{produto}</p>
+              <div className="space-y-2">
+                {produto.trim() && (
+                  <div>
+                    <span className="text-sm text-gray-600">Nome da Molécula:</span>
+                    <p className="text-2xl font-bold text-blue-600">{produto}</p>
+                  </div>
+                )}
+                {nomeComercial.trim() && (
+                  <div>
+                    <span className="text-sm text-gray-600">Nome Comercial:</span>
+                    <p className="text-2xl font-bold text-purple-600">{nomeComercial}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Dados de Patente */}

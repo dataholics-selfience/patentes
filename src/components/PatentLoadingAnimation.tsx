@@ -211,7 +211,10 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           </p>
         </div>
 
-        {/* Current Stage Progress Bar */}
+                <div className="mb-4">
+                  <p className="text-3xl font-bold text-blue-600">{searchTerm}</p>
+                  <p className="text-sm text-gray-500 mt-1">Termo de busca utilizado na consulta</p>
+                </div>
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso do Estágio</span>

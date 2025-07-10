@@ -125,7 +125,7 @@ const Layout = () => {
     initializeUser();
   }, []);
 
-  const handleConsultation = async (produto: string, sessionId: string): Promise<PatentResultType> => {
+  const handleConsultation = async (produto: string, nomeComercial: string, sessionId: string): Promise<PatentResultType> => {
     if (!auth.currentUser || !tokenUsage) {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
     }
@@ -138,7 +138,7 @@ const Layout = () => {
     }
 
     try {
-      console.log('🚀 Starting patent consultation for:', produto);
+      console.log('🚀 Starting patent consultation for:', { produto, nomeComercial });
       
       // Call the correct webhook endpoint for patents
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
@@ -148,8 +148,9 @@ const Layout = () => {
         },
         body: JSON.stringify({
           produto: produto,
+          nome_comercial: nomeComercial,
           sessionId: sessionId, 
-          query: produto,
+          query: produto || nomeComercial,
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
@@ -169,7 +170,7 @@ const Layout = () => {
       
       // Set the product name from input if not present in response
       if (!resultado.substancia || resultado.substancia === 'Produto consultado') {
-        resultado.substancia = produto;
+        resultado.substancia = produto || nomeComercial || 'Produto consultado';
       }
 
       console.log('✅ Final patent consultation result:', resultado);
