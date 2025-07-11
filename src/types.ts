@@ -47,10 +47,6 @@ export interface PatentByCountry {
   data_expiracao_primaria: string;
   data_expiracao_secundaria: string;
   tipos: string[];
-  numero_patente?: string;
-  status?: string;
-  fonte?: string;
-  link?: string;
 }
 
 export interface CommercialExplorationByCountry {
@@ -69,7 +65,6 @@ export interface ChemicalData {
   hydrogen_bond_acceptors: string;
   hydrogen_bond_donors: string;
   rotatable_bonds: string;
-  fonte?: string;
 }
 
 export interface ClinicalTrialsData {
@@ -77,14 +72,6 @@ export interface ClinicalTrialsData {
   fase_avancada: boolean;
   paises: string[];
   principais_indicacoes_estudadas: string[];
-  tem_no_brasil?: boolean;
-  estudos?: Array<{
-    titulo: string;
-    fase: string;
-    pais: string;
-    link: string;
-  }>;
-  fonte?: string;
 }
 
 export interface OrangeBookData {
@@ -92,12 +79,6 @@ export interface OrangeBookData {
   nda_number: string;
   genericos_aprovados: string[];
   data_ultimo_generico: string;
-  data_aprovacao?: string;
-  exclusividades?: string[];
-  data_expiracao_exclusividade?: string;
-  patentes_listadas?: string[];
-  fonte?: string;
-  link?: string;
 }
 
 export interface RegulationByCountry {
@@ -106,8 +87,6 @@ export interface RegulationByCountry {
   classificacao: string;
   restricoes: string[];
   facilidade_registro_generico: string;
-  numero_registro?: string;
-  fonte?: string;
 }
 
 export interface ScientificEvidence {
@@ -116,14 +95,10 @@ export interface ScientificEvidence {
   ano: string;
   resumo: string;
   doi: string;
-  fonte?: string;
 }
 
 export interface PatentData {
-  numero_patente?: string;
   patente_vigente: boolean;
-  tipo_protecao_detalhado?: any;
-  objeto_protecao?: string;
   data_expiracao_patente_principal: string;
   data_expiracao_patente_secundaria: string;
   patentes_por_pais: PatentByCountry[];
@@ -139,21 +114,16 @@ export interface OpportunityScore {
   valor: number;
   classificacao: string;
   criterios: string[];
-  justificativa?: string;
-  criterios_detalhados?: any;
 }
 export interface PatentResultType {
-  produto?: string;
   patentes: PatentData[];
   quimica: ChemicalData;
   ensaios_clinicos: ClinicalTrialsData;
   orange_book: OrangeBookData;
   regulacao_por_pais: RegulationByCountry[];
   evidencia_cientifica_recente: ScientificEvidence[];
-  estrategias_de_formulacao: any;
+  estrategias_de_formulacao: string[];
   score_de_oportunidade?: OpportunityScore;
-  registro_regulatorio?: any;
-  dados_de_mercado?: any;
   
   // Legacy fields for backward compatibility
   substancia?: string;

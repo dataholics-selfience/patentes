@@ -1,6 +1,6 @@
 import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence, PatentByCountry, CommercialExplorationByCountry, OpportunityScore } from '../types';
 
-// Função robusta para parse de resposta de patentes - PARSER COMPLETO REFORMULADO
+// Função robusta para parse de resposta de patentes - PARSER COMPLETO E MELHORADO
 export const parsePatentResponse = (rawResponse: any): PatentResultType => {
   let jsonString = '';
   let parsedData: any = null;
@@ -80,24 +80,26 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Estrutura de dados de patente inválida recebida do servidor');
   }
 
-  // Parse patents data with new detailed structure
+  // Ensure we're working with the correct data structure
+  // The response should have the main patent data structure
+  if (!parsedData.patentes && !parsedData.quimica && !parsedData.ensaios_clinicos) {
+    throw new Error('Estrutura de dados de patente incompleta - campos obrigatórios não encontrados');
+  }
+
+  // Parse patents data
   const parsePatentsData = (patentsArray: any[]): PatentData[] => {
     if (!Array.isArray(patentsArray)) return [];
     
     return patentsArray.map(patent => {
-      // Parse patentes por país com dados detalhados
+      // Parse patentes por país
       const parsePatentsByCountry = (patentsByCountry: any[]): PatentByCountry[] => {
         if (!Array.isArray(patentsByCountry)) return [];
         
         return patentsByCountry.map(country => ({
           pais: country.pais || 'Não informado',
-          data_expiracao_primaria: country.data_expiracao || country.data_expiracao_primaria || 'Não informado',
+          data_expiracao_primaria: country.data_expiracao_primaria || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipo) ? country.tipo : (country.tipos || []),
-          numero_patente: country.numero || 'Não informado',
-          status: country.status || 'Não informado',
-          fonte: country.fonte || 'Não informado',
-          link: country.link || ''
+          tipos: Array.isArray(country.tipos) ? country.tipos : []
         }));
       };
 
@@ -113,10 +115,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       };
 
       return {
-        numero_patente: patent.numero_patente || 'Não informado',
         patente_vigente: Boolean(patent.patente_vigente),
-        tipo_protecao_detalhado: patent.tipo_protecao_detalhado || {},
-        objeto_protecao: patent.objeto_protecao || 'Não informado',
         data_expiracao_patente_principal: patent.data_expiracao_patente_principal || 'Não informado',
         data_expiracao_patente_secundaria: patent.data_expiracao_patente_secundaria || 'Não informado',
         patentes_por_pais: parsePatentsByCountry(patent.patentes_por_pais || []),
@@ -126,7 +125,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         data_vencimento_para_novo_produto: patent.data_vencimento_para_novo_produto || 'Não informado',
         alternativas_de_compostos_analogos: Array.isArray(patent.alternativas_de_compostos_analogos)
           ? patent.alternativas_de_compostos_analogos 
-          : [],
+          : Array.isArray(patent.alternativas_compostos) 
+            ? patent.alternativas_compostos
+            : Array.isArray(patent.alternativas_de_compostos)
+              ? patent.alternativas_de_compostos
+              : [],
         fonte_estimativa: Array.isArray(patent.fonte_estimativa) ? patent.fonte_estimativa : []
       };
     });
@@ -144,8 +147,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         topological_polar_surface_area: 'Não informado',
         hydrogen_bond_acceptors: 'Não informado',
         hydrogen_bond_donors: 'Não informado',
-        rotatable_bonds: 'Não informado',
-        fonte: 'Não informado'
+        rotatable_bonds: 'Não informado'
       };
     }
 
@@ -158,22 +160,18 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       topological_polar_surface_area: quimica.topological_polar_surface_area !== undefined ? quimica.topological_polar_surface_area.toString() : 'Não informado',
       hydrogen_bond_acceptors: quimica.hydrogen_bond_acceptors !== undefined ? quimica.hydrogen_bond_acceptors.toString() : 'Não informado',
       hydrogen_bond_donors: quimica.hydrogen_bond_donors !== undefined ? quimica.hydrogen_bond_donors.toString() : 'Não informado',
-      rotatable_bonds: quimica.rotatable_bonds !== undefined ? quimica.rotatable_bonds.toString() : 'Não informado',
-      fonte: quimica.fonte || 'Não informado'
+      rotatable_bonds: quimica.rotatable_bonds !== undefined ? quimica.rotatable_bonds.toString() : 'Não informado'
     };
   };
 
-  // Parse clinical trials data with enhanced structure
+  // Parse clinical trials data
   const parseClinicalTrialsData = (ensaios: any): ClinicalTrialsData => {
     if (!ensaios || typeof ensaios !== 'object') {
       return {
         ativos: 'Não informado',
         fase_avancada: false,
         paises: [],
-        principais_indicacoes_estudadas: [],
-        tem_no_brasil: false,
-        estudos: [],
-        fonte: 'Não informado'
+        principais_indicacoes_estudadas: []
       };
     }
 
@@ -181,27 +179,18 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       ativos: ensaios.ativos !== undefined ? ensaios.ativos.toString() : 'Não informado',
       fase_avancada: Boolean(ensaios.fase_avancada),
       paises: Array.isArray(ensaios.paises) ? ensaios.paises : [],
-      principais_indicacoes_estudadas: Array.isArray(ensaios.principais_indicacoes_estudadas) ? ensaios.principais_indicacoes_estudadas : [],
-      tem_no_brasil: Boolean(ensaios.tem_no_brasil),
-      estudos: Array.isArray(ensaios.estudos) ? ensaios.estudos : [],
-      fonte: ensaios.fonte || 'Não informado'
+      principais_indicacoes_estudadas: Array.isArray(ensaios.principais_indicacoes_estudadas) ? ensaios.principais_indicacoes_estudadas : []
     };
   };
 
-  // Parse Orange Book data with enhanced structure
+  // Parse Orange Book data
   const parseOrangeBookData = (orangeBook: any): OrangeBookData => {
     if (!orangeBook || typeof orangeBook !== 'object') {
       return {
         tem_generico: false,
         nda_number: 'Não informado',
         genericos_aprovados: [],
-        data_ultimo_generico: 'Não informado',
-        data_aprovacao: 'Não informado',
-        exclusividades: [],
-        data_expiracao_exclusividade: 'Não informado',
-        patentes_listadas: [],
-        fonte: 'Não informado',
-        link: ''
+        data_ultimo_generico: 'Não informado'
       };
     }
 
@@ -209,17 +198,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       tem_generico: Boolean(orangeBook.tem_generico),
       nda_number: orangeBook.nda_number || 'Não informado',
       genericos_aprovados: Array.isArray(orangeBook.genericos_aprovados) ? orangeBook.genericos_aprovados : [],
-      data_ultimo_generico: orangeBook.data_ultimo_generico || 'Não informado',
-      data_aprovacao: orangeBook.data_aprovacao || 'Não informado',
-      exclusividades: Array.isArray(orangeBook.exclusividades) ? orangeBook.exclusividades : [],
-      data_expiracao_exclusividade: orangeBook.data_expiracao_exclusividade || 'Não informado',
-      patentes_listadas: Array.isArray(orangeBook.patentes_listadas) ? orangeBook.patentes_listadas : [],
-      fonte: orangeBook.fonte || 'Não informado',
-      link: orangeBook.link || ''
+      data_ultimo_generico: orangeBook.data_ultimo_generico || 'Não informado'
     };
   };
 
-  // Parse regulation by country with enhanced structure
+  // Parse regulation by country
   const parseRegulationByCountry = (regulacao: any[]): RegulationByCountry[] => {
     if (!Array.isArray(regulacao)) return [];
     
@@ -228,9 +211,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       agencia: reg.agencia || 'Não informado',
       classificacao: reg.classificacao || 'Não informado',
       restricoes: Array.isArray(reg.restricoes) ? reg.restricoes : [],
-      facilidade_registro_generico: reg.facilidade_registro_generico || 'Não informado',
-      numero_registro: reg.numero_registro || 'Não informado',
-      fonte: reg.fonte || 'Não informado'
+      facilidade_registro_generico: reg.facilidade_registro_generico || 'Não informado'
     }));
   };
 
@@ -243,21 +224,18 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       autores: Array.isArray(ev.autores) ? ev.autores : [],
       ano: ev.ano?.toString() || 'Não informado',
       resumo: ev.resumo || 'Não informado',
-      doi: ev.doi || 'Não informado',
-      fonte: ev.fonte || 'Não informado'
+      doi: ev.doi || 'Não informado'
     }));
   };
 
-  // Parse opportunity score with detailed criteria
+  // Parse opportunity score
   const parseOpportunityScore = (score: any): OpportunityScore | undefined => {
     if (!score || typeof score !== 'object') return undefined;
     
     return {
       valor: typeof score.valor === 'number' ? score.valor : 0,
       classificacao: score.classificacao || 'Não informado',
-      criterios: Array.isArray(score.criterios) ? score.criterios : [],
-      justificativa: score.justificativa || 'Não informado',
-      criterios_detalhados: score.criterios || {}
+      criterios: Array.isArray(score.criterios) ? score.criterios : []
     };
   };
 
@@ -267,9 +245,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
 
   // Build the new structured result
   const resultado: PatentResultType = {
-    // Produto analisado
-    produto: parsedData.produto || 'Produto consultado',
-    
     // Novos campos estruturados
     patentes: patentesData,
     quimica: parseChemicalData(parsedData.quimica),
@@ -277,21 +252,21 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     orange_book: parseOrangeBookData(parsedData.orange_book),
     regulacao_por_pais: parseRegulationByCountry(parsedData.regulacao_por_pais || []),
     evidencia_cientifica_recente: parseScientificEvidence(parsedData.evidencia_cientifica_recente || []),
-    estrategias_de_formulacao: parsedData.estrategias_de_formulacao || {},
+    estrategias_de_formulacao: Array.isArray(parsedData.estrategias_de_formulacao) ? parsedData.estrategias_de_formulacao : [],
     score_de_oportunidade: parseOpportunityScore(parsedData.score_de_oportunidade),
 
-    // Novos campos específicos para P&D farmacêutico
-    registro_regulatorio: parsedData.registro_regulatorio || {},
-    dados_de_mercado: parsedData.dados_de_mercado || {},
-
     // Legacy compatibility - usar dados da primeira patente se disponível
-    substancia: parsedData.produto || 'Produto consultado',
+    substancia: 'Produto consultado',
     patente_vigente: primeiraPatente?.patente_vigente || false,
     data_expiracao_patente_principal: primeiraPatente?.data_expiracao_patente_principal || 'Não informado',
     exploracao_comercial: primeiraPatente?.exploracao_comercial || false,
     riscos_regulatorios_ou_eticos: primeiraPatente?.riscos_regulatorios_ou_eticos || 'Não informado',
     data_vencimento_para_novo_produto: primeiraPatente?.data_vencimento_para_novo_produto || 'Não informado',
-    alternativas_de_compostos_analogos: primeiraPatente?.alternativas_de_compostos_analogos || [],
+    alternativas_de_compostos_analogos: primeiraPatente?.alternativas_de_compostos_analogos || 
+      parsedData.alternativas_de_compostos_analogos || 
+      parsedData.alternativas_compostos || 
+      parsedData.alternativas_de_compostos || 
+      [],
     fonte_estimativa: primeiraPatente?.fonte_estimativa || [],
     patentes_por_pais: primeiraPatente?.patentes_por_pais || [],
     exploracao_comercial_por_pais: primeiraPatente?.exploracao_comercial_por_pais || [],
@@ -300,7 +275,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     paises_registrados: primeiraPatente?.patentes_por_pais?.map((p: any) => p.pais) || [],
     riscos_regulatorios_eticos: primeiraPatente?.riscos_regulatorios_ou_eticos ? [primeiraPatente.riscos_regulatorios_ou_eticos] : [],
     data_vencimento_patente_novo_produto: primeiraPatente?.data_vencimento_para_novo_produto || null,
-    alternativas_compostos: primeiraPatente?.alternativas_de_compostos_analogos || []
+    alternativas_compostos: primeiraPatente?.alternativas_de_compostos_analogos || 
+      parsedData.alternativas_de_compostos_analogos || 
+      parsedData.alternativas_compostos || 
+      parsedData.alternativas_de_compostos || 
+      []
   };
   
   return resultado;
