@@ -6,6 +6,9 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
   let parsedData: any = null;
   
   try {
+    console.log('🔍 Iniciando parse da resposta do webhook:', typeof rawResponse);
+    console.log('📊 Dados recebidos:', JSON.stringify(rawResponse, null, 2));
+    
     // Handle nested array structure
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
       if (rawResponse[0].output) {
@@ -61,10 +64,17 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       }
     }
     
+    console.log('✅ Dados parseados com sucesso:', parsedData);
+    
+    // Validação adicional para garantir que temos dados completos
+    if (!parsedData || Object.keys(parsedData).length === 0) {
+      throw new Error('Dados vazios recebidos do webhook. O processamento pode não ter sido concluído.');
+    }
+    
   } catch (error) {
     // Provide more specific error messages based on error type
     if (error instanceof SyntaxError) {
-      throw new Error('O servidor retornou dados em formato inválido. Verifique sua conexão e tente novamente.');
+      throw new Error('O webhook retornou dados em formato inválido. O processamento pode não ter sido concluído. Aguarde e tente novamente.');
     }
     
     if (error instanceof Error) {
@@ -72,7 +82,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       throw error;
     }
     
-    throw new Error(`Erro ao processar resposta da consulta: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+    throw new Error(`Erro ao processar resposta do webhook: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
   }
 
   // Validate that we have some data
@@ -80,6 +90,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Estrutura de dados de patente inválida recebida do servidor');
   }
 
+  // Validação mais rigorosa da estrutura de dados
+  if (!parsedData.patentes && !parsedData.quimica && !parsedData.ensaios_clinicos && !parsedData.produto) {
+    console.warn('⚠️ Estrutura de dados incompleta detectada. O webhook pode ainda estar processando:', parsedData);
+    // Não falhar imediatamente, mas tentar processar o que temos
+  }
   // Ensure we're working with the correct data structure
   // The response should have the main patent data structure
   if (!parsedData.patentes && !parsedData.quimica && !parsedData.ensaios_clinicos) {
@@ -97,11 +112,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         
         return patentsByCountry.map(country => ({
           pais: country.pais || 'Não informado',
-          numero: country.numero || 'Não informado',
+          numero: country.numero || country.numero_patente || 'Não informado',
           status: country.status || 'Não informado',
-          data_expiracao_primaria: country.data_expiracao_primaria || 'Não informado',
+          data_expiracao_primaria: country.data_expiracao_primaria || country.data_expiracao || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : [],
+          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : Array.isArray(country.type) ? country.type : [],
           fonte: country.fonte || 'Não informado',
           link: country.link || ''
         }));
@@ -121,6 +136,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       return {
         numero_patente: patent.numero_patente || 'Não informado',
         patente_vigente: Boolean(patent.patente_vigente),
+        tipo_protecao_detalhado: patent.tipo_protecao_detalhado || {},
         objeto_protecao: patent.objeto_protecao || 'Não informado',
         data_expiracao_patente_principal: patent.data_expiracao_patente_principal || 'Não informado',
         data_expiracao_patente_secundaria: patent.data_expiracao_patente_secundaria || 'Não informado',
@@ -254,6 +270,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     return {
       valor: typeof score.valor === 'number' ? score.valor : 0,
       classificacao: score.classificacao || 'Não informado',
+      justificativa: score.justificativa || 'Não informado',
       criterios: Array.isArray(score.criterios) ? score.criterios : []
     };
   };
@@ -277,7 +294,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     score_de_oportunidade: parseOpportunityScore(parsedData.score_de_oportunidade),
 
     // Legacy compatibility - usar dados da primeira patente se disponível
-    substancia: parsedData.produto || 'Produto consultado',
+    substancia: parsedData.produto || parsedData.nome_comercial || 'Produto consultado',
     patente_vigente: primeiraPatente?.patente_vigente || false,
     data_expiracao_patente_principal: primeiraPatente?.data_expiracao_patente_principal || 'Não informado',
     exploracao_comercial: primeiraPatente?.exploracao_comercial || false,
@@ -303,5 +320,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       []
   };
   
+  console.log('🎯 Resultado final do parse:', resultado);
   return resultado;
 };

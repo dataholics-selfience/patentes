@@ -279,7 +279,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 50)}s / 50s</span>
+            <span>{Math.round((overallProgress / 100) * 180)}s / 180s</span>
           </div>
         </div>
 
@@ -325,7 +325,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           
           {overallProgress >= 100 && (
             <div className="mt-4 text-yellow-300 animate-pulse">
-              <p className="text-sm text-white">A análise foi concluída. Aguardando processamento final dos dados...</p>
+              <p className="text-sm text-white">A análise está sendo finalizada. O webhook está processando múltiplas consultas em tempo real. Aguarde...</p>
             </div>
           )}
         </div>

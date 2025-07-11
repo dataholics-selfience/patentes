@@ -99,6 +99,9 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
         </div>
         <div>
           <h3 className="text-xl font-bold text-gray-900">Análise de Patente {index + 1}</h3>
+          {patent.numero_patente && patent.numero_patente !== 'Não informado' && (
+            <p className="text-sm text-gray-600 font-mono">{patent.numero_patente}</p>
+          )}
         </div>
       </div>
       
@@ -123,6 +126,9 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
             <span className="font-semibold text-gray-900">Expiração Principal</span>
           </div>
           <p className="text-lg font-bold text-gray-900">{patent.data_expiracao_patente_principal}</p>
+          {patent.data_expiracao_patente_secundaria && patent.data_expiracao_patente_secundaria !== 'Não informado' && (
+            <p className="text-sm text-gray-600 mt-1">Secundária: {patent.data_expiracao_patente_secundaria}</p>
+          )}
         </div>
 
         <div className="bg-white p-4 rounded-lg border border-blue-100">
@@ -136,6 +142,55 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
         </div>
       </div>
 
+      {/* Objeto de Proteção */}
+      {patent.objeto_protecao && patent.objeto_protecao !== 'Não informado' && (
+        <div className="mb-6">
+          <div className="bg-white p-4 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield size={20} className="text-purple-600" />
+              <span className="font-semibold text-gray-900">Objeto de Proteção</span>
+            </div>
+            <p className="text-gray-800">{patent.objeto_protecao}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Tipo de Proteção Detalhado */}
+      {patent.tipo_protecao_detalhado && (
+        <div className="mb-6">
+          <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Award size={20} className="text-indigo-600" />
+            Tipos de Proteção
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {patent.tipo_protecao_detalhado.primaria && patent.tipo_protecao_detalhado.primaria.length > 0 && (
+              <div className="bg-white p-4 rounded-lg border border-green-200">
+                <span className="font-semibold text-gray-900 block mb-2">Proteção Primária</span>
+                <div className="flex flex-wrap gap-1">
+                  {patent.tipo_protecao_detalhado.primaria.map((tipo, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                      {tipo}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {patent.tipo_protecao_detalhado.secundaria && patent.tipo_protecao_detalhado.secundaria.length > 0 && (
+              <div className="bg-white p-4 rounded-lg border border-yellow-200">
+                <span className="font-semibold text-gray-900 block mb-2">Proteção Secundária</span>
+                <div className="flex flex-wrap gap-1">
+                  {patent.tipo_protecao_detalhado.secundaria.map((tipo, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">
+                      {tipo}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {/* Patentes por País */}
       {patent.patentes_por_pais && patent.patentes_por_pais.length > 0 && (
         <div className="mb-6">
@@ -143,17 +198,53 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
             <Globe size={20} className="text-blue-600" />
             Patentes por País
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="overflow-x-auto">
+            <table className="w-full bg-white rounded-lg border border-gray-200">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">País</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Número</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Expiração</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipos</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Fonte</th>
+                </tr>
+              </thead>
+              <tbody>
             {patent.patentes_por_pais.map((country, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                <CountryFlag countryName={country.pais} size={24} className="mb-3 font-medium" />
-                <div className="space-y-2 text-sm">
-                  <div><strong>Expiração Primária:</strong> {country.data_expiracao_primaria}</div>
-                  <div><strong>Expiração Secundária:</strong> {country.data_expiracao_secundaria}</div>
-                  <div><strong>Tipos:</strong> {country.tipos.join(', ')}</div>
-                </div>
-              </div>
+              <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="py-3 px-4">
+                  <CountryFlag countryName={country.pais} size={20} className="font-medium" />
+                </td>
+                <td className="py-3 px-4">
+                  <span className="font-mono text-sm">{country.numero}</span>
+                </td>
+                <td className="py-3 px-4">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    country.status === 'Ativa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {country.status}
+                  </span>
+                </td>
+                <td className="py-3 px-4">
+                  <span className="font-medium">{country.data_expiracao_primaria}</span>
+                </td>
+                <td className="py-3 px-4">
+                  <div className="flex flex-wrap gap-1">
+                    {country.tipos.map((tipo, i) => (
+                      <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                        {tipo}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="py-3 px-4">
+                  <span className="text-xs text-gray-500">{country.fonte}</span>
+                </td>
+              </tr>
             ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -243,17 +334,37 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     try {
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
-      const resultado = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+      
+      // Aguardar resposta completa do webhook com timeout de 3 minutos
+      const resultado = await Promise.race([
+        onConsultation(produto.trim(), nomeComercial.trim(), sessionId),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 3 minutos')), 180000)
+        )
+      ]);
+      
       console.log('📊 Resultado final recebido:', resultado);
       
-      // Webhook respondeu, mostrar resultados
-      setResult(resultado);
-      setShowLoadingAnimation(false);
-      setShowResultsPage(true);
+      // Validar se o resultado está completo antes de exibir
+      if (resultado && typeof resultado === 'object') {
+        // Aguardar mais tempo para garantir que todos os dados foram processados completamente
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        setResult(resultado);
+        setShowLoadingAnimation(false);
+        setShowResultsPage(true);
+      } else {
+        throw new Error('Resposta incompleta do servidor');
+      }
     } catch (err) {
       console.error('❌ Erro na consulta:', err);
       setShowLoadingAnimation(false);
-      setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
+      
+      if (err instanceof Error && err.message.includes('Timeout')) {
+        setError('A consulta demorou mais de 3 minutos para ser processada. O webhook pode estar processando múltiplas consultas. Tente novamente em alguns minutos.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -454,6 +565,44 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 {result.patentes.map((patent, index) => (
                   <PatentDataCard key={index} patent={patent} index={index} />
                 ))}
+              </div>
+            )}
+
+            {/* Score de Oportunidade com Justificativa */}
+            {result.score_de_oportunidade && (
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
+                    <Target size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">Score de Oportunidade</h3>
+                    <p className="text-gray-600">Avaliação automatizada de potencial comercial</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-lg border border-indigo-100">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold text-indigo-600 mb-2">
+                        {result.score_de_oportunidade.valor}/100
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900 mb-1">
+                        {result.score_de_oportunidade.classificacao}
+                      </div>
+                      <div className="text-sm text-gray-600">Score de Oportunidade</div>
+                    </div>
+                  </div>
+                  
+                  {result.score_de_oportunidade.justificativa && (
+                    <div className="bg-white p-6 rounded-lg border border-indigo-100">
+                      <h4 className="font-semibold text-gray-900 mb-3">Justificativa</h4>
+                      <p className="text-gray-700 leading-relaxed">
+                        {result.score_de_oportunidade.justificativa}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

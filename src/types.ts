@@ -122,6 +122,10 @@ export interface ScientificEvidence {
 export interface PatentData {
   numero_patente?: string;
   patente_vigente: boolean;
+  tipo_protecao_detalhado?: {
+    primaria?: string[];
+    secundaria?: string[];
+  };
   objeto_protecao?: string;
   data_expiracao_patente_principal: string;
   data_expiracao_patente_secundaria: string;

@@ -134,6 +134,7 @@ const Layout = () => {
     try {
       console.log('🚀 Starting patent consultation for:', { produto, nomeComercial });
       
+      // Configurar timeout de 3 minutos para aguardar resposta completa do webhook
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
         headers: {
@@ -147,6 +148,8 @@ const Layout = () => {
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
+        // Timeout de 3 minutos (180 segundos) para aguardar webhook processar todas as consultas
+        signal: AbortSignal.timeout(180000)
       });
 
       if (!response.ok) {
@@ -155,8 +158,17 @@ const Layout = () => {
         throw new Error(`Erro na consulta: ${response.status} - ${errorText}`);
       }
 
+      // Aguardar resposta completa e fazer parse cuidadoso
       const rawResponse = await response.json();
       console.log('📥 Raw patent webhook response:', rawResponse);
+      
+      // Validar se a resposta está completa antes de fazer parse
+      if (!rawResponse || (Array.isArray(rawResponse) && rawResponse.length === 0)) {
+        throw new Error('Resposta vazia do servidor. Tente novamente.');
+      }
+      
+      // Aguardar mais tempo para garantir que todos os dados foram processados completamente
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
       const resultado = parsePatentResponse(rawResponse);
       
@@ -166,6 +178,7 @@ const Layout = () => {
 
       console.log('✅ Final patent consultation result:', resultado);
 
+      // Atualizar tokens apenas após sucesso completo
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
         usedTokens: tokenUsage.usedTokens + CONSULTATION_TOKEN_COST
       });
@@ -178,6 +191,10 @@ const Layout = () => {
       return resultado;
     } catch (error) {
       console.error('💥 Error in patent consultation:', error);
+      
+      if (error instanceof Error && error.name === 'TimeoutError') {
+        throw new Error('A consulta demorou mais de 3 minutos para ser processada. O servidor pode estar sobrecarregado com múltiplas consultas. Tente novamente em alguns minutos.');
+      }
       
       if (error instanceof TypeError) {
         // Network errors like 'Failed to fetch'
