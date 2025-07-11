@@ -18,7 +18,9 @@ import {
   DollarSign,
   BookOpen,
   Pill,
-  MapPin
+  MapPin,
+  AlertTriangle,
+  Target
 } from 'lucide-react';
 import { PatentResultType } from '../types';
 import jsPDF from 'jspdf';
@@ -127,6 +129,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
   
   const produto = data.produto || searchTerm;
   const patentes = data.patentes || [];
+  const primeiraPatente = patentes[0]; // Patente principal
   const quimica = data.quimica || {};
   const ensaiosClinicosData = data.ensaios_clinicos || {};
   const orangeBook = data.orange_book || {};
@@ -229,160 +232,202 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="space-y-8">
-          {/* Produto e Score */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Produto */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <FlaskConical size={24} className="text-blue-600" />
-                <h2 className="text-xl font-bold text-gray-900">Produto Analisado</h2>
-              </div>
-              
-              <div className="mb-4">
-                <p className="text-3xl font-bold text-blue-600">{produto}</p>
-                <p className="text-sm text-gray-500 mt-1">Produto farmacêutico consultado</p>
-              </div>
-
-              {estrategiasFormulacao.nome_comercial && (
-                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                  <div className="text-sm text-gray-600">Nome Comercial</div>
-                  <div className="text-lg font-semibold text-blue-800">{estrategiasFormulacao.nome_comercial}</div>
-                  {estrategiasFormulacao.fabricante && (
-                    <div className="text-sm text-gray-600 mt-1">Fabricante: {estrategiasFormulacao.fabricante}</div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Score de Oportunidade */}
-            {scoreOportunidade.valor && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <TrendingUp size={24} className="text-green-600" />
-                  <h2 className="text-xl font-bold text-gray-900">Análise de Oportunidade</h2>
-                </div>
-                
-                <div className="flex justify-center">
-                  <OpportunityGauge 
-                    score={scoreOportunidade.valor} 
-                    classification={scoreOportunidade.classificacao} 
-                  />
-                </div>
-
-                {scoreOportunidade.justificativa && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Justificativa</div>
-                    <p className="text-sm text-gray-600">{scoreOportunidade.justificativa}</p>
+          {/* Card de Análise Completa no Topo */}
+          {primeiraPatente && (
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Informações da Patente Principal */}
+                <div className="lg:col-span-2 space-y-6">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{produto}</h2>
+                    <p className="text-gray-600 text-lg">Análise completa de propriedade intelectual</p>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
 
-          {/* Dados da Patente */}
-          {patentes.length > 0 && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Shield size={24} className="text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">Dados da Patente Principal</h3>
-                </div>
-              </div>
-              
-              {patentes.map((patente, index) => (
-                <div key={index} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white p-4 rounded-lg border border-blue-100">
-                      <span className="text-sm font-medium text-gray-600">Número da Patente</span>
-                      <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{patente.numero_patente}</p>
-                    </div>
-
-                    <div className="bg-white p-4 rounded-lg border border-blue-100">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Status da Patente */}
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
-                        {patente.patente_vigente ? (
+                        {primeiraPatente.patente_vigente ? (
                           <CheckCircle size={20} className="text-green-600" />
                         ) : (
                           <XCircle size={20} className="text-red-600" />
                         )}
-                        <span className="font-semibold text-gray-900">Status</span>
+                        <span className="font-semibold text-gray-900">Status da Patente</span>
                       </div>
-                      <p className={`text-lg font-bold ${patente.patente_vigente ? 'text-green-600' : 'text-red-600'}`}>
-                        {patente.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
+                      <p className={`text-lg font-bold ${primeiraPatente.patente_vigente ? 'text-green-600' : 'text-red-600'}`}>
+                        {primeiraPatente.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
                       </p>
+                      {primeiraPatente.numero_patente && (
+                        <p className="text-sm text-gray-600 mt-1 font-mono">{primeiraPatente.numero_patente}</p>
+                      )}
                     </div>
 
-                    <div className="bg-white p-4 rounded-lg border border-blue-100">
-                      <span className="text-sm font-medium text-gray-600">Expiração Principal</span>
-                      <p className="text-lg font-bold text-gray-900 mt-1">{patente.data_expiracao_patente_principal}</p>
+                    {/* Expiração Principal */}
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar size={20} className="text-orange-600" />
+                        <span className="font-semibold text-gray-900">Expiração Principal</span>
+                      </div>
+                      <p className="text-lg font-bold text-gray-900">{primeiraPatente.data_expiracao_patente_principal}</p>
+                      {primeiraPatente.data_expiracao_patente_secundaria && primeiraPatente.data_expiracao_patente_secundaria !== 'Não informado' && (
+                        <p className="text-sm text-gray-600 mt-1">Secundária: {primeiraPatente.data_expiracao_patente_secundaria}</p>
+                      )}
+                    </div>
+
+                    {/* Objeto de Proteção */}
+                    {primeiraPatente.objeto_protecao && (
+                      <div className="md:col-span-2 bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Shield size={20} className="text-purple-600" />
+                          <span className="font-semibold text-gray-900">Objeto de Proteção</span>
+                        </div>
+                        <p className="text-gray-800">{primeiraPatente.objeto_protecao}</p>
+                      </div>
+                    )}
+
+                    {/* Tipo de Proteção Detalhado */}
+                    {primeiraPatente.tipo_protecao_detalhado && (
+                      <div className="md:col-span-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {primeiraPatente.tipo_protecao_detalhado.primaria && primeiraPatente.tipo_protecao_detalhado.primaria.length > 0 && (
+                            <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                              <span className="font-semibold text-gray-900 block mb-2">Proteção Primária</span>
+                              <div className="flex flex-wrap gap-1">
+                                {primeiraPatente.tipo_protecao_detalhado.primaria.map((tipo, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-green-200 text-green-800 rounded text-sm">
+                                    {tipo}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {primeiraPatente.tipo_protecao_detalhado.secundaria && primeiraPatente.tipo_protecao_detalhado.secundaria.length > 0 && (
+                            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+                              <span className="font-semibold text-gray-900 block mb-2">Proteção Secundária</span>
+                              <div className="flex flex-wrap gap-1">
+                                {primeiraPatente.tipo_protecao_detalhado.secundaria.map((tipo, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-sm">
+                                    {tipo}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Score de Oportunidade */}
+                {scoreOportunidade.valor && (
+                  <div className="flex flex-col items-center justify-center">
+                    <OpportunityGauge 
+                      score={scoreOportunidade.valor} 
+                      classification={scoreOportunidade.classificacao} 
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Justificativa do Score */}
+              {scoreOportunidade.justificativa && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 rounded-lg border border-indigo-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target size={20} className="text-indigo-600" />
+                      <span className="font-semibold text-gray-900">Justificativa do Score</span>
+                    </div>
+                    <p className="text-gray-800 leading-relaxed">{scoreOportunidade.justificativa}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dados da Patente por País */}
+          {primeiraPatente && primeiraPatente.patentes_por_pais && primeiraPatente.patentes_por_pais.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
+                  <Globe size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Patentes por País</h3>
+                  <p className="text-gray-600">Status e datas de expiração por jurisdição</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {primeiraPatente.patentes_por_pais.map((country, idx) => (
+                  <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Flag 
+                        code={getCountryCode(country.pais)} 
+                        style={{ width: 24, height: 18 }}
+                      />
+                      <span className="font-medium text-gray-900">{country.pais}</span>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      {country.numero && (
+                        <div>
+                          <strong>Número:</strong> 
+                          <span className="font-mono ml-1">{country.numero}</span>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <strong>Status:</strong> 
+                        <span className={`ml-1 px-2 py-1 rounded text-xs ${
+                          country.status === 'Ativa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {country.status}
+                        </span>
+                      </div>
+                      
+                      <div>
+                        <strong>Expiração:</strong> 
+                        <span className="ml-1 font-medium">{country.data_expiracao}</span>
+                      </div>
+                      
+                      {country.tipo && country.tipo.length > 0 && (
+                        <div>
+                          <strong>Tipos:</strong>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {country.tipo.map((tipo, i) => (
+                              <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                {tipo}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {country.fonte && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-xs text-gray-500">Fonte: {country.fonte}</span>
+                        </div>
+                      )}
+                      
+                      {country.link && (
+                        <div className="mt-2">
+                          <a 
+                            href={country.link} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                          >
+                            Ver patente
+                            <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {patente.objeto_protecao && (
-                    <div className="bg-white p-4 rounded-lg border border-blue-100">
-                      <span className="text-sm font-medium text-gray-600">Objeto de Proteção</span>
-                      <p className="text-gray-900 mt-1">{patente.objeto_protecao}</p>
-                    </div>
-                  )}
-
-                  {/* Patentes por País */}
-                  {patente.patentes_por_pais && patente.patentes_por_pais.length > 0 && (
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <Globe size={20} className="text-blue-600" />
-                        Patentes por País
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {patente.patentes_por_pais.map((country, idx) => (
-                          <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Flag 
-                                code={getCountryCode(country.pais)} 
-                                style={{ width: 24, height: 18 }}
-                              />
-                              <span className="font-medium">{country.pais}</span>
-                            </div>
-                            <div className="space-y-2 text-sm">
-                              <div><strong>Número:</strong> {country.numero || 'N/A'}</div>
-                              <div><strong>Status:</strong> {country.status}</div>
-                              <div><strong>Expiração Primária:</strong> {country.data_expiracao_primaria}</div>
-                              <div><strong>Expiração Secundária:</strong> {country.data_expiracao_secundaria}</div>
-                              {country.tipos && country.tipos.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {country.tipos.map((tipo, i) => (
-                                    <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                      {tipo}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                              {country.fonte && (
-                                <div className="mt-2">
-                                  <span className="text-xs text-gray-500">Fonte: {country.fonte}</span>
-                                </div>
-                              )}
-                              {country.link && (
-                                <div className="mt-2">
-                                  <a 
-                                    href={country.link} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
-                                  >
-                                    Ver patente
-                                    <ExternalLink size={12} />
-                                  </a>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
 
@@ -566,47 +611,6 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
             </div>
           )}
 
-          {/* Registro Regulatório */}
-          {Object.keys(registroRegulatorio).length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Building2 size={24} className="text-blue-600" />
-                <h3 className="text-xl font-bold text-gray-900">Registros Regulatórios</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(registroRegulatorio).map(([pais, registro]) => (
-                  <div key={pais} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Flag 
-                        code={getCountryCode(pais)} 
-                        style={{ width: 24, height: 18 }}
-                      />
-                      <span className="font-semibold">{pais}</span>
-                    </div>
-                    <div className="space-y-2 text-sm">
-                      {registro.numero_registro && (
-                        <div><strong>Registro:</strong> {registro.numero_registro}</div>
-                      )}
-                      {registro.nda && (
-                        <div><strong>NDA:</strong> {registro.nda}</div>
-                      )}
-                      {registro.data_registro && (
-                        <div><strong>Data:</strong> {registro.data_registro}</div>
-                      )}
-                      {registro.data_aprovacao && (
-                        <div><strong>Aprovação:</strong> {registro.data_aprovacao}</div>
-                      )}
-                      {registro.descricao && (
-                        <div><strong>Descrição:</strong> {registro.descricao}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Regulação por País */}
           {regulacaoPorPais.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -723,86 +727,6 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Estratégias de Formulação */}
-          {estrategiasFormulacao.variacoes && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Pill size={24} className="text-teal-600" />
-                <h3 className="text-xl font-bold text-gray-900">Estratégias de Formulação</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {estrategiasFormulacao.variacoes && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600 mb-2 block">Variações Disponíveis</span>
-                    <div className="space-y-2">
-                      {estrategiasFormulacao.variacoes.map((variacao, idx) => (
-                        <div key={idx} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-                          <Pill size={16} className="text-teal-600" />
-                          <span>{variacao}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {estrategiasFormulacao.tecnologia && (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600 mb-2 block">Tecnologias</span>
-                    <div className="flex flex-wrap gap-2">
-                      {estrategiasFormulacao.tecnologia.map((tech, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Dados de Mercado */}
-          {dadosMercado.preco_medio_estimado && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <DollarSign size={24} className="text-green-600" />
-                <h3 className="text-xl font-bold text-gray-900">Dados de Mercado</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <span className="text-sm font-medium text-gray-600">Preço Médio Estimado</span>
-                  <p className="text-2xl font-bold text-green-600 mt-1">{dadosMercado.preco_medio_estimado}</p>
-                  <p className="text-sm text-gray-500">Referência: {dadosMercado.referencia_ano}</p>
-                </div>
-
-                {dadosMercado.top_3_paises_volume && (
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 md:col-span-2">
-                    <span className="text-sm font-medium text-gray-600 mb-2 block">Top 3 Países por Volume</span>
-                    <div className="flex flex-wrap gap-2">
-                      {dadosMercado.top_3_paises_volume.map((pais, idx) => (
-                        <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-white rounded border">
-                          <Flag 
-                            code={getCountryCode(pais)} 
-                            style={{ width: 20, height: 15 }}
-                          />
-                          <span className="text-sm font-medium">{pais}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {dadosMercado.fonte && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <span className="text-xs text-gray-500">Fonte: {dadosMercado.fonte}</span>
-                </div>
-              )}
             </div>
           )}
 
