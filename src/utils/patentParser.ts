@@ -114,9 +114,9 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
           pais: country.pais || 'Não informado',
           numero: country.numero || country.numero_patente || 'Não informado',
           status: country.status || 'Não informado',
-          data_expiracao_primaria: country.data_expiracao_primaria || country.data_expiracao || 'Não informado',
+          data_expiracao_primaria: country.data_expiracao || country.data_expiracao_primaria || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : Array.isArray(country.type) ? country.type : [],
+          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : [],
           fonte: country.fonte || 'Não informado',
           link: country.link || ''
         }));

@@ -89,86 +89,203 @@ const CountryFlag: React.FC<CountryFlagProps> = ({
   );
 };
 
+// Componente Gauge animado para Score de Oportunidade
+const AnimatedOpportunityGauge = ({ score, classification }: { score: number; classification: string }) => {
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
+  
+  useEffect(() => {
+    // Animação do número (cronômetro)
+    const duration = 2000; // 2 segundos
+    const steps = 60; // 60 frames
+    const increment = score / steps;
+    let currentStep = 0;
+    
+    const numberTimer = setInterval(() => {
+      currentStep++;
+      const currentValue = Math.min(increment * currentStep, score);
+      setAnimatedScore(Math.round(currentValue));
+      
+      if (currentStep >= steps) {
+        clearInterval(numberTimer);
+        setAnimatedScore(score); // Garantir valor final exato
+      }
+    }, duration / steps);
+    
+    // Animação do progress bar (sincronizada)
+    const progressTimer = setInterval(() => {
+      setAnimatedProgress(prev => {
+        const newProgress = prev + (score / steps);
+        return Math.min(newProgress, score);
+      });
+    }, duration / steps);
+    
+    return () => {
+      clearInterval(numberTimer);
+      clearInterval(progressTimer);
+    };
+  }, [score]);
+  
+  const radius = 100; // Aumentado em 33% (de 75 para 100)
+  const strokeWidth = 12;
+  const normalizedRadius = radius - strokeWidth * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDasharray = `${circumference} ${circumference}`;
+  const strokeDashoffset = circumference - (animatedProgress / 100) * circumference;
+
+  const getColor = (score: number) => {
+    if (score >= 80) return '#10B981'; // Verde
+    if (score >= 60) return '#F59E0B'; // Amarelo
+    if (score >= 40) return '#F97316'; // Laranja
+    return '#EF4444'; // Vermelho
+  };
+
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative">
+        <svg
+          height={radius * 2}
+          width={radius * 2}
+          className="transform -rotate-90"
+        >
+          {/* Background circle */}
+          <circle
+            stroke="rgba(255, 255, 255, 0.2)"
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          {/* Progress circle */}
+          <circle
+            stroke={getColor(score)}
+            fill="transparent"
+            strokeWidth={strokeWidth}
+            strokeDasharray={strokeDasharray}
+            style={{ 
+              strokeDashoffset,
+              transition: 'stroke-dashoffset 0.1s ease-out'
+            }}
+            strokeLinecap="round"
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-4xl font-bold text-white">{animatedScore}</span>
+          <span className="text-sm text-blue-200">de 100</span>
+        </div>
+      </div>
+      <div className="mt-4 text-center">
+        <div className="text-lg font-semibold text-white">{classification}</div>
+        <div className="text-sm text-blue-200">Score de Oportunidade</div>
+      </div>
+    </div>
+  );
+};
+
 // Componente para exibir dados de patente
 const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ patent, index }) => {
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center">
-          <Shield size={24} className="text-white" />
+    <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-8 border border-blue-700 shadow-lg">
+      {/* Header unificado */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+          <Shield size={32} className="text-white" />
         </div>
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Análise de Patente {index + 1}</h3>
+          <h3 className="text-2xl font-bold text-white">Análise de Propriedade Intelectual</h3>
           {patent.numero_patente && patent.numero_patente !== 'Não informado' && (
-            <p className="text-sm text-gray-600 font-mono">{patent.numero_patente}</p>
+            <p className="text-blue-200 font-mono text-lg">{patent.numero_patente}</p>
           )}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border border-blue-100">
-          <div className="flex items-center gap-2 mb-2">
-            {patent.patente_vigente ? (
-              <CheckCircle size={20} className="text-green-600" />
-            ) : (
-              <XCircle size={20} className="text-red-600" />
-            )}
-            <span className="font-semibold text-gray-900">Status da Patente</span>
-          </div>
-          <p className={`text-lg font-bold ${patent.patente_vigente ? 'text-green-600' : 'text-red-600'}`}>
-            {patent.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
-          </p>
-        </div>
+      {/* Conteúdo principal em grid unificado */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
+        {/* Informações principais */}
+        <div className="lg:col-span-3 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Status da Patente */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                {patent.patente_vigente ? (
+                  <CheckCircle size={24} className="text-green-400" />
+                ) : (
+                  <XCircle size={24} className="text-red-400" />
+                )}
+                <span className="font-semibold text-blue-100">Status da Patente</span>
+              </div>
+              <p className={`text-xl font-bold ${patent.patente_vigente ? 'text-green-400' : 'text-red-400'}`}>
+                {patent.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
+              </p>
+            </div>
 
-        <div className="bg-white p-4 rounded-lg border border-blue-100">
-          <div className="flex items-center gap-2 mb-2">
-            <Calendar size={20} className="text-orange-600" />
-            <span className="font-semibold text-gray-900">Expiração Principal</span>
-          </div>
-          <p className="text-lg font-bold text-gray-900">{patent.data_expiracao_patente_principal}</p>
-          {patent.data_expiracao_patente_secundaria && patent.data_expiracao_patente_secundaria !== 'Não informado' && (
-            <p className="text-sm text-gray-600 mt-1">Secundária: {patent.data_expiracao_patente_secundaria}</p>
-          )}
-        </div>
+            {/* Expiração Principal */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Calendar size={24} className="text-orange-400" />
+                <span className="font-semibold text-blue-100">Expiração Principal</span>
+              </div>
+              <p className="text-xl font-bold text-white">{patent.data_expiracao_patente_principal}</p>
+              {patent.data_expiracao_patente_secundaria && patent.data_expiracao_patente_secundaria !== 'Não informado' && (
+                <p className="text-sm text-blue-200 mt-1">Secundária: {patent.data_expiracao_patente_secundaria}</p>
+              )}
+            </div>
 
-        <div className="bg-white p-4 rounded-lg border border-blue-100">
-          <div className="flex items-center gap-2 mb-2">
-            <Building2 size={20} className="text-purple-600" />
-            <span className="font-semibold text-gray-900">Exploração Comercial</span>
+            {/* Exploração Comercial */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Building2 size={24} className="text-purple-400" />
+                <span className="font-semibold text-blue-100">Exploração Comercial</span>
+              </div>
+              <p className={`text-xl font-bold ${patent.exploracao_comercial ? 'text-green-400' : 'text-red-400'}`}>
+                {patent.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
+              </p>
+            </div>
           </div>
-          <p className={`text-lg font-bold ${patent.exploracao_comercial ? 'text-green-600' : 'text-red-600'}`}>
-            {patent.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
-          </p>
+        </div>
+        
+        {/* Score de Oportunidade - Gauge maior */}
+        <div className="lg:col-span-1 flex justify-center">
+          {/* Placeholder para o gauge - será substituído quando o score estiver disponível */}
+          <div className="text-center">
+            <div className="w-32 h-32 bg-blue-700 rounded-full flex items-center justify-center mb-4">
+              <Target size={48} className="text-blue-300" />
+            </div>
+            <div className="text-lg font-semibold text-white">Score</div>
+            <div className="text-sm text-blue-200">Em breve</div>
+          </div>
         </div>
       </div>
 
       {/* Objeto de Proteção */}
       {patent.objeto_protecao && patent.objeto_protecao !== 'Não informado' && (
-        <div className="mb-6">
-          <div className="bg-white p-4 rounded-lg border border-blue-100">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield size={20} className="text-purple-600" />
-              <span className="font-semibold text-gray-900">Objeto de Proteção</span>
-            </div>
-            <p className="text-gray-800">{patent.objeto_protecao}</p>
+        <div className="mt-8 pt-6 border-t border-blue-700">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield size={20} className="text-blue-300" />
+            <span className="font-semibold text-blue-100">Objeto de Proteção</span>
           </div>
+          <p className="text-white leading-relaxed">{patent.objeto_protecao}</p>
         </div>
       )}
 
       {/* Tipo de Proteção Detalhado */}
       {patent.tipo_protecao_detalhado && (
-        <div className="mb-6">
-          <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Award size={20} className="text-indigo-600" />
+        <div className="mt-6">
+          <h4 className="text-lg font-bold text-blue-100 mb-4 flex items-center gap-2">
+            <Award size={20} className="text-blue-300" />
             Tipos de Proteção
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {patent.tipo_protecao_detalhado.primaria && patent.tipo_protecao_detalhado.primaria.length > 0 && (
-              <div className="bg-white p-4 rounded-lg border border-green-200">
-                <span className="font-semibold text-gray-900 block mb-2">Proteção Primária</span>
+              <div className="bg-blue-800 p-4 rounded-lg border border-green-400">
+                <span className="font-semibold text-green-300 block mb-2">Proteção Primária</span>
                 <div className="flex flex-wrap gap-1">
                   {patent.tipo_protecao_detalhado.primaria.map((tipo, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                    <span key={idx} className="px-2 py-1 bg-green-400 text-green-900 rounded text-sm font-medium">
                       {tipo}
                     </span>
                   ))}
@@ -177,11 +294,11 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
             )}
             
             {patent.tipo_protecao_detalhado.secundaria && patent.tipo_protecao_detalhado.secundaria.length > 0 && (
-              <div className="bg-white p-4 rounded-lg border border-yellow-200">
-                <span className="font-semibold text-gray-900 block mb-2">Proteção Secundária</span>
+              <div className="bg-blue-800 p-4 rounded-lg border border-yellow-400">
+                <span className="font-semibold text-yellow-300 block mb-2">Proteção Secundária</span>
                 <div className="flex flex-wrap gap-1">
                   {patent.tipo_protecao_detalhado.secundaria.map((tipo, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-sm">
+                    <span key={idx} className="px-2 py-1 bg-yellow-400 text-yellow-900 rounded text-sm font-medium">
                       {tipo}
                     </span>
                   ))}
@@ -193,53 +310,53 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
       )}
       {/* Patentes por País */}
       {patent.patentes_por_pais && patent.patentes_por_pais.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Globe size={20} className="text-blue-600" />
+        <div className="mt-8">
+          <h4 className="text-lg font-bold text-blue-100 mb-4 flex items-center gap-2">
+            <Globe size={20} className="text-blue-300" />
             Patentes por País
           </h4>
           <div className="overflow-x-auto">
-            <table className="w-full bg-white rounded-lg border border-gray-200">
+            <table className="w-full bg-blue-800 rounded-lg border border-blue-600">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">País</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Número</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Expiração</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Tipos</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Fonte</th>
+                <tr className="border-b border-blue-600 bg-blue-700">
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">País</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Número</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Status</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Expiração</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Tipos</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Fonte</th>
                 </tr>
               </thead>
               <tbody>
             {patent.patentes_por_pais.map((country, idx) => (
-              <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+              <tr key={idx} className="border-b border-blue-700 hover:bg-blue-750">
                 <td className="py-3 px-4">
-                  <CountryFlag countryName={country.pais} size={20} className="font-medium" />
+                  <CountryFlag countryName={country.pais} size={20} className="font-medium text-white" />
                 </td>
                 <td className="py-3 px-4">
-                  <span className="font-mono text-sm">{country.numero}</span>
+                  <span className="font-mono text-sm text-blue-200">{country.numero}</span>
                 </td>
                 <td className="py-3 px-4">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    country.status === 'Ativa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    country.status === 'Ativa' ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'
                   }`}>
                     {country.status}
                   </span>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="font-medium">{country.data_expiracao_primaria}</span>
+                  <span className="font-medium text-white">{country.data_expiracao || country.data_expiracao_primaria}</span>
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex flex-wrap gap-1">
-                    {country.tipos.map((tipo, i) => (
-                      <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                    {(country.tipo || country.tipos || []).map((tipo, i) => (
+                      <span key={i} className="px-2 py-1 bg-blue-400 text-blue-900 rounded text-xs font-medium">
                         {tipo}
                       </span>
                     ))}
                   </div>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="text-xs text-gray-500">{country.fonte}</span>
+                  <span className="text-xs text-blue-300">{country.fonte}</span>
                 </td>
               </tr>
             ))}
@@ -251,18 +368,18 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
 
       {/* Exploração Comercial por País */}
       {patent.exploracao_comercial_por_pais && patent.exploracao_comercial_por_pais.length > 0 && (
-        <div className="mb-6">
-          <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Target size={20} className="text-green-600" />
+        <div className="mt-8">
+          <h4 className="text-lg font-bold text-blue-100 mb-4 flex items-center gap-2">
+            <Target size={20} className="text-blue-300" />
             Exploração Comercial por País
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {patent.exploracao_comercial_por_pais.map((exploration, idx) => (
-              <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200">
-                <CountryFlag countryName={exploration.pais} size={24} className="mb-3 font-medium" />
-                <div className="space-y-2 text-sm">
-                  <div><strong>Disponível em:</strong> {exploration.data_disponivel}</div>
-                  <div><strong>Tipos Liberados:</strong> {exploration.tipos_liberados.join(', ')}</div>
+              <div key={idx} className="bg-blue-800 p-4 rounded-lg border border-blue-600">
+                <CountryFlag countryName={exploration.pais} size={24} className="mb-3 font-medium text-white" />
+                <div className="space-y-2 text-sm text-blue-200">
+                  <div><strong className="text-white">Disponível em:</strong> {exploration.data_disponivel}</div>
+                  <div><strong className="text-white">Tipos Liberados:</strong> {exploration.tipos_liberados.join(', ')}</div>
                 </div>
               </div>
             ))}
@@ -271,38 +388,38 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
       )}
 
       {/* Riscos e Oportunidades */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         {patent.riscos_regulatorios_ou_eticos !== 'Não informado' && (
-          <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle size={20} className="text-red-600" />
-              <span className="font-semibold text-red-900">Riscos Regulatórios</span>
+          <div className="bg-red-900 bg-opacity-30 p-4 rounded-lg border border-red-400">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={20} className="text-red-400" />
+              <span className="font-semibold text-red-300">Riscos Regulatórios</span>
             </div>
-            <p className="text-red-800">{patent.riscos_regulatorios_ou_eticos}</p>
+            <p className="text-red-200">{patent.riscos_regulatorios_ou_eticos}</p>
           </div>
         )}
 
         {patent.data_vencimento_para_novo_produto !== 'Não informado' && (
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Clock size={20} className="text-green-600" />
-              <span className="font-semibold text-green-900">Oportunidade para Novo Produto</span>
+          <div className="bg-green-900 bg-opacity-30 p-4 rounded-lg border border-green-400">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock size={20} className="text-green-400" />
+              <span className="font-semibold text-green-300">Oportunidade para Novo Produto</span>
             </div>
-            <p className="text-green-800">Disponível a partir de: {patent.data_vencimento_para_novo_produto}</p>
+            <p className="text-green-200">Disponível a partir de: {patent.data_vencimento_para_novo_produto}</p>
           </div>
         )}
       </div>
 
       {/* Alternativas de Compostos */}
       {patent.alternativas_de_compostos_analogos && patent.alternativas_de_compostos_analogos.length > 0 && (
-        <div className="mt-6">
-          <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Beaker size={20} className="text-purple-600" />
+        <div className="mt-8">
+          <h4 className="text-lg font-bold text-blue-100 mb-4 flex items-center gap-2">
+            <Beaker size={20} className="text-blue-300" />
             Alternativas de Compostos
           </h4>
           <div className="flex flex-wrap gap-2">
             {patent.alternativas_de_compostos_analogos.map((alt, idx) => (
-              <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+              <span key={idx} className="px-3 py-2 bg-purple-400 text-purple-900 rounded-full text-sm font-medium">
                 {alt}
               </span>
             ))}
@@ -570,34 +687,24 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
             {/* Score de Oportunidade com Justificativa */}
             {result.score_de_oportunidade && (
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
-                    <Target size={24} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">Score de Oportunidade</h3>
-                    <p className="text-gray-600">Avaliação automatizada de potencial comercial</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-lg border border-indigo-100">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold text-indigo-600 mb-2">
-                        {result.score_de_oportunidade.valor}/100
-                      </div>
-                      <div className="text-lg font-semibold text-gray-900 mb-1">
-                        {result.score_de_oportunidade.classificacao}
-                      </div>
-                      <div className="text-sm text-gray-600">Score de Oportunidade</div>
-                    </div>
+              <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-8 border border-blue-700 shadow-lg">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                  {/* Score com Gauge Animado */}
+                  <div className="lg:col-span-1 flex justify-center">
+                    <AnimatedOpportunityGauge 
+                      score={result.score_de_oportunidade.valor} 
+                      classification={result.score_de_oportunidade.classificacao} 
+                    />
                   </div>
                   
+                  {/* Justificativa */}
                   {result.score_de_oportunidade.justificativa && (
-                    <div className="bg-white p-6 rounded-lg border border-indigo-100">
-                      <h4 className="font-semibold text-gray-900 mb-3">Justificativa</h4>
-                      <p className="text-gray-700 leading-relaxed">
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Target size={24} className="text-blue-300" />
+                        <h4 className="text-xl font-bold text-white">Justificativa do Score</h4>
+                      </div>
+                      <p className="text-blue-100 leading-relaxed text-lg">
                         {result.score_de_oportunidade.justificativa}
                       </p>
                     </div>
