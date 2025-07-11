@@ -97,9 +97,13 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         
         return patentsByCountry.map(country => ({
           pais: country.pais || 'Não informado',
+          numero: country.numero || 'Não informado',
+          status: country.status || 'Não informado',
           data_expiracao_primaria: country.data_expiracao_primaria || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipos) ? country.tipos : []
+          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : [],
+          fonte: country.fonte || 'Não informado',
+          link: country.link || ''
         }));
       };
 
@@ -115,7 +119,9 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       };
 
       return {
+        numero_patente: patent.numero_patente || 'Não informado',
         patente_vigente: Boolean(patent.patente_vigente),
+        objeto_protecao: patent.objeto_protecao || 'Não informado',
         data_expiracao_patente_principal: patent.data_expiracao_patente_principal || 'Não informado',
         data_expiracao_patente_secundaria: patent.data_expiracao_patente_secundaria || 'Não informado',
         patentes_por_pais: parsePatentsByCountry(patent.patentes_por_pais || []),
@@ -170,16 +176,20 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       return {
         ativos: 'Não informado',
         fase_avancada: false,
+        tem_no_brasil: false,
         paises: [],
-        principais_indicacoes_estudadas: []
+        principais_indicacoes_estudadas: [],
+        estudos: []
       };
     }
 
     return {
       ativos: ensaios.ativos !== undefined ? ensaios.ativos.toString() : 'Não informado',
       fase_avancada: Boolean(ensaios.fase_avancada),
+      tem_no_brasil: Boolean(ensaios.tem_no_brasil),
       paises: Array.isArray(ensaios.paises) ? ensaios.paises : [],
-      principais_indicacoes_estudadas: Array.isArray(ensaios.principais_indicacoes_estudadas) ? ensaios.principais_indicacoes_estudadas : []
+      principais_indicacoes_estudadas: Array.isArray(ensaios.principais_indicacoes_estudadas) ? ensaios.principais_indicacoes_estudadas : [],
+      estudos: Array.isArray(ensaios.estudos) ? ensaios.estudos : []
     };
   };
 
@@ -190,7 +200,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         tem_generico: false,
         nda_number: 'Não informado',
         genericos_aprovados: [],
-        data_ultimo_generico: 'Não informado'
+        data_ultimo_generico: 'Não informado',
+        data_aprovacao: 'Não informado',
+        exclusividades: [],
+        data_expiracao_exclusividade: 'Não informado',
+        patentes_listadas: []
       };
     }
 
@@ -198,7 +212,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       tem_generico: Boolean(orangeBook.tem_generico),
       nda_number: orangeBook.nda_number || 'Não informado',
       genericos_aprovados: Array.isArray(orangeBook.genericos_aprovados) ? orangeBook.genericos_aprovados : [],
-      data_ultimo_generico: orangeBook.data_ultimo_generico || 'Não informado'
+      data_ultimo_generico: orangeBook.data_ultimo_generico || 'Não informado',
+      data_aprovacao: orangeBook.data_aprovacao || 'Não informado',
+      exclusividades: Array.isArray(orangeBook.exclusividades) ? orangeBook.exclusividades : [],
+      data_expiracao_exclusividade: orangeBook.data_expiracao_exclusividade || 'Não informado',
+      patentes_listadas: Array.isArray(orangeBook.patentes_listadas) ? orangeBook.patentes_listadas : []
     };
   };
 
@@ -211,7 +229,8 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       agencia: reg.agencia || 'Não informado',
       classificacao: reg.classificacao || 'Não informado',
       restricoes: Array.isArray(reg.restricoes) ? reg.restricoes : [],
-      facilidade_registro_generico: reg.facilidade_registro_generico || 'Não informado'
+      facilidade_registro_generico: reg.facilidade_registro_generico || 'Não informado',
+      numero_registro: reg.numero_registro || 'Não informado'
     }));
   };
 
@@ -250,13 +269,15 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     quimica: parseChemicalData(parsedData.quimica),
     ensaios_clinicos: parseClinicalTrialsData(parsedData.ensaios_clinicos),
     orange_book: parseOrangeBookData(parsedData.orange_book),
+    registro_regulatorio: parsedData.registro_regulatorio || {},
     regulacao_por_pais: parseRegulationByCountry(parsedData.regulacao_por_pais || []),
     evidencia_cientifica_recente: parseScientificEvidence(parsedData.evidencia_cientifica_recente || []),
-    estrategias_de_formulacao: Array.isArray(parsedData.estrategias_de_formulacao) ? parsedData.estrategias_de_formulacao : [],
+    estrategias_de_formulacao: parsedData.estrategias_de_formulacao || {},
+    dados_de_mercado: parsedData.dados_de_mercado || {},
     score_de_oportunidade: parseOpportunityScore(parsedData.score_de_oportunidade),
 
     // Legacy compatibility - usar dados da primeira patente se disponível
-    substancia: 'Produto consultado',
+    substancia: parsedData.produto || 'Produto consultado',
     patente_vigente: primeiraPatente?.patente_vigente || false,
     data_expiracao_patente_principal: primeiraPatente?.data_expiracao_patente_principal || 'Não informado',
     exploracao_comercial: primeiraPatente?.exploracao_comercial || false,

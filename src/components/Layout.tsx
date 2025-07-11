@@ -179,17 +179,18 @@ const Layout = () => {
     } catch (error) {
       console.error('💥 Error in patent consultation:', error);
       
+      if (error instanceof TypeError) {
+        // Network errors like 'Failed to fetch'
+        throw new Error('Erro de conexão com o servidor. Verifique sua conexão com a internet e tente novamente.');
+      }
+      
+      if (error instanceof SyntaxError) {
+        // JSON parsing errors
+        throw new Error('O servidor retornou dados em formato inválido. Isso pode indicar uma sobrecarga temporária. Aguarde alguns minutos e tente novamente.');
+      }
+      
       if (error instanceof Error) {
-        if (error.message.includes('texto ao invés de dados estruturados') || 
-            error.message.includes('formato dos dados não pôde ser processado') ||
-            error.message.includes('dados em formato inválido')) {
-          throw new Error('O servidor está retornando dados em formato inesperado. Isso pode indicar uma sobrecarga temporária. Aguarde alguns minutos e tente novamente.');
-        }
-        
-        if (error.message.includes('Failed to parse') || error.message.includes('Invalid JSON')) {
-          throw new Error('Erro ao processar resposta da consulta. O servidor pode estar sobrecarregado. Tente novamente em alguns instantes.');
-        }
-        
+        // Allow specific error messages from parsePatentResponse to propagate
         throw error;
       }
       
