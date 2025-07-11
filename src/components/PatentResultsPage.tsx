@@ -346,14 +346,33 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                             <div className="space-y-2 text-sm">
                               <div><strong>Número:</strong> {country.numero || 'N/A'}</div>
                               <div><strong>Status:</strong> {country.status}</div>
-                              <div><strong>Expiração:</strong> {country.data_expiracao}</div>
-                              {country.tipo && country.tipo.length > 0 && (
+                              <div><strong>Expiração Primária:</strong> {country.data_expiracao_primaria}</div>
+                              <div><strong>Expiração Secundária:</strong> {country.data_expiracao_secundaria}</div>
+                              {country.tipos && country.tipos.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-2">
-                                  {country.tipo.map((tipo, i) => (
+                                  {country.tipos.map((tipo, i) => (
                                     <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                                       {tipo}
                                     </span>
                                   ))}
+                                </div>
+                              )}
+                              {country.fonte && (
+                                <div className="mt-2">
+                                  <span className="text-xs text-gray-500">Fonte: {country.fonte}</span>
+                                </div>
+                              )}
+                              {country.link && (
+                                <div className="mt-2">
+                                  <a 
+                                    href={country.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
+                                  >
+                                    Ver patente
+                                    <ExternalLink size={12} />
+                                  </a>
                                 </div>
                               )}
                             </div>
@@ -471,7 +490,10 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                             <span><strong>Fase:</strong> {estudo.fase}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <MapPin size={16} className="text-green-600" />
+                            <Flag 
+                              code={getCountryCode(estudo.pais)} 
+                              style={{ width: 16, height: 12 }}
+                            />
                             <span><strong>País:</strong> {estudo.pais}</span>
                           </div>
                         </div>
@@ -630,6 +652,15 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         </div>
                       </div>
 
+                      {regulacao.numero_registro && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Número do Registro</span>
+                          <div className="mt-1">
+                            <span className="font-mono text-sm">{regulacao.numero_registro}</span>
+                          </div>
+                        </div>
+                      )}
+
                       {regulacao.restricoes && regulacao.restricoes.length > 0 && (
                         <div>
                           <span className="text-sm font-medium text-gray-600">Restrições</span>
@@ -640,6 +671,12 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                               </span>
                             ))}
                           </div>
+                        </div>
+                      )}
+
+                      {regulacao.fonte && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <span className="text-xs text-gray-500">Fonte: {regulacao.fonte}</span>
                         </div>
                       )}
                     </div>
@@ -760,6 +797,12 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   </div>
                 )}
               </div>
+              
+              {dadosMercado.fonte && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <span className="text-xs text-gray-500">Fonte: {dadosMercado.fonte}</span>
+                </div>
+              )}
             </div>
           )}
 

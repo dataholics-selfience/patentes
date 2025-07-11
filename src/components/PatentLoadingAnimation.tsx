@@ -19,7 +19,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Acessando INPI, USPTO, EPO e WIPO",
       icon: Building2,
       color: "from-blue-400 to-blue-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 1,
@@ -27,7 +27,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Verificando status de patentes em múltiplas jurisdições",
       icon: Globe,
       color: "from-green-400 to-green-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 2,
@@ -35,7 +35,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Buscando ensaios clínicos ativos e em fase avançada",
       icon: TestTube,
       color: "from-purple-400 to-purple-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 3,
@@ -43,7 +43,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Analisando registros de genéricos e NDA",
       icon: FileText,
       color: "from-orange-400 to-orange-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 4,
@@ -51,7 +51,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Processando estruturas químicas e propriedades",
       icon: FlaskConical,
       color: "from-pink-400 to-pink-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 5,
@@ -59,7 +59,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Avaliando potencial comercial e riscos regulatórios",
       icon: TrendingUp,
       color: "from-yellow-400 to-yellow-600",
-      duration: 12000 // 12 seconds
+      duration: 7000 // 7 seconds
     },
     {
       id: 6,
@@ -67,11 +67,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Aguarde o carregamento...",
       icon: Hourglass,
       color: "from-indigo-400 to-indigo-600",
-      duration: 28000 // 28 seconds (para totalizar 100 segundos = 1min 40s)
+      duration: 8000 // 8 seconds (para totalizar 50 segundos)
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 100 seconds total (1min 40s)
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 50 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
@@ -101,51 +101,29 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
 
       if (isLastStage) {
         // Comportamento especial para o último estágio
-        // Avança 33%, para 1 segundo, cresce 22%, para 2 segundos, depois cresce lentamente
+        // Progresso linear normal para o último estágio
+        const updateInterval = 50;
+        const progressIncrement = 100 / (stageDuration / updateInterval);
         
-        // Primeira fase: 33% em 3 segundos
-        let currentProgress = 0;
-        const firstPhaseInterval = setInterval(() => {
-          currentProgress += 33 / (3000 / 100); // 33% em 3 segundos
-          if (currentProgress >= 33) {
-            currentProgress = 33;
-            clearInterval(firstPhaseInterval);
-            setProgress(33);
-            
-            // Pausa de 1 segundo
-            setTimeout(() => {
-              // Segunda fase: mais 22% em 2 segundos
-              const secondPhaseInterval = setInterval(() => {
-                currentProgress += 22 / (2000 / 100); // 22% em 2 segundos
-                if (currentProgress >= 55) {
-                  currentProgress = 55;
-                  clearInterval(secondPhaseInterval);
-                  setProgress(55);
-                  
-                  // Pausa de 2 segundos
-                  setTimeout(() => {
-                    // Terceira fase: restantes 45% muito lentamente (22 segundos)
-                    const thirdPhaseInterval = setInterval(() => {
-                      currentProgress += 45 / (22000 / 200); // 45% em 22 segundos (update a cada 200ms)
-                      if (currentProgress >= 100) {
-                        currentProgress = 100;
-                        clearInterval(thirdPhaseInterval);
-                      }
-                      setProgress(currentProgress);
-                    }, 200);
-                    intervals.push(thirdPhaseInterval);
-                  }, 2000);
-                } else {
-                  setProgress(currentProgress);
-                }
-              }, 100);
-              intervals.push(secondPhaseInterval);
-            }, 1000);
-          } else {
-            setProgress(currentProgress);
+        const progressInterval = setInterval(() => {
+          setProgress(prev => {
+            const newProgress = prev + progressIncrement;
+            if (newProgress >= 100) {
+              clearInterval(progressInterval);
+              return 100;
+            }
+            return newProgress;
+          });
+        }, updateInterval);
+        intervals.push(progressInterval);
+
+        const stageTimeout = setTimeout(() => {
+          clearInterval(progressInterval);
+          if (onComplete) {
+            onComplete();
           }
-        }, 100);
-        intervals.push(firstPhaseInterval);
+        }, stageDuration);
+        timeouts.push(stageTimeout);
       } else {
         // Comportamento normal para outros estágios
         const updateInterval = 50;
@@ -278,7 +256,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
               className={`h-full bg-gradient-to-r ${currentStageData?.color || 'from-blue-400 to-blue-600'} rounded-full transition-all duration-100 ease-out shadow-lg`}
               style={{ 
                 width: `${progress}%`,
-                transition: isLastStage ? 'width 0.2s ease-out' : 'width 0.05s linear'
+                transition: 'width 0.05s linear'
               }}
             />
           </div>
@@ -301,7 +279,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 100)}s / 100s</span>
+            <span>{Math.round((overallProgress / 100) * 50)}s / 50s</span>
           </div>
         </div>
 
@@ -322,12 +300,12 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
         </div>
 
         {/* Loading text */}
-        <div className="text-blue-200">
+        <div className="text-white">
           <div className="flex items-center justify-center space-x-2">
             {isLastStage ? (
               <div className="flex items-center space-x-2">
-                <Hourglass size={20} className="text-yellow-400 animate-pulse" />
-                <span className="text-lg font-medium text-yellow-300">
+                <Hourglass size={20} className="text-white animate-pulse" />
+                <span className="text-lg font-medium text-white">
                   Processamento final em andamento...
                 </span>
               </div>
@@ -347,7 +325,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           
           {overallProgress >= 100 && (
             <div className="mt-4 text-yellow-300 animate-pulse">
-              <p className="text-sm">A análise foi concluída. Aguardando processamento final dos dados...</p>
+              <p className="text-sm text-white">A análise foi concluída. Aguardando processamento final dos dados...</p>
             </div>
           )}
         </div>

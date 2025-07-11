@@ -246,9 +246,6 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       const resultado = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
       console.log('📊 Resultado final recebido:', resultado);
       
-      // Aguardar um pouco mais para garantir que a animação termine
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       // Webhook respondeu, mostrar resultados
       setResult(resultado);
       setShowLoadingAnimation(false);
