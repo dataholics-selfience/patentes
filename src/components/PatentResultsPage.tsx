@@ -286,6 +286,9 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
   const navigate = useNavigate();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
+  // Usar o nome do produto se disponível
+  const productName = result.produto || searchTerm;
+
   const generatePDFContent = (result: PatentResultType, searchTerm: string): string => {
     const patent = result.patentes?.[0];
     const currentDate = new Date().toLocaleDateString('pt-BR');
@@ -295,7 +298,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
 
 ================================================================
 
-Substância Analisada: ${searchTerm}
+Produto Analisado: ${productName}
 Data da Consulta: ${currentDate} às ${currentTime}
 
 ================================================================
@@ -306,6 +309,10 @@ RESUMO EXECUTIVO
 
     if (result.score_de_oportunidade) {
       content += `Score de Oportunidade: ${result.score_de_oportunidade.valor}/100 (${result.score_de_oportunidade.classificacao})
+
+`;
+       if (result.score_de_oportunidade.justificativa) {
+         content += `Justificativa: ${result.score_de_oportunidade.justificativa}
 
 `;
     }
@@ -523,13 +530,13 @@ consulte sempre as fontes oficiais e profissionais especializados.
             pdf.text(textLine, margin, yPosition);
             yPosition += lineHeight + 1;
           });
-          pdf.setFontSize(10);
+            <h2 className="text-xl font-bold text-gray-900">Produto Analisado</h2>
           pdf.setFont('helvetica', 'normal');
         } else if (line.trim()) {
           const textLines = pdf.splitTextToSize(line, maxWidth);
           textLines.forEach((textLine: string) => {
             pdf.text(textLine, margin, yPosition);
-            yPosition += lineHeight;
+                <p className="text-3xl font-bold text-blue-600">{productName}</p>
           });
         } else {
           yPosition += lineHeight / 2;
@@ -548,6 +555,16 @@ consulte sempre as fontes oficiais e profissionais especializados.
   };
 
   const patent = result.patentes?.[0];
+
+                  // Número da Patente Principal
+                  if (patent?.numero_patente && patent.numero_patente !== 'Não informado') {
+                    criteria.push({
+                      label: 'Patente Principal',
+                      value: patent.numero_patente,
+                      icon: '📋',
+                      color: 'text-blue-600'
+                    });
+                  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -572,6 +589,15 @@ consulte sempre as fontes oficiais e profissionais especializados.
               </div>
             </div>
 
+                  // Ensaios no Brasil
+                  if (result.ensaios_clinicos?.tem_no_brasil !== undefined) {
+                    criteria.push({
+                      label: 'Ensaios no Brasil',
+                      value: result.ensaios_clinicos.tem_no_brasil ? 'SIM' : 'NÃO',
+                      icon: result.ensaios_clinicos.tem_no_brasil ? '🇧🇷' : '❌',
+                      color: result.ensaios_clinicos.tem_no_brasil ? 'text-green-600' : 'text-red-600'
+                    });
+                  }
             <div className="flex items-center gap-3">
               <button
                 onClick={handleSavePDF}
@@ -737,6 +763,12 @@ consulte sempre as fontes oficiais e profissionais especializados.
                       {result.score_de_oportunidade.classificacao}
                     </div>
                   </div>
+                  {result.score_de_oportunidade.justificativa && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 text-left max-w-xs">
+                      <strong>Justificativa:</strong><br />
+                      {result.score_de_oportunidade.justificativa}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -847,7 +879,7 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
-                  <p className="text-sm text-gray-600">Dados do ClinicalTrials.gov</p>
+                  <p className="text-sm text-gray-600">{result.ensaios_clinicos.fonte || 'ClinicalTrials.gov'}</p>
                 </div>
               </div>
               
@@ -868,14 +900,56 @@ consulte sempre as fontes oficiais e profissionais especializados.
                     <span className="font-semibold">{result.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}</span>
                   </div>
                 </div>
+                
+                {result.ensaios_clinicos.tem_no_brasil !== undefined && (
+                  <div className="bg-white p-4 rounded-lg border border-green-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-sm font-medium text-gray-600">Ensaios no Brasil</span>
+                    </div>
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
+                      result.ensaios_clinicos.tem_no_brasil ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      <span className="text-lg font-bold">{result.ensaios_clinicos.tem_no_brasil ? '🇧🇷' : '❌'}</span>
+                      <span className="font-semibold">{result.ensaios_clinicos.tem_no_brasil ? 'SIM' : 'NÃO'}</span>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              {result.ensaios_clinicos.paises && result.ensaios_clinicos.paises.length > 0 && (
+              {result.ensaios_clinicos.estudos && result.ensaios_clinicos.estudos.length > 0 && (
                 <div className="mb-4">
-                  <span className="text-sm font-medium text-gray-600 mb-2 block">Países com Ensaios</span>
-                  <div className="flex flex-wrap gap-3">
-                    {result.ensaios_clinicos.paises.map((pais, idx) => (
-                      <CountryFlag key={idx} countryName={pais} size={24} className="bg-white px-3 py-2 rounded-lg border border-green-200" />
+                  <span className="text-sm font-medium text-gray-600 mb-3 block">Estudos Detalhados</span>
+                  <div className="space-y-3">
+                    {result.ensaios_clinicos.estudos.map((estudo, idx) => (
+                      <div key={idx} className="bg-white p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900">{estudo.titulo}</h4>
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                            Fase {estudo.fase}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <CountryFlag countryName={estudo.pais} size={16} />
+                          {estudo.link && (
+                            <a href={estudo.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                              Ver estudo <ExternalLink size={12} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {result.ensaios_clinicos.principais_indicacoes_estudadas && result.ensaios_clinicos.principais_indicacoes_estudadas.length > 0 && (
+                <div>
+                  <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações</span>
+                  <div className="flex flex-wrap gap-2">
+                    {result.ensaios_clinicos.principais_indicacoes_estudadas.map((indicacao, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        {indicacao}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -912,7 +986,42 @@ consulte sempre as fontes oficiais e profissionais especializados.
                   <span className="text-sm font-medium text-gray-600">Número NDA</span>
                   <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{result.orange_book.nda_number}</p>
                 </div>
+                
+                {result.orange_book.data_aprovacao && result.orange_book.data_aprovacao !== 'Não informado' && (
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <span className="text-sm font-medium text-gray-600">Data de Aprovação</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.orange_book.data_aprovacao}</p>
+                  </div>
+                )}
+                
+                {result.orange_book.data_expiracao_exclusividade && result.orange_book.data_expiracao_exclusividade !== 'Não informado' && (
+                  <div className="bg-white p-4 rounded-lg border border-orange-100">
+                    <span className="text-sm font-medium text-gray-600">Expiração da Exclusividade</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{result.orange_book.data_expiracao_exclusividade}</p>
+                  </div>
+                )}
               </div>
+              
+              {result.orange_book.exclusividades && result.orange_book.exclusividades.length > 0 && (
+                <div className="mt-4">
+                  <span className="text-sm font-medium text-gray-600 mb-2 block">Exclusividades</span>
+                  <div className="flex flex-wrap gap-2">
+                    {result.orange_book.exclusividades.map((exclusividade, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+                        {exclusividade}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {result.orange_book.link && (
+                <div className="mt-4">
+                  <a href={result.orange_book.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                    Ver no FDA Orange Book <ExternalLink size={14} />
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
@@ -957,7 +1066,18 @@ consulte sempre as fontes oficiais e profissionais especializados.
                         </div>
                       </div>
                     </div>
-                  </div>
+                      {regulation.numero_registro && regulation.numero_registro !== 'Não informado' && (
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Número de Registro</label>
+                          <p className="text-sm font-mono text-gray-900 mt-1">{regulation.numero_registro}</p>
+                        </div>
+                      )}
+                      
+                      {regulation.fonte && (
+                        <div className="text-xs text-gray-500 mt-2">
+                          Fonte: {regulation.fonte}
+                        </div>
+                      )}
                 ))}
               </div>
             </div>
@@ -1026,13 +1146,144 @@ consulte sempre as fontes oficiais e profissionais especializados.
                 Estratégias de Formulação
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {result.estrategias_de_formulacao.map((strategy, index) => (
-                  <div key={index} className="flex items-center gap-3 p-4 bg-teal-50 rounded-lg border border-teal-200">
-                    <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">{index + 1}</span>
+              {result.estrategias_de_formulacao.nome_comercial && (
+                <div className="mb-6 p-4 bg-teal-50 rounded-lg border border-teal-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Nome Comercial</label>
+                      <p className="text-lg font-bold text-gray-900 mt-1">{result.estrategias_de_formulacao.nome_comercial}</p>
                     </div>
-                    <span className="text-gray-800 font-medium">{strategy}</span>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Fabricante</label>
+                      <p className="text-lg font-bold text-gray-900 mt-1">{result.estrategias_de_formulacao.fabricante || 'Não informado'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {result.estrategias_de_formulacao.variacoes && result.estrategias_de_formulacao.variacoes.length > 0 && (
+                <div className="mb-4">
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Variações Disponíveis</label>
+                  <div className="flex flex-wrap gap-2">
+                    {result.estrategias_de_formulacao.variacoes.map((variacao, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {variacao}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {result.estrategias_de_formulacao.tecnologia && result.estrategias_de_formulacao.tecnologia.length > 0 && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600 mb-2 block">Tecnologias de Formulação</label>
+                  <div className="flex flex-wrap gap-2">
+                    {result.estrategias_de_formulacao.tecnologia.map((tech, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dados de Mercado */}
+          {result.dados_de_mercado && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <TrendingUp className="text-green-600" size={24} />
+                Dados de Mercado
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {result.dados_de_mercado.preco_medio_estimado && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <label className="text-sm font-medium text-gray-600">Preço Médio Estimado</label>
+                    <p className="text-2xl font-bold text-green-600 mt-1">
+                      {result.dados_de_mercado.preco_medio_estimado} {result.dados_de_mercado.moeda || 'USD'}
+                    </p>
+                    {result.dados_de_mercado.referencia_ano && (
+                      <p className="text-xs text-gray-500 mt-1">Referência: {result.dados_de_mercado.referencia_ano}</p>
+                    )}
+                  </div>
+                )}
+                
+                {result.dados_de_mercado.top_3_paises_volume && result.dados_de_merc
+                  <div>
+                    <label className="text-sm font-medium text-gray-600 mb-2 block">Top 3 Países por Volume</label>
+                    <div className="space-y-2">
+                      {result.dados_de_mercado.top_3_paises_volume.map((pais, idx) => (
+                        <div key={idx}  className="flex items-center gap-2">
+                          <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                            {idx + 1}
+                          </span>
+                          <CountryFlag countryName={pais} size={20} />
+                        </div>
+                                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {result.dados_de_mercado.fonte && (
+                <div className="mt-4 text-xs text-gray-500">
+                  Fonte: {result.dados_de_mercado.fonte}
+                </div>
+              )}
+                        </div>
+          )}
+
+          {/* Registro Regulatório */}
+          {result.registro_regulatorio && Object.keys(result.registro_regulatorio).length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900  mb-6 flex items-center gap-2">
+                <Award className="text-purple-600" size={24} />
+                Registros Regulatórios
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(result.registro_regulatorio).map(([pais, dados]: [string, any], idx) => (
+                  <div key={idx} className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CountryFlag countryName={pais} size={24} showName={false} />
+                      <h4 className="font-bol text-gray-900">{pais}</h4>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      {dados.numero_registro && (
+                        <div>
+                          <span className="text-gray-600">Registro:</span>
+                          <span className="font-mono ml-2">{dados.numero_registro}</span>
+                        </div>
+                      )}
+                      {dados.nda && (
+                        <div>
+                          <span className="text-gray-600">NDA:</span>
+                          <span className="font-mono ml-2">{dados.nda}</span>
+                        </div>
+                      )}
+                      {(dados.data_registro ||  dados.data_aprovacao) && (
+                        <div>
+                          <span className="text-gray-600">Data:</span>
+                          <span className="ml-2">{dados.data_registro || dados.data_aprovacao}</span>
+                        </div>
+                      )}
+                      {dados.descricao && (
+                        <div>
+                          <span className="text-gray-600">Descrição:</span>
+                          <span className="ml-2">{dados.descricao}</span>
+                        </div>
+                      )}
+                      {dados.link && (
+                        <div className="mt-2">
+                          <a href={dados.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs">
+                            Ver registro <ExternalLink size={10} />
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
