@@ -13,13 +13,7 @@ import Plans from './components/Plans';
 import UserManagement from './components/UserProfile/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
-import PharmaceuticalDataViewer from './components/PharmaceuticalDataViewer';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
-
-// Import success pages - only the ones being used
-import AnalistaSuccess from './pages/plans/success/analista';
-import EspecialistaSuccess from './pages/plans/success/especialista';
-import DiretorSuccess from './pages/plans/success/diretor';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -49,17 +43,14 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  // Função para verificar se o usuário pode acessar o dashboard
   const canAccessDashboard = (user: any): boolean => {
     if (!user) return false;
     
-    // Verificar se o e-mail tem acesso irrestrito
     if (hasUnrestrictedAccess(user.email)) {
       console.log(`✅ Acesso irrestrito concedido para: ${user.email}`);
       return true;
     }
     
-    // Caso contrário, verificar se o e-mail foi verificado
     return user.emailVerified;
   };
 
@@ -78,20 +69,12 @@ function App() {
         <Route path="/home" element={<LandingPage />} />
         <Route path="/terms" element={<Terms />} />
         
-        {/* Demo route for pharmaceutical data viewer */}
-        <Route path="/demo" element={<PharmaceuticalDataViewer />} />
-        
         {/* Auth routes */}
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
         <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
         <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/account-deleted" element={<AccountDeleted />} />
-        
-        {/* Plan success routes - only active ones */}
-        <Route path="/sucesso/analista" element={<AnalistaSuccess />} />
-        <Route path="/sucesso/especialista" element={<EspecialistaSuccess />} />
-        <Route path="/sucesso/diretor" element={<DiretorSuccess />} />
         
         {/* Protected routes */}
         <Route path="/profile" element={

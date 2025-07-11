@@ -115,6 +115,7 @@ export interface OpportunityScore {
   classificacao: string;
   criterios: string[];
 }
+
 export interface PatentResultType {
   patentes: PatentData[];
   quimica: ChemicalData;
@@ -151,62 +152,4 @@ export interface PlanType {
   icon: LucideIcon;
   highlight: boolean;
   stripeLink: string;
-}
-
-export interface ChallengeType {
-  id: string;
-  userId: string;
-  userEmail: string;
-  company: string;
-  businessArea: string;
-  title: string;
-  description: string;
-  sessionId: string;
-  createdAt: string;
-}
-
-export interface StartupType {
-  name: string;
-  description: string;
-  website: string;
-  email: string;
-  category: string;
-  vertical: string;
-  foundedYear: string;
-  teamSize: string;
-  businessModel: string;
-  city: string;
-  rating: number;
-  reasonForChoice: string;
-  ipoStatus: string;
-  socialLinks?: {
-    linkedin?: string;
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-  };
-}
-
-export interface StartupListType {
-  id: string;
-  userId: string;
-  userEmail: string;
-  challengeId: string;
-  challengeTitle: string;
-  startups: StartupType[];
-  projectPlanning: Array<{
-    phase: string;
-    duration: string;
-    description: string;
-  }>;
-  expectedResults: string[];
-  competitiveAdvantages: string[];
-  createdAt: string;
-}
-
-export interface SocialLink {
-  type: string;
-  url: string;
-  icon: any;
-  label: string;
 }

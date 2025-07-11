@@ -17,31 +17,30 @@ const Layout = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Patent agencies data
+  // Patent agencies data with corrected image paths
   const patentAgencies = [
     {
       name: "INPI Brasil",
-      logo: "/inpi-logo-1.jpeg",
+      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "INPI Brasil"
     },
     {
       name: "USPTO",
-      logo: "/uspto-logo-2.png",
+      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "USPTO"
     },
     {
       name: "EPO",
-      logo: "/epto-logo-3.png",
+      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "EPO"
     },
     {
       name: "WIPO",
-      logo: "/Wipo-logo-4.png",
+      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "WIPO"
     }
   ];
 
-  // Função para configurar usuário com acesso irrestrito se necessário
   const ensureUnrestrictedUserSetup = async () => {
     if (!auth.currentUser) return;
 
@@ -49,14 +48,12 @@ const Layout = () => {
       try {
         console.log(`🔧 Verificando configuração do usuário irrestrito: ${auth.currentUser.email}`);
         
-        // Verificar se o usuário já tem dados configurados
         const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
         const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
         
         const now = new Date();
         const transactionId = crypto.randomUUID();
 
-        // Se não tem dados do usuário, criar
         if (!userDoc.exists() || !userDoc.data()?.unrestrictedAccess) {
           console.log('📝 Criando dados do usuário irrestrito...');
           await setDoc(doc(db, 'users', auth.currentUser.uid), {
@@ -76,7 +73,6 @@ const Layout = () => {
           }, { merge: true });
         }
 
-        // Se não tem dados de token, criar
         if (!tokenDoc.exists()) {
           console.log('🎫 Criando dados de token para usuário irrestrito...');
           const now = new Date();
@@ -106,11 +102,9 @@ const Layout = () => {
       return;
     }
 
-    // Configurar usuário irrestrito se necessário e buscar dados
     const initializeUser = async () => {
       await ensureUnrestrictedUserSetup();
       
-      // Fetch token usage
       try {
         const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser!.uid));
         if (tokenDoc.exists()) {
@@ -130,7 +124,7 @@ const Layout = () => {
       throw new Error('Usuário não autenticado ou dados de token não encontrados');
     }
 
-    const CONSULTATION_TOKEN_COST = 1; // Agora cada consulta custa 1 token
+    const CONSULTATION_TOKEN_COST = 1;
     const remainingTokens = tokenUsage.totalTokens - tokenUsage.usedTokens;
     
     if (remainingTokens < CONSULTATION_TOKEN_COST) {
@@ -140,7 +134,6 @@ const Layout = () => {
     try {
       console.log('🚀 Starting patent consultation for:', { produto, nomeComercial });
       
-      // Call the correct webhook endpoint for patents
       const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
         headers: {
@@ -165,17 +158,14 @@ const Layout = () => {
       const rawResponse = await response.json();
       console.log('📥 Raw patent webhook response:', rawResponse);
       
-      // Parse the response using the improved parser
       const resultado = parsePatentResponse(rawResponse);
       
-      // Set the product name from input if not present in response
       if (!resultado.substancia || resultado.substancia === 'Produto consultado') {
         resultado.substancia = produto || nomeComercial || 'Produto consultado';
       }
 
       console.log('✅ Final patent consultation result:', resultado);
 
-      // Update token usage
       await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
         usedTokens: tokenUsage.usedTokens + CONSULTATION_TOKEN_COST
       });
@@ -189,9 +179,7 @@ const Layout = () => {
     } catch (error) {
       console.error('💥 Error in patent consultation:', error);
       
-      // Provide more specific error messages
       if (error instanceof Error) {
-        // Check for specific parsing errors
         if (error.message.includes('texto ao invés de dados estruturados') || 
             error.message.includes('formato dos dados não pôde ser processado') ||
             error.message.includes('dados em formato inválido')) {
@@ -244,14 +232,12 @@ const Layout = () => {
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
-            {/* Mostrar indicador de acesso irrestrito se aplicável */}
             {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 Acesso Corporativo
               </div>
             )}
-            {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
             {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
               <Link
                 to="/plans"
@@ -295,7 +281,6 @@ const Layout = () => {
               </div>
             </div>
             <div className="p-4 space-y-4">
-              {/* Token Usage in Sidebar */}
               {tokenUsage && (
                 <TokenUsageChart
                   totalTokens={tokenUsage.totalTokens}
@@ -303,7 +288,6 @@ const Layout = () => {
                 />
               )}
               
-              {/* Indicador de acesso irrestrito no sidebar */}
               {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800 text-sm font-medium mb-1">
@@ -316,7 +300,6 @@ const Layout = () => {
                 </div>
               )}
               
-              {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
               {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
                 <Link
                   to="/plans"
@@ -345,7 +328,6 @@ const Layout = () => {
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="grid grid-cols-1">
-          {/* Consultation Panel */}
           <div className="w-full">
             <PatentConsultation 
               onConsultation={handleConsultation}
@@ -359,7 +341,6 @@ const Layout = () => {
       <footer className="bg-gray-50 border-t border-gray-200 py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            {/* Support Button - Left */}
             <a 
               href="https://wa.me/5511995736666" 
               target="_blank" 
@@ -370,7 +351,6 @@ const Layout = () => {
               Suporte via WhatsApp
             </a>
 
-            {/* Patent Agencies Logos - Right */}
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
               <div className="flex items-center gap-4">
@@ -388,7 +368,6 @@ const Layout = () => {
             </div>
           </div>
 
-          {/* Copyright */}
           <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
             <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
           </div>
