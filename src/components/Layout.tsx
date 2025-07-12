@@ -159,16 +159,30 @@ const Layout = () => {
       }
 
       // Aguardar resposta completa e fazer parse cuidadoso
-      const rawResponse = await response.json();
+      let rawResponse;
+      
+      // Verificar Content-Type e fazer parse adequado
+      const contentType = response.headers.get('Content-Type') || '';
+      
+      if (contentType.includes('application/json')) {
+        try {
+          rawResponse = await response.json();
+        } catch (jsonError) {
+          console.warn('⚠️ Failed to parse JSON, falling back to text:', jsonError);
+          const textResponse = await response.text();
+          rawResponse = textResponse;
+        }
+      } else {
+        // Se não for JSON, ler como texto
+        rawResponse = await response.text();
+      }
+      
       console.log('📥 Raw patent webhook response:', rawResponse);
       
       // Validar se a resposta está completa antes de fazer parse
       if (!rawResponse || (Array.isArray(rawResponse) && rawResponse.length === 0)) {
         throw new Error('Resposta vazia do servidor. Tente novamente.');
       }
-      
-      // Aguardar mais tempo para garantir que todos os dados foram processados completamente
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
       const resultado = parsePatentResponse(rawResponse);
       

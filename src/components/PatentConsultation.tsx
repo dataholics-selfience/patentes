@@ -128,7 +128,7 @@ const AnimatedOpportunityGauge = ({ score, classification }: { score: number; cl
     };
   }, [score]);
   
-  const radius = 100; // Aumentado em 33% (de 75 para 100)
+  const radius = 120; // Aumentado para 120 (mais 20% maior)
   const strokeWidth = 12;
   const normalizedRadius = radius - strokeWidth * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
@@ -176,11 +176,11 @@ const AnimatedOpportunityGauge = ({ score, classification }: { score: number; cl
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-4xl font-bold text-white">{animatedScore}</span>
-          <span className="text-sm text-blue-200">de 100</span>
+          <span className="text-5xl font-bold text-white">{animatedScore}</span>
+          <span className="text-base text-blue-200">de 100</span>
         </div>
       </div>
-      <div className="mt-4 text-center">
+      <div className="mt-6 text-center">
         <div className="text-lg font-semibold text-white">{classification}</div>
         <div className="text-sm text-blue-200">Score de Oportunidade</div>
       </div>
@@ -191,7 +191,7 @@ const AnimatedOpportunityGauge = ({ score, classification }: { score: number; cl
 // Componente para exibir dados de patente
 const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ patent, index }) => {
   return (
-    <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-8 border border-blue-700 shadow-lg">
+    <div className="bg-blue-600 rounded-xl p-8 shadow-lg" style={{ backgroundColor: '#5A7FC7' }}>
       {/* Header unificado */}
       <div className="flex items-center gap-4 mb-8">
         <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
@@ -206,19 +206,19 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
       </div>
       
       {/* Conteúdo principal em grid unificado */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Informações principais */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Status da Patente */}
-            <div className="text-center">
+            <div className="bg-blue-600 p-4 rounded-lg text-center" style={{ backgroundColor: '#5A7FC7' }}>
               <div className="flex items-center justify-center gap-2 mb-3">
                 {patent.patente_vigente ? (
                   <CheckCircle size={24} className="text-green-400" />
                 ) : (
                   <XCircle size={24} className="text-red-400" />
                 )}
-                <span className="font-semibold text-blue-100">Status da Patente</span>
+                <span className="font-semibold text-white">Status da Patente</span>
               </div>
               <p className={`text-xl font-bold ${patent.patente_vigente ? 'text-green-400' : 'text-red-400'}`}>
                 {patent.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
@@ -226,22 +226,22 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
             </div>
 
             {/* Expiração Principal */}
-            <div className="text-center">
+            <div className="bg-blue-600 p-4 rounded-lg text-center" style={{ backgroundColor: '#5A7FC7' }}>
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Calendar size={24} className="text-orange-400" />
-                <span className="font-semibold text-blue-100">Expiração Principal</span>
+                <span className="font-semibold text-white">Expiração Principal</span>
               </div>
               <p className="text-xl font-bold text-white">{patent.data_expiracao_patente_principal}</p>
               {patent.data_expiracao_patente_secundaria && patent.data_expiracao_patente_secundaria !== 'Não informado' && (
-                <p className="text-sm text-blue-200 mt-1">Secundária: {patent.data_expiracao_patente_secundaria}</p>
+                <p className="text-sm text-white opacity-80 mt-1">Secundária: {patent.data_expiracao_patente_secundaria}</p>
               )}
             </div>
 
             {/* Exploração Comercial */}
-            <div className="text-center">
+            <div className="bg-blue-600 p-4 rounded-lg text-center" style={{ backgroundColor: '#5A7FC7' }}>
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Building2 size={24} className="text-purple-400" />
-                <span className="font-semibold text-blue-100">Exploração Comercial</span>
+                <span className="font-semibold text-white">Exploração Comercial</span>
               </div>
               <p className={`text-xl font-bold ${patent.exploracao_comercial ? 'text-green-400' : 'text-red-400'}`}>
                 {patent.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
@@ -250,25 +250,19 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
           </div>
         </div>
         
-        {/* Score de Oportunidade - Gauge maior */}
+        {/* Score de Oportunidade com Gauge e Justificativa */}
         <div className="lg:col-span-1 flex justify-center">
-          {/* Placeholder para o gauge - será substituído quando o score estiver disponível */}
-          <div className="text-center">
-            <div className="w-32 h-32 bg-blue-700 rounded-full flex items-center justify-center mb-4">
-              <Target size={48} className="text-blue-300" />
-            </div>
-            <div className="text-lg font-semibold text-white">Score</div>
-            <div className="text-sm text-blue-200">Em breve</div>
-          </div>
+          {/* Este espaço será preenchido pelo score quando disponível */}
+          <div className="w-full"></div>
         </div>
       </div>
 
       {/* Objeto de Proteção */}
       {patent.objeto_protecao && patent.objeto_protecao !== 'Não informado' && (
-        <div className="mt-8 pt-6 border-t border-blue-700">
+        <div className="mt-8 pt-6 border-t border-white border-opacity-20">
           <div className="flex items-center gap-2 mb-3">
-            <Shield size={20} className="text-blue-300" />
-            <span className="font-semibold text-blue-100">Objeto de Proteção</span>
+            <Shield size={20} className="text-white" />
+            <span className="font-semibold text-white">Objeto de Proteção</span>
           </div>
           <p className="text-white leading-relaxed">{patent.objeto_protecao}</p>
         </div>
@@ -277,8 +271,8 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
       {/* Tipo de Proteção Detalhado */}
       {patent.tipo_protecao_detalhado && (
         <div className="mt-6">
-          <h4 className="text-lg font-bold text-blue-100 mb-4 flex items-center gap-2">
-            <Award size={20} className="text-blue-300" />
+          <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <Award size={20} className="text-white" />
             Tipos de Proteção
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -781,28 +775,67 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
 
             {/* Score de Oportunidade com Justificativa */}
             {result.score_de_oportunidade && (
-              <div className="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-8 border border-blue-700 shadow-lg">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+              <div className="bg-blue-600 rounded-xl p-8 shadow-lg" style={{ backgroundColor: '#5A7FC7' }}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                   {/* Score com Gauge Animado */}
-                  <div className="lg:col-span-1 flex justify-center">
+                  <div className="lg:col-span-1 flex flex-col items-center">
                     <AnimatedOpportunityGauge 
                       score={result.score_de_oportunidade.valor} 
                       classification={result.score_de_oportunidade.classificacao} 
                     />
+                    
+                    {/* Justificativa logo abaixo do gauge */}
+                    {result.score_de_oportunidade.justificativa && (
+                      <div className="mt-6 text-center max-w-md">
+                        <h4 className="text-lg font-bold text-white mb-3 flex items-center justify-center gap-2">
+                          <Target size={20} className="text-white" />
+                          Justificativa do Score
+                        </h4>
+                        <p className="text-white leading-relaxed text-base">
+                          {result.score_de_oportunidade.justificativa}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Justificativa */}
-                  {result.score_de_oportunidade.justificativa && (
-                    <div className="lg:col-span-2">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Target size={24} className="text-blue-300" />
-                        <h4 className="text-xl font-bold text-white">Justificativa do Score</h4>
+                  {/* Informações adicionais do lado direito */}
+                  <div className="lg:col-span-1 space-y-6">
+                    <div className="bg-blue-600 p-6 rounded-lg" style={{ backgroundColor: '#5A7FC7' }}>
+                      <h4 className="text-lg font-bold text-white mb-4">Análise de Oportunidade</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white">Score Calculado:</span>
+                          <span className="text-2xl font-bold text-white">{result.score_de_oportunidade.valor}/100</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white">Classificação:</span>
+                          <span className="font-semibold text-white">{result.score_de_oportunidade.classificacao}</span>
+                        </div>
                       </div>
-                      <p className="text-blue-100 leading-relaxed text-lg">
-                        {result.score_de_oportunidade.justificativa}
-                      </p>
                     </div>
-                  )}
+                    
+                    <div className="bg-blue-600 p-6 rounded-lg" style={{ backgroundColor: '#5A7FC7' }}>
+                      <h4 className="text-lg font-bold text-white mb-4">Fatores Analisados</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                          <span className="text-white text-sm">Status de patentes</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                          <span className="text-white text-sm">Exploração comercial</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                          <span className="text-white text-sm">Riscos regulatórios</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                          <span className="text-white text-sm">Mercado global</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
