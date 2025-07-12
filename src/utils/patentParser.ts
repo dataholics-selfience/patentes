@@ -136,8 +136,25 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
           numero: country.numero || country.numero_patente || 'Não informado',
           status: country.status || 'Não informado',
           data_expiracao_primaria: country.data_expiracao || country.data_expiracao_primaria || 'Não informado',
+          data_expiracao: country.data_expiracao || country.data_expiracao_primaria || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : (country.tipo ? [country.tipo] : []),
+          tipos: (() => {
+            // Parse mais robusto dos tipos
+            if (Array.isArray(country.tipos) && country.tipos.length > 0) {
+              return country.tipos;
+            }
+            if (Array.isArray(country.tipo) && country.tipo.length > 0) {
+              return country.tipo;
+            }
+            if (typeof country.tipos === 'string' && country.tipos.trim()) {
+              return [country.tipos];
+            }
+            if (typeof country.tipo === 'string' && country.tipo.trim()) {
+              return [country.tipo];
+            }
+            return [];
+          })(),
+          tipo: Array.isArray(country.tipo) ? country.tipo : (country.tipo ? [country.tipo] : []), // Para compatibilidade
           fonte: country.fonte || 'Não informado',
           link: country.link || ''
         }));

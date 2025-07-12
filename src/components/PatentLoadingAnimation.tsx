@@ -67,11 +67,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Aguarde o carregamento...",
       icon: Hourglass,
       color: "from-indigo-400 to-indigo-600",
-      duration: 80000 // 80 seconds - aguardando webhook
+      duration: 150000 // 150 seconds (2.5 minutos) - aguardando webhook
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 180 seconds total
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 250 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
@@ -103,7 +103,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
         // Comportamento especial para o último estágio - aguardando webhook
         let currentProgress = 0;
         
-        // Fase 1: Subir rapidamente até 10% e parar por 30 segundos
+        // Fase 1: Subir rapidamente até 10% e parar por 60 segundos
         const phase1Duration = 2000; // 2 segundos para chegar a 10%
         const phase1Interval = setInterval(() => {
           setProgress(prev => {
@@ -112,7 +112,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
               clearInterval(phase1Interval);
               currentProgress = 10;
               
-              // Parar em 10% por 30 segundos
+              // Parar em 10% por 60 segundos (aumentado)
               setTimeout(() => {
                 // Fase 2: Subir para 22% em 1 segundo
                 const phase2Duration = 1000;
@@ -123,7 +123,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
                       clearInterval(phase2Interval);
                       currentProgress = 22;
                       
-                      // Parar em 22% por 2 segundos
+                      // Parar em 22% por 10 segundos (aumentado)
                       setTimeout(() => {
                         // Fase 3: Subir para 33% rapidamente
                         const phase3Duration = 500;
@@ -134,19 +134,41 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
                               clearInterval(phase3Interval);
                               currentProgress = 33;
                               
-                              // Fase 4: Subir lentamente até 100% no tempo restante
-                              const remainingTime = stageDuration - phase1Duration - 30000 - phase2Duration - 2000 - phase3Duration;
-                              const phase4Interval = setInterval(() => {
-                                setProgress(prev => {
-                                  const newProgress = prev + (67 / (remainingTime / 100));
-                                  if (newProgress >= 100) {
-                                    clearInterval(phase4Interval);
-                                    return 100;
-                                  }
-                                  return newProgress;
-                                });
-                              }, 100);
-                              intervals.push(phase4Interval);
+                              // Parar em 33% por 20 segundos (novo)
+                              setTimeout(() => {
+                                // Fase 4: Subir para 45% lentamente
+                                const phase4Duration = 5000;
+                                const phase4Interval = setInterval(() => {
+                                  setProgress(prev => {
+                                    const newProgress = prev + (12 / (phase4Duration / 50));
+                                    if (newProgress >= 45) {
+                                      clearInterval(phase4Interval);
+                                      currentProgress = 45;
+                                      
+                                      // Parar em 45% por 30 segundos (aguardando webhook)
+                                      setTimeout(() => {
+                                        // Fase 5: Subir lentamente até 100% no tempo restante
+                                        const remainingTime = stageDuration - phase1Duration - 60000 - phase2Duration - 10000 - phase3Duration - 20000 - phase4Duration - 30000;
+                                        const phase5Interval = setInterval(() => {
+                                          setProgress(prev => {
+                                            const newProgress = prev + (55 / (remainingTime / 100));
+                                            if (newProgress >= 100) {
+                                              clearInterval(phase5Interval);
+                                              return 100;
+                                            }
+                                            return newProgress;
+                                          });
+                                        }, 100);
+                                        intervals.push(phase5Interval);
+                                      }, 30000); // Parar por 30 segundos
+                                      
+                                      return 45;
+                                    }
+                                    return newProgress;
+                                  });
+                                }, 50);
+                                intervals.push(phase4Interval);
+                              }, 20000); // Parar por 20 segundos
                               
                               return 33;
                             }
@@ -154,7 +176,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
                           });
                         }, 50);
                         intervals.push(phase3Interval);
-                      }, 2000); // Parar por 2 segundos
+                      }, 10000); // Parar por 10 segundos
                       
                       return 22;
                     }
@@ -162,7 +184,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
                   });
                 }, 50);
                 intervals.push(phase2Interval);
-              }, 30000); // Parar por 30 segundos
+              }, 60000); // Parar por 60 segundos
               
               return 10;
             }
@@ -333,7 +355,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
           </div>
           <div className="flex justify-between mt-2 text-blue-200 text-xs">
             <span>Estágio {currentStage + 1} de {stages.length}</span>
-            <span>{Math.round((overallProgress / 100) * 180)}s / 180s</span>
+            <span>{Math.round((overallProgress / 100) * 250)}s / 250s</span>
           </div>
         </div>
 

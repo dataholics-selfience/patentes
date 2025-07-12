@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, Shield, Beaker, Clock, CreditCard, FileText, Building2, Microscope, FlaskConical, Pill, TestTube, BookOpen, Users, Zap, Target, Award, MessageCircle } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { PatentResultType, TokenUsageType, PatentByCountry, CommercialExplorationByCountry, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence } from '../types';
 import { Link } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -323,8 +324,8 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
                   <th className="text-left py-3 px-4 font-semibold text-blue-100">País</th>
                   <th className="text-left py-3 px-4 font-semibold text-blue-100">Número</th>
                   <th className="text-left py-3 px-4 font-semibold text-blue-100">Status</th>
-                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Expiração</th>
                   <th className="text-left py-3 px-4 font-semibold text-blue-100">Tipos</th>
+                  <th className="text-left py-3 px-4 font-semibold text-blue-100">Expiração</th>
                   <th className="text-left py-3 px-4 font-semibold text-blue-100">Fonte</th>
                 </tr>
               </thead>
@@ -345,19 +346,63 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
                   </span>
                 </td>
                 <td className="py-3 px-4">
-                  <span className="font-medium text-white">{country.data_expiracao || country.data_expiracao_primaria}</span>
-                </td>
-                <td className="py-3 px-4">
                   <div className="flex flex-wrap gap-1">
-                    {(country.tipos || country.tipo || []).map((tipo, i) => (
+                    {(() => {
+                      // Parse correto dos tipos - priorizar 'tipos' sobre 'tipo'
+                      let tiposArray: string[] = [];
+                      
+                      if (country.tipos && Array.isArray(country.tipos) && country.tipos.length > 0) {
+                        tiposArray = country.tipos;
+                      } else if (country.tipo && Array.isArray(country.tipo) && country.tipo.length > 0) {
+                        tiposArray = country.tipo;
+                      } else if (typeof country.tipos === 'string') {
+                        tiposArray = [country.tipos];
+                      } else if (typeof country.tipo === 'string') {
+                        tiposArray = [country.tipo];
+                      }
+                      
+                      console.log('🔍 Debug tipos para país', country.pais, ':', {
+                        tipos: country.tipos,
+                        tipo: country.tipo,
+                        tiposArray
+                      });
+                      
+                      if (tiposArray.length === 0) {
+                        return (
+                          <span className="px-2 py-1 bg-gray-400 text-gray-900 rounded text-xs font-medium">
+                            Não informado
+                          </span>
+                        );
+                      }
+                      
+                      return tiposArray.map((tipo: string, i: number) => (
                       <span key={i} className="px-2 py-1 bg-blue-400 text-blue-900 rounded text-xs font-medium">
                         {tipo}
                       </span>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </td>
                 <td className="py-3 px-4">
+                  <span className="font-medium text-white">
+                    {country.data_expiracao || country.data_expiracao_primaria || 'Não informado'}
+                  </span>
+                </td>
+                <td className="py-3 px-4">
                   <span className="text-xs text-blue-300">{country.fonte}</span>
+                  {country.link && (
+                    <div className="mt-1">
+                      <a 
+                        href={country.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
+                      >
+                        Ver patente
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -450,8 +495,8 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     setResult(null);
 
     let retryCount = 0;
-    const maxRetries = 10; // Máximo de 10 tentativas (3 minutos total)
-    const retryDelay = 18000; // 18 segundos entre tentativas
+    const maxRetries = 15; // Máximo de 15 tentativas (5 minutos total)
+    const retryDelay = 20000; // 20 segundos entre tentativas
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
@@ -465,17 +510,29 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
             
             const resultado = await Promise.race([
               onConsultation(produto.trim(), nomeComercial.trim(), sessionId),
-              new Promise<never>((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 3 minutos')), 180000)
-              )
+              new Promise<never>((_, reject) => {
+                // Timeout de 5 minutos para cada tentativa individual
+                setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 5 minutos')), 300000);
+              })
             ]);
             
+            // Validar se o resultado está realmente completo
+            if (!resultado || typeof resultado !== 'object') {
+              throw new WebhookProcessingError('Resultado vazio ou inválido - webhook ainda processando');
+            }
+            
+            // Verificar se temos dados essenciais
+            if (!resultado.patentes && !resultado.quimica && !resultado.ensaios_clinicos) {
+              throw new WebhookProcessingError('Dados incompletos - webhook ainda processando');
+            }
+            
             // Se chegou aqui, obteve resultado válido
+            console.log('✅ Resultado válido obtido do webhook');
             return resultado;
             
           } catch (err) {
             if (err instanceof WebhookProcessingError) {
-              console.log(`⏳ Webhook ainda processando (tentativa ${retryCount + 1}). Aguardando ${retryDelay/1000}s...`);
+              console.log(`⏳ Webhook ainda processando (tentativa ${retryCount + 1}/${maxRetries}). Aguardando ${retryDelay/1000}s...`);
               retryCount++;
               
               if (retryCount < maxRetries) {
@@ -483,7 +540,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
                 await new Promise(resolve => setTimeout(resolve, retryDelay));
                 continue;
               } else {
-                throw new Error('Timeout: O webhook demorou mais de 3 minutos para processar a consulta. Tente novamente.');
+                throw new Error('Timeout: O webhook demorou mais de 5 minutos para processar a consulta. O sistema pode estar sobrecarregado. Tente novamente em alguns minutos.');
               }
             } else {
               // Outros tipos de erro, não retry
@@ -501,8 +558,8 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       
       // Validar se o resultado está completo antes de exibir
       if (resultado && typeof resultado === 'object') {
-        // Aguardar mais tempo para garantir que todos os dados foram processados completamente
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Aguardar um pouco mais para garantir que todos os dados foram processados
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         setResult(resultado);
         setShowLoadingAnimation(false);
@@ -515,7 +572,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       setShowLoadingAnimation(false);
       
       if (err instanceof Error && err.message.includes('Timeout')) {
-        setError('A consulta demorou mais de 3 minutos para ser processada. O sistema pode estar processando múltiplas consultas simultaneamente. Tente novamente em alguns minutos.');
+        setError('A consulta demorou mais de 5 minutos para ser processada. O sistema pode estar processando múltiplas consultas simultaneamente. Tente novamente em alguns minutos.');
       } else {
         setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
       }
