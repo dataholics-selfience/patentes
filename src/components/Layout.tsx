@@ -119,114 +119,14 @@ const Layout = () => {
     initializeUser();
   }, []);
 
-  const handleConsultation = async (produto: string, nomeComercial: string, sessionId: string): Promise<PatentResultType> => {
-    if (!auth.currentUser || !tokenUsage) {
-      throw new Error('Usuário não autenticado ou dados de token não encontrados');
-    }
-
+  // Função simplificada apenas para verificar tokens
+  const checkTokenUsage = (tokenUsage: TokenUsageType | null): boolean => {
+    if (!tokenUsage) return false;
+    
     const CONSULTATION_TOKEN_COST = 1;
     const remainingTokens = tokenUsage.totalTokens - tokenUsage.usedTokens;
     
-    if (remainingTokens < CONSULTATION_TOKEN_COST) {
-      throw new Error(`Consultas esgotadas. Você não possui consultas restantes. Adquira um novo plano para continuar.`);
-    }
-
-    try {
-      console.log('🚀 Starting patent consultation for:', { produto, nomeComercial });
-      
-      // Configurar timeout de 3 minutos para aguardar resposta completa do webhook
-      const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          produto: produto,
-          nome_comercial: nomeComercial,
-          sessionId: sessionId, 
-          query: produto || nomeComercial,
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email
-        }),
-        // Timeout de 5 minutos (300 segundos) para aguardar webhook processar todas as consultas
-        signal: AbortSignal.timeout(300000)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Webhook response error:', response.status, errorText);
-        throw new Error(`Erro na consulta: ${response.status} - ${errorText}`);
-      }
-
-      // Aguardar resposta completa e fazer parse cuidadoso
-      let rawResponse;
-      
-      // Verificar Content-Type e fazer parse adequado
-      const contentType = response.headers.get('Content-Type') || '';
-      
-      if (contentType.includes('application/json')) {
-        try {
-          rawResponse = await response.json();
-        } catch (jsonError) {
-          console.warn('⚠️ Failed to parse JSON, falling back to text:', jsonError);
-          const textResponse = await response.text();
-          rawResponse = textResponse;
-        }
-      } else {
-        // Se não for JSON, ler como texto
-        rawResponse = await response.text();
-      }
-      
-      console.log('📥 Raw patent webhook response:', rawResponse);
-      
-      // Validar se a resposta está completa antes de fazer parse
-      if (!rawResponse || (Array.isArray(rawResponse) && rawResponse.length === 0)) {
-        throw new Error('Resposta vazia do servidor. Tente novamente.');
-      }
-      
-      const resultado = parsePatentResponse(rawResponse);
-      
-      if (!resultado.substancia || resultado.substancia === 'Produto consultado') {
-        resultado.substancia = produto || nomeComercial || 'Produto consultado';
-      }
-
-      console.log('✅ Final patent consultation result:', resultado);
-
-      // Atualizar tokens apenas após sucesso completo
-      await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
-        usedTokens: tokenUsage.usedTokens + CONSULTATION_TOKEN_COST
-      });
-
-      setTokenUsage(prev => prev ? {
-        ...prev,
-        usedTokens: prev.usedTokens + CONSULTATION_TOKEN_COST
-      } : null);
-
-      return resultado;
-    } catch (error) {
-      console.error('💥 Error in patent consultation:', error);
-      
-      if (error instanceof Error && error.name === 'TimeoutError') {
-        throw new Error('A consulta demorou mais de 5 minutos para ser processada. O servidor pode estar sobrecarregado com múltiplas consultas. Tente novamente em alguns minutos.');
-      }
-      
-      if (error instanceof TypeError) {
-        // Network errors like 'Failed to fetch'
-        throw new Error('Erro de conexão com o servidor. Verifique sua conexão com a internet e tente novamente.');
-      }
-      
-      if (error instanceof SyntaxError) {
-        // JSON parsing errors
-        throw new Error('O servidor retornou dados em formato inválido. Isso pode indicar uma sobrecarga temporária. Aguarde alguns minutos e tente novamente.');
-      }
-      
-      if (error instanceof Error) {
-        // Allow specific error messages from parsePatentResponse to propagate
-        throw error;
-      }
-      
-      throw new Error('Erro inesperado na consulta de patente. Tente novamente.');
-    }
+    return remainingTokens >= CONSULTATION_TOKEN_COST;
   };
 
   const handleLogout = async () => {
@@ -362,7 +262,7 @@ const Layout = () => {
         <div className="grid grid-cols-1">
           <div className="w-full">
             <PatentConsultation 
-              onConsultation={handleConsultation}
+              checkTokenUsage={() => checkTokenUsage(tokenUsage)}
               tokenUsage={tokenUsage}
             />
           </div>

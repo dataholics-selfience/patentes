@@ -13,7 +13,7 @@ import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller'
 import { WebhookStatusStore } from '../utils/webhookStatusStore';
 
 interface PatentConsultationProps {
-  onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
+  checkTokenUsage: () => boolean;
   tokenUsage: TokenUsageType | null;
 }
 
@@ -471,7 +471,7 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
   );
 };
 
-const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationProps) => {
+const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const [produto, setProduto] = useState('');
   const [nomeComercial, setNomeComercial] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -554,27 +554,32 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       const resultado = await waitForWebhookResponse(
         sessionId,
         (progress: PollingProgress) => {
+          console.log('📊 Progresso do polling:', progress);
           setPollingProgress(progress);
         }
       );
       
       console.log('📊 Resultado final recebido via polling:', resultado);
       
-      // 3. Processar resultado
-      let parsedResult;
-      if (resultado && typeof resultado === 'object') {
-        // Se o polling retornou dados estruturados, usar diretamente
-        parsedResult = resultado;
-      } else {
-        // Fallback: tentar processar via onConsultation
-        console.log('🔄 Fallback: processando via onConsultation...');
-        parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+      // 3. Atualizar tokens após sucesso
+      if (!auth.currentUser || !tokenUsage) {
+        throw new Error('Usuário não autenticado ou dados de token não encontrados');
       }
+
+      const CONSULTATION_TOKEN_COST = 1;
+      await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
+        usedTokens: tokenUsage.usedTokens + CONSULTATION_TOKEN_COST
+      });
+
+      setTokenUsage(prev => prev ? {
+        ...prev,
+        usedTokens: prev.usedTokens + CONSULTATION_TOKEN_COST
+      } : null);
       
       // 4. Limpar status do Firestore após sucesso
       await WebhookStatusStore.removeStatus(sessionId);
       
-      setResult(parsedResult);
+      setResult(resultado);
       setShowLoadingAnimation(false);
       setShowResultsPage(true);
       

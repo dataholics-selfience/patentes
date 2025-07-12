@@ -1,5 +1,6 @@
 // Sistema de polling para aguardar resposta completa do webhook
 import { WebhookStatusStore } from './webhookStatusStore';
+import { parsePatentResponse } from './patentParser';
 
 export interface WebhookResponse {
   status: 'processing' | 'completed' | 'error';
@@ -64,7 +65,15 @@ export class WebhookPoller {
         if (response.status === 'completed' && response.data) {
           console.log(`✅ Webhook respondeu completamente após ${attempt} tentativas (${Math.round(timeElapsed / 1000)}s)`);
           this.isPolling = false;
-          return response.data;
+          
+          // Fazer parse dos dados antes de retornar
+          try {
+            const parsedData = parsePatentResponse(response.data);
+            return parsedData;
+          } catch (parseError) {
+            console.error('❌ Erro ao fazer parse dos dados:', parseError);
+            throw new Error('Erro ao processar dados do webhook');
+          }
         } else if (response.status === 'error') {
           console.error(`❌ Webhook retornou erro:`, response.error);
           this.isPolling = false;
@@ -90,7 +99,13 @@ export class WebhookPoller {
       // Verificar status no Firestore
       const statusData = await WebhookStatusStore.getStatus(this.sessionId);
       
-      console.log(`🔍 Status verificado para ${this.sessionId}:`, statusData);
+      console.log(`🔍 Status verificado para ${this.sessionId}:`, {
+        exists: !!statusData,
+        status: statusData?.status,
+        hasData: !!statusData?.data,
+        dataType: typeof statusData?.data,
+        dataKeys: statusData?.data ? Object.keys(statusData.data) : []
+      });
       
       if (!statusData) {
         console.log('⚠️ Nenhum status encontrado no Firestore');
@@ -100,8 +115,28 @@ export class WebhookPoller {
         };
       }
 
-      if (statusData.status === 'completed' && statusData.data) {
-        console.log('✅ Status completed detectado com dados:', statusData.data);
+      // Verificar se temos dados válidos de patente
+      const hasValidData = statusData.data && (
+        statusData.data.patentes || 
+        statusData.data.quimica || 
+        statusData.data.ensaios_clinicos ||
+        (Array.isArray(statusData.data) && statusData.data.length > 0)
+      );
+
+      if (statusData.status === 'completed' && hasValidData) {
+        console.log('✅ Status completed detectado com dados válidos:', {
+          dataStructure: statusData.data,
+          hasPatentes: !!statusData.data.patentes,
+          hasQuimica: !!statusData.data.quimica,
+          isArray: Array.isArray(statusData.data)
+        });
+      } else if (statusData.status === 'completed' && !hasValidData) {
+        console.log('⚠️ Status completed mas sem dados válidos:', statusData.data);
+        // Continuar polling se não temos dados válidos
+        return {
+          status: 'processing',
+          sessionId: this.sessionId
+        };
       }
       
       return {
