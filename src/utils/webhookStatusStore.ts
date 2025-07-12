@@ -1,5 +1,5 @@
 // Store para gerenciar status de webhooks em Firestore
-import { doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface WebhookStatusData {
@@ -60,6 +60,7 @@ export class WebhookStatusStore {
   static async getStatus(sessionId: string): Promise<WebhookStatusData | null> {
     try {
       console.log(`🔍 Buscando status para sessionId: ${sessionId}`);
+      console.log(`🔍 Buscando status para sessionId: ${sessionId}`);
       const statusDoc = await getDoc(doc(db, this.COLLECTION_NAME, sessionId));
       
       if (!statusDoc.exists()) {
@@ -68,12 +69,31 @@ export class WebhookStatusStore {
       }
 
       const data = statusDoc.data() as WebhookStatusData;
-      console.log(`📊 Status encontrado:`, data);
       return data;
     } catch (error) {
       console.error('Erro ao buscar status do webhook:', error);
       return null;
     }
+  }
+
+  // Escutar mudanças em tempo real
+  static listenToStatus(sessionId: string, callback: (data: WebhookStatusData | null) => void): () => void {
+    console.log(`👂 Iniciando listener para sessionId: ${sessionId}`);
+    
+    const unsubscribe = onSnapshot(
+      doc(db, this.COLLECTION_NAME, sessionId),
+      (doc) => {
+        if (doc.exists()) {
+          const data = doc.data() as WebhookStatusData;
+          console.log(`📡 Status atualizado via listener:`, data);
+          callback(data);
+        } else {
+          callback(null);
+        }
+      }
+    );
+    
+    return unsubscribe;
   }
 
   // Limpar status antigos (opcional - para manutenção)

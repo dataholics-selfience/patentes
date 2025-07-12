@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, CheckCircle, XCircle, AlertTriangle, Globe, Calendar, Shield, Beaker, Clock, CreditCard, FileText, Building2, Microscope, FlaskConical, Pill, TestTube, BookOpen, Users, Zap, Target, Award, MessageCircle } from 'lucide-react';
 import { ExternalLink } from 'lucide-react';
 import { PatentResultType, TokenUsageType, PatentByCountry, CommercialExplorationByCountry, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence } from '../types';
@@ -8,7 +8,8 @@ import Flag from 'react-world-flags';
 import PatentLoadingAnimation from './PatentLoadingAnimation';
 import PatentResultsPage from './PatentResultsPage';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
 import { WebhookStatusStore } from '../utils/webhookStatusStore';
 
@@ -480,10 +481,17 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
   const [pollingProgress, setPollingProgress] = useState<PollingProgress | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!produto.trim() && !nomeComercial.trim()) || isLoading) return;
+
+    // Cancelar qualquer polling anterior
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     setIsLoading(true);
     setShowLoadingAnimation(true);
@@ -495,6 +503,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
       
+      
       // 1. Criar registro de status no Firestore
       await WebhookStatusStore.createStatus(
         sessionId, 
@@ -502,7 +511,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         auth.currentUser?.email || undefined
       );
       
-      // 1. Enviar requisição inicial para o webhook
+      // 2. Enviar requisição inicial para o webhook
       console.log('📤 Enviando requisição inicial para o webhook...');
       const initialResponse = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
         method: 'POST',
@@ -517,7 +526,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
-        signal: AbortSignal.timeout(60000) // 1 minuto para envio inicial
+        signal: abortControllerRef.current.signal
       });
 
       if (!initialResponse.ok) {
@@ -527,7 +536,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const responseText = await initialResponse.text();
       console.log('✅ Requisição inicial enviada com sucesso. Resposta:', responseText);
       
-      // Verificar se a resposta já contém dados completos
+      // 3. Verificar se a resposta já contém dados completos
       try {
         const immediateResult = JSON.parse(responseText);
         if (immediateResult && typeof immediateResult === 'object' && 
@@ -537,10 +546,15 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           // Atualizar status no Firestore para "completed"
           await WebhookStatusStore.updateStatus(sessionId, 'completed', immediateResult);
           
-          const parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+          // Atualizar tokens
+          if (tokenUsage) {
+            await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
+              usedTokens: tokenUsage.usedTokens + 1
+            });
+          }
           await WebhookStatusStore.removeStatus(sessionId);
           
-          setResult(parsedResult);
+          setResult(immediateResult);
           setShowLoadingAnimation(false);
           setShowResultsPage(true);
           return;
@@ -549,7 +563,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.log('📝 Resposta não é JSON válido, continuando com polling...');
       }
       
-      // 2. Aguardar resposta usando o sistema de polling
+      // 4. Aguardar resposta usando o sistema de polling
       console.log('⏳ Aguardando processamento completo do webhook...');
       const resultado = await waitForWebhookResponse(
         sessionId,
@@ -561,7 +575,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       
       console.log('📊 Resultado final recebido via polling:', resultado);
       
-      // 3. Atualizar tokens após sucesso
+      // 5. Atualizar tokens após sucesso
       if (!auth.currentUser || !tokenUsage) {
         throw new Error('Usuário não autenticado ou dados de token não encontrados');
       }
@@ -571,12 +585,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         usedTokens: tokenUsage.usedTokens + CONSULTATION_TOKEN_COST
       });
 
-      setTokenUsage(prev => prev ? {
-        ...prev,
-        usedTokens: prev.usedTokens + CONSULTATION_TOKEN_COST
-      } : null);
-      
-      // 4. Limpar status do Firestore após sucesso
+      // 6. Limpar status do Firestore após sucesso
       await WebhookStatusStore.removeStatus(sessionId);
       
       setResult(resultado);
@@ -585,6 +594,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       
     } catch (err) {
       console.error('❌ Erro na consulta:', err);
+      
+      // Se foi cancelado pelo usuário, não mostrar erro
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
+      
       setShowLoadingAnimation(false);
       setPollingProgress(null);
       
@@ -598,6 +613,15 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     }
   };
 
+  // Cleanup ao desmontar componente
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const remainingTokens = tokenUsage ? tokenUsage.totalTokens - tokenUsage.usedTokens : 0;
   const isAccountExpired = remainingTokens <= 0;
 
@@ -609,6 +633,14 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         isVisible={showLoadingAnimation} 
         searchTerm={searchTerm}
         pollingProgress={pollingProgress}
+        onCancel={() => {
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+          setShowLoadingAnimation(false);
+          setIsLoading(false);
+          setPollingProgress(null);
+        }}
       />
     );
   }

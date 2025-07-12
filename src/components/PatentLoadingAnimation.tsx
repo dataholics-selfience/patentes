@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FlaskConical, Globe, Building2, TestTube, FileText, TrendingUp, Hourglass, CheckCircle, Clock } from 'lucide-react';
+import { FlaskConical, Globe, Building2, TestTube, FileText, TrendingUp, Hourglass, CheckCircle, Clock, X } from 'lucide-react';
 import { PollingProgress } from '../utils/webhookPoller';
 
 interface PatentLoadingAnimationProps {
@@ -7,13 +7,15 @@ interface PatentLoadingAnimationProps {
   onComplete?: () => void;
   searchTerm?: string;
   pollingProgress?: PollingProgress;
+  onCancel?: () => void;
 }
 
 const PatentLoadingAnimation = ({ 
   isVisible, 
   onComplete, 
   searchTerm = "medicamento",
-  pollingProgress 
+  pollingProgress,
+  onCancel
 }: PatentLoadingAnimationProps) => {
   const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
@@ -170,6 +172,17 @@ const PatentLoadingAnimation = ({
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center z-50">
       <div className="relative z-10 text-center max-w-2xl mx-auto px-6">
+        {/* Botão de cancelar */}
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="absolute top-4 right-4 p-2 text-white hover:text-red-400 transition-colors"
+            title="Cancelar consulta"
+          >
+            <X size={24} />
+          </button>
+        )}
+        
         {/* Animated Test Tube */}
         <div className="mb-12 relative">
           <div className="relative mx-auto w-32 h-48">
@@ -303,6 +316,17 @@ const PatentLoadingAnimation = ({
                       <span>{formatTime(pollingProgress.estimatedTimeRemaining)}</span>
                     </div>
                   )}
+                  {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 && (
+                    <div className="flex justify-between">
+                      <span>Renderização forçada em:</span>
+                      <span className="text-yellow-300 font-bold">{formatTime(pollingProgress.forceRenderIn)}</span>
+                    </div>
+                  )}
+                  {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn <= 0 && (
+                    <div className="text-center">
+                      <span className="text-yellow-300 font-bold animate-pulse">🚨 FORÇANDO RENDERIZAÇÃO...</span>
+                    </div>
+                  )}
                   <div className="text-xs text-blue-300 mt-2">
                     Última verificação: {new Date(pollingProgress.lastCheck).toLocaleTimeString()}
                   </div>
@@ -310,8 +334,18 @@ const PatentLoadingAnimation = ({
               </div>
               
               <div className="text-sm text-blue-300 max-w-md text-center">
-                O sistema verifica automaticamente a cada 10 segundos se o processamento foi concluído. 
-                Não há timeout - aguardaremos até a análise estar 100% completa.
+                {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 ? (
+                  <>
+                    O sistema verifica automaticamente a cada 10 segundos. 
+                    Se não houver resposta em <strong>{formatTime(pollingProgress.forceRenderIn)}</strong>, 
+                    a renderização será forçada com os dados disponíveis.
+                  </>
+                ) : (
+                  <>
+                    O sistema verifica automaticamente a cada 10 segundos se o processamento foi concluído. 
+                    Aguardaremos até 50 minutos para a análise estar 100% completa.
+                  </>
+                )}
               </div>
             </div>
           ) : (
