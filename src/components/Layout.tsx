@@ -148,8 +148,8 @@ const Layout = () => {
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email
         }),
-        // Timeout de 3 minutos (180 segundos) para aguardar webhook processar todas as consultas
-        signal: AbortSignal.timeout(180000)
+        // Timeout de 5 minutos (300 segundos) para aguardar webhook processar todas as consultas
+        signal: AbortSignal.timeout(300000)
       });
 
       if (!response.ok) {
@@ -207,7 +207,7 @@ const Layout = () => {
       console.error('💥 Error in patent consultation:', error);
       
       if (error instanceof Error && error.name === 'TimeoutError') {
-        throw new Error('A consulta demorou mais de 3 minutos para ser processada. O servidor pode estar sobrecarregado com múltiplas consultas. Tente novamente em alguns minutos.');
+        throw new Error('A consulta demorou mais de 5 minutos para ser processada. O servidor pode estar sobrecarregado com múltiplas consultas. Tente novamente em alguns minutos.');
       }
       
       if (error instanceof TypeError) {

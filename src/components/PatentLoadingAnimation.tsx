@@ -5,12 +5,23 @@ interface PatentLoadingAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
   searchTerm?: string;
+  pollingProgress?: {
+    attempt: number;
+    maxRetries: number;
+    timeElapsed: number;
+  };
 }
 
-const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamento" }: PatentLoadingAnimationProps) => {
+const PatentLoadingAnimation = ({ 
+  isVisible, 
+  onComplete, 
+  searchTerm = "medicamento",
+  pollingProgress 
+}: PatentLoadingAnimationProps) => {
   const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
+  const [isPolling, setIsPolling] = useState(false);
 
   const stages = [
     {
@@ -63,11 +74,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
     },
     {
       id: 6,
-      title: `Gerando relatório final de patente de ${searchTerm}`,
-      subtitle: "Aguarde o carregamento...",
+      title: `Aguardando processamento completo do webhook`,
+      subtitle: "Verificando se a análise foi finalizada...",
       icon: Hourglass,
       color: "from-indigo-400 to-indigo-600",
-      duration: 150000 // 150 seconds (2.5 minutos) - aguardando webhook
+      duration: 600000 // 10 minutos máximo para polling
     }
   ];
 
@@ -103,103 +114,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
         // Comportamento especial para o último estágio - aguardando webhook
         let currentProgress = 0;
         
-        // Fase 1: Subir rapidamente até 10% e parar por 60 segundos
-        const phase1Duration = 2000; // 2 segundos para chegar a 10%
-        const phase1Interval = setInterval(() => {
-          setProgress(prev => {
-            const newProgress = prev + (10 / (phase1Duration / 50));
-            if (newProgress >= 10) {
-              clearInterval(phase1Interval);
-              currentProgress = 10;
-              
-              // Parar em 10% por 60 segundos (aumentado)
-              setTimeout(() => {
-                // Fase 2: Subir para 22% em 1 segundo
-                const phase2Duration = 1000;
-                const phase2Interval = setInterval(() => {
-                  setProgress(prev => {
-                    const newProgress = prev + (12 / (phase2Duration / 50));
-                    if (newProgress >= 22) {
-                      clearInterval(phase2Interval);
-                      currentProgress = 22;
-                      
-                      // Parar em 22% por 10 segundos (aumentado)
-                      setTimeout(() => {
-                        // Fase 3: Subir para 33% rapidamente
-                        const phase3Duration = 500;
-                        const phase3Interval = setInterval(() => {
-                          setProgress(prev => {
-                            const newProgress = prev + (11 / (phase3Duration / 50));
-                            if (newProgress >= 33) {
-                              clearInterval(phase3Interval);
-                              currentProgress = 33;
-                              
-                              // Parar em 33% por 20 segundos (novo)
-                              setTimeout(() => {
-                                // Fase 4: Subir para 45% lentamente
-                                const phase4Duration = 5000;
-                                const phase4Interval = setInterval(() => {
-                                  setProgress(prev => {
-                                    const newProgress = prev + (12 / (phase4Duration / 50));
-                                    if (newProgress >= 45) {
-                                      clearInterval(phase4Interval);
-                                      currentProgress = 45;
-                                      
-                                      // Parar em 45% por 30 segundos (aguardando webhook)
-                                      setTimeout(() => {
-                                        // Fase 5: Subir lentamente até 100% no tempo restante
-                                        const remainingTime = stageDuration - phase1Duration - 60000 - phase2Duration - 10000 - phase3Duration - 20000 - phase4Duration - 30000;
-                                        const phase5Interval = setInterval(() => {
-                                          setProgress(prev => {
-                                            const newProgress = prev + (55 / (remainingTime / 100));
-                                            if (newProgress >= 100) {
-                                              clearInterval(phase5Interval);
-                                              return 100;
-                                            }
-                                            return newProgress;
-                                          });
-                                        }, 100);
-                                        intervals.push(phase5Interval);
-                                      }, 30000); // Parar por 30 segundos
-                                      
-                                      return 45;
-                                    }
-                                    return newProgress;
-                                  });
-                                }, 50);
-                                intervals.push(phase4Interval);
-                              }, 20000); // Parar por 20 segundos
-                              
-                              return 33;
-                            }
-                            return newProgress;
-                          });
-                        }, 50);
-                        intervals.push(phase3Interval);
-                      }, 10000); // Parar por 10 segundos
-                      
-                      return 22;
-                    }
-                    return newProgress;
-                  });
-                }, 50);
-                intervals.push(phase2Interval);
-              }, 60000); // Parar por 60 segundos
-              
-              return 10;
-            }
-            return newProgress;
-          });
-        }, 50);
-        intervals.push(phase1Interval);
-
-        // Timeout final para o estágio completo
-        const stageTimeout = setTimeout(() => {
-          if (onComplete) {
-            onComplete();
-          }
-        }, stageDuration);
-        timeouts.push(stageTimeout);
+        // Ativar modo polling
+        setIsPolling(true);
+        
+        // Progresso baseado no polling real
+        setProgress(10); // Começar com 10%
       } else {
         // Comportamento normal para outros estágios
         const updateInterval = 50;
@@ -233,6 +152,22 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, [isVisible, totalDuration, searchTerm]);
+
+  // Atualizar progresso baseado no polling real
+  useEffect(() => {
+    if (isPolling && pollingProgress) {
+      const { attempt, maxRetries, timeElapsed } = pollingProgress;
+      
+      // Calcular progresso baseado nas tentativas (10% a 90%)
+      const attemptProgress = 10 + (attempt / maxRetries) * 80;
+      
+      // Adicionar progresso baseado no tempo (suavizar)
+      const timeProgress = Math.min((timeElapsed / 600000) * 10, 10); // 10 minutos = 10% extra
+      
+      const totalProgress = Math.min(attemptProgress + timeProgress, 95);
+      setProgress(totalProgress);
+    }
+  }, [pollingProgress, isPolling]);
 
   if (!isVisible) return null;
 
@@ -378,7 +313,21 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
         {/* Loading text */}
         <div className="text-white">
           <div className="flex items-center justify-center space-x-2">
-            {isLastStage ? (
+            {isLastStage && isPolling ? (
+              <div className="flex flex-col items-center space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Hourglass size={20} className="text-white animate-pulse" />
+                  <span className="text-lg font-medium text-white">
+                    Aguardando resposta do webhook...
+                  </span>
+                </div>
+                {pollingProgress && (
+                  <div className="text-sm text-blue-200">
+                    Tentativa {pollingProgress.attempt} - {Math.round(pollingProgress.timeElapsed / 1000)}s decorridos
+                  </div>
+                )}
+              </div>
+            ) : isLastStage ? (
               <div className="flex items-center space-x-2">
                 <Hourglass size={20} className="text-white animate-pulse" />
                 <span className="text-lg font-medium text-white">
@@ -399,9 +348,14 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
             )}
           </div>
           
-          {overallProgress >= 100 && (
+          {isPolling && pollingProgress && (
             <div className="mt-4 text-yellow-300 animate-pulse">
-              <p className="text-sm text-white">A análise está sendo finalizada. O webhook está processando múltiplas consultas em tempo real. Aguarde...</p>
+              <p className="text-sm text-white">
+                Verificando resposta do webhook... Tentativa {pollingProgress.attempt} de {pollingProgress.maxRetries}
+              </p>
+              <p className="text-xs text-blue-200 mt-1">
+                Tempo decorrido: {Math.round(pollingProgress.timeElapsed / 1000)}s
+              </p>
             </div>
           )}
         </div>

@@ -9,7 +9,7 @@ import PatentLoadingAnimation from './PatentLoadingAnimation';
 import PatentResultsPage from './PatentResultsPage';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { auth } from '../firebase';
-import { WebhookProcessingError } from '../utils/patentParser';
+import { waitForWebhookResponse } from '../utils/webhookPoller';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -478,6 +478,11 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
   const [showResultsPage, setShowResultsPage] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
+  const [pollingProgress, setPollingProgress] = useState<{
+    attempt: number;
+    maxRetries: number;
+    timeElapsed: number;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -487,88 +492,63 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     setShowLoadingAnimation(true);
     setError('');
     setResult(null);
-
-    let retryCount = 0;
-    const maxRetries = 15; // Máximo de 15 tentativas (5 minutos total)
-    const retryDelay = 20000; // 20 segundos entre tentativas
+    setPollingProgress(null);
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
       
-      // Função para tentar obter resultado com retry automático
-      const tryGetResult = async (): Promise<PatentResultType> => {
-        while (retryCount < maxRetries) {
-          try {
-            console.log(`🔄 Tentativa ${retryCount + 1}/${maxRetries} de obter resultado do webhook`);
-            
-            const resultado = await Promise.race([
-              onConsultation(produto.trim(), nomeComercial.trim(), sessionId),
-              new Promise<never>((_, reject) => {
-                // Timeout de 5 minutos para cada tentativa individual
-                setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 5 minutos')), 300000);
-              })
-            ]);
-            
-            // Validar se o resultado está realmente completo
-            if (!resultado || typeof resultado !== 'object') {
-              throw new WebhookProcessingError('Resultado vazio ou inválido - webhook ainda processando');
-            }
-            
-            // Verificar se temos dados essenciais
-            if (!resultado.patentes && !resultado.quimica && !resultado.ensaios_clinicos) {
-              throw new WebhookProcessingError('Dados incompletos - webhook ainda processando');
-            }
-            
-            // Se chegou aqui, obteve resultado válido
-            console.log('✅ Resultado válido obtido do webhook');
-            return resultado;
-            
-          } catch (err) {
-            if (err instanceof WebhookProcessingError) {
-              console.log(`⏳ Webhook ainda processando (tentativa ${retryCount + 1}/${maxRetries}). Aguardando ${retryDelay/1000}s...`);
-              retryCount++;
-              
-              if (retryCount < maxRetries) {
-                // Aguardar antes da próxima tentativa
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
-                continue;
-              } else {
-                throw new Error('Timeout: O webhook demorou mais de 5 minutos para processar a consulta. O sistema pode estar sobrecarregado. Tente novamente em alguns minutos.');
-              }
-            } else {
-              // Outros tipos de erro, não retry
-              throw err;
-            }
-          }
-        }
-        
-        throw new Error('Máximo de tentativas excedido');
-      };
+      // 1. Enviar requisição inicial para o webhook
+      console.log('📤 Enviando requisição inicial para o webhook...');
+      const initialResponse = await fetch('https://primary-production-2e3b.up.railway.app/webhook/patentes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          produto: produto.trim(),
+          nome_comercial: nomeComercial.trim(),
+          sessionId: sessionId,
+          query: produto.trim() || nomeComercial.trim(),
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email
+        }),
+        signal: AbortSignal.timeout(60000) // 1 minuto para envio inicial
+      });
+
+      if (!initialResponse.ok) {
+        throw new Error(`Erro ao enviar requisição: ${initialResponse.status} - ${initialResponse.statusText}`);
+      }
+
+      console.log('✅ Requisição inicial enviada com sucesso');
       
-      const resultado = await tryGetResult();
+      // 2. Aguardar resposta usando o sistema de polling
+      console.log('⏳ Aguardando processamento completo do webhook...');
+      const resultado = await waitForWebhookResponse(
+        sessionId,
+        (attempt, maxRetries, timeElapsed) => {
+          setPollingProgress({ attempt, maxRetries, timeElapsed });
+        }
+      );
       
       console.log('📊 Resultado final recebido:', resultado);
       
-      // Validar se o resultado está completo antes de exibir
-      if (resultado && typeof resultado === 'object') {
-        // Aguardar um pouco mais para garantir que todos os dados foram processados
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        setResult(resultado);
-        setShowLoadingAnimation(false);
-        setShowResultsPage(true);
-      } else {
-        throw new Error('Resposta incompleta do servidor');
-      }
+      // 3. Processar resultado
+      const parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+      
+      setResult(parsedResult);
+      setShowLoadingAnimation(false);
+      setShowResultsPage(true);
+      
     } catch (err) {
       console.error('❌ Erro na consulta:', err);
       setShowLoadingAnimation(false);
+      setPollingProgress(null);
       
-      if (err instanceof Error && err.message.includes('Timeout')) {
-        setError('A consulta demorou mais de 5 minutos para ser processada. O sistema pode estar processando múltiplas consultas simultaneamente. Tente novamente em alguns minutos.');
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
+        setError('Erro inesperado ao consultar patente');
       }
     } finally {
       setIsLoading(false);
@@ -582,7 +562,11 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
   if (showLoadingAnimation) {
     const searchTerm = produto.trim() || nomeComercial.trim() || "medicamento";
     return (
-      <PatentLoadingAnimation isVisible={showLoadingAnimation} searchTerm={searchTerm} />
+      <PatentLoadingAnimation 
+        isVisible={showLoadingAnimation} 
+        searchTerm={searchTerm}
+        pollingProgress={pollingProgress}
+      />
     );
   }
 
@@ -598,6 +582,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
           setResult(null);
           setProduto('');
           setNomeComercial('');
+          setPollingProgress(null);
         }}
       />
     );
