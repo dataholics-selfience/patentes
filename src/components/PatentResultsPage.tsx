@@ -513,8 +513,8 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                 <div className="mb-6">
                   <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações</span>
                   <div className="flex flex-wrap gap-2">
-                    {ensaiosClinicosData.principais_indicacoes_estudadas.map((indicacao, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    {ensaiosClinicosData.principais_indicacoes_estudadas.map((indicacao, i) => (
+                      <span key={i} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                         {indicacao}
                       </span>
                     ))}

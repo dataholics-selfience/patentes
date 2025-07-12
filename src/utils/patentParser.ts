@@ -1,5 +1,13 @@
 import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeBookData, RegulationByCountry, ScientificEvidence, PatentByCountry, CommercialExplorationByCountry, OpportunityScore } from '../types';
 
+// Classe de erro específica para respostas de webhook ainda processando
+export class WebhookProcessingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'WebhookProcessingError';
+  }
+}
+
 // Função robusta para parse de resposta de patentes - PARSER COMPLETO E MELHORADO
 export const parsePatentResponse = (rawResponse: any): PatentResultType => {
   let jsonString = '';
@@ -37,6 +45,14 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       // Check if the string looks like conversational text instead of JSON
       const trimmedString = jsonString.trim();
       if (!trimmedString.startsWith('{') && !trimmedString.startsWith('[')) {
+        // Verificar se é uma resposta indicando processamento em andamento
+        if (trimmedString.toLowerCase().includes('processando') || 
+            trimmedString.toLowerCase().includes('aguarde') ||
+            trimmedString.toLowerCase().includes('analisando') ||
+            trimmedString.toLowerCase().includes('consultando') ||
+            trimmedString.length < 100) {
+          throw new WebhookProcessingError('Webhook ainda processando - aguardando resposta completa');
+        }
         throw new Error('O servidor retornou uma resposta em texto ao invés de dados estruturados. Tente novamente em alguns instantes.');
       }
       
@@ -68,13 +84,18 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     
     // Validação adicional para garantir que temos dados completos
     if (!parsedData || Object.keys(parsedData).length === 0) {
-      throw new Error('Dados vazios recebidos do webhook. O processamento pode não ter sido concluído.');
+      throw new WebhookProcessingError('Dados vazios recebidos do webhook - processamento ainda em andamento');
     }
     
   } catch (error) {
+    // Re-throw WebhookProcessingError as-is
+    if (error instanceof WebhookProcessingError) {
+      throw error;
+    }
+    
     // Provide more specific error messages based on error type
     if (error instanceof SyntaxError) {
-      throw new Error('O webhook retornou dados em formato inválido. O processamento pode não ter sido concluído. Aguarde e tente novamente.');
+      throw new WebhookProcessingError('Webhook retornou dados em formato inválido - processamento ainda em andamento');
     }
     
     if (error instanceof Error) {
@@ -116,7 +137,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
           status: country.status || 'Não informado',
           data_expiracao_primaria: country.data_expiracao || country.data_expiracao_primaria || 'Não informado',
           data_expiracao_secundaria: country.data_expiracao_secundaria || 'Não informado',
-          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : [],
+          tipos: Array.isArray(country.tipo) ? country.tipo : Array.isArray(country.tipos) ? country.tipos : (country.tipo ? [country.tipo] : []),
           fonte: country.fonte || 'Não informado',
           link: country.link || ''
         }));

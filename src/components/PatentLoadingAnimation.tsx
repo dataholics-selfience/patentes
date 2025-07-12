@@ -19,7 +19,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Acessando INPI, USPTO, EPO e WIPO",
       icon: Building2,
       color: "from-blue-400 to-blue-600",
-      duration: 7000 // 7 seconds
+      duration: 10000 // 10 seconds
     },
     {
       id: 1,
@@ -27,7 +27,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Verificando status de patentes em múltiplas jurisdições",
       icon: Globe,
       color: "from-green-400 to-green-600",
-      duration: 7000 // 7 seconds
+      duration: 12000 // 12 seconds
     },
     {
       id: 2,
@@ -35,7 +35,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Buscando ensaios clínicos ativos e em fase avançada",
       icon: TestTube,
       color: "from-purple-400 to-purple-600",
-      duration: 7000 // 7 seconds
+      duration: 15000 // 15 seconds
     },
     {
       id: 3,
@@ -43,7 +43,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Analisando registros de genéricos e NDA",
       icon: FileText,
       color: "from-orange-400 to-orange-600",
-      duration: 7000 // 7 seconds
+      duration: 18000 // 18 seconds
     },
     {
       id: 4,
@@ -51,7 +51,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Processando estruturas químicas e propriedades",
       icon: FlaskConical,
       color: "from-pink-400 to-pink-600",
-      duration: 7000 // 7 seconds
+      duration: 20000 // 20 seconds
     },
     {
       id: 5,
@@ -59,7 +59,7 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Avaliando potencial comercial e riscos regulatórios",
       icon: TrendingUp,
       color: "from-yellow-400 to-yellow-600",
-      duration: 7000 // 7 seconds
+      duration: 25000 // 25 seconds
     },
     {
       id: 6,
@@ -67,11 +67,11 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       subtitle: "Aguarde o carregamento...",
       icon: Hourglass,
       color: "from-indigo-400 to-indigo-600",
-      duration: 8000 // 8 seconds (para totalizar 50 segundos)
+      duration: 80000 // 80 seconds - aguardando webhook
     }
   ];
 
-  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 50 seconds total
+  const totalDuration = stages.reduce((sum, stage) => sum + stage.duration, 0); // 180 seconds total
 
   useEffect(() => {
     if (!isVisible) return;
@@ -100,25 +100,79 @@ const PatentLoadingAnimation = ({ isVisible, onComplete, searchTerm = "medicamen
       const isLastStage = stageIndex === stages.length - 1;
 
       if (isLastStage) {
-        // Comportamento especial para o último estágio
-        // Progresso linear normal para o último estágio
-        const updateInterval = 50;
-        const progressIncrement = 100 / (stageDuration / updateInterval);
+        // Comportamento especial para o último estágio - aguardando webhook
+        let currentProgress = 0;
         
-        const progressInterval = setInterval(() => {
+        // Fase 1: Subir rapidamente até 10% e parar por 30 segundos
+        const phase1Duration = 2000; // 2 segundos para chegar a 10%
+        const phase1Interval = setInterval(() => {
           setProgress(prev => {
-            const newProgress = prev + progressIncrement;
-            if (newProgress >= 100) {
-              clearInterval(progressInterval);
-              return 100;
+            const newProgress = prev + (10 / (phase1Duration / 50));
+            if (newProgress >= 10) {
+              clearInterval(phase1Interval);
+              currentProgress = 10;
+              
+              // Parar em 10% por 30 segundos
+              setTimeout(() => {
+                // Fase 2: Subir para 22% em 1 segundo
+                const phase2Duration = 1000;
+                const phase2Interval = setInterval(() => {
+                  setProgress(prev => {
+                    const newProgress = prev + (12 / (phase2Duration / 50));
+                    if (newProgress >= 22) {
+                      clearInterval(phase2Interval);
+                      currentProgress = 22;
+                      
+                      // Parar em 22% por 2 segundos
+                      setTimeout(() => {
+                        // Fase 3: Subir para 33% rapidamente
+                        const phase3Duration = 500;
+                        const phase3Interval = setInterval(() => {
+                          setProgress(prev => {
+                            const newProgress = prev + (11 / (phase3Duration / 50));
+                            if (newProgress >= 33) {
+                              clearInterval(phase3Interval);
+                              currentProgress = 33;
+                              
+                              // Fase 4: Subir lentamente até 100% no tempo restante
+                              const remainingTime = stageDuration - phase1Duration - 30000 - phase2Duration - 2000 - phase3Duration;
+                              const phase4Interval = setInterval(() => {
+                                setProgress(prev => {
+                                  const newProgress = prev + (67 / (remainingTime / 100));
+                                  if (newProgress >= 100) {
+                                    clearInterval(phase4Interval);
+                                    return 100;
+                                  }
+                                  return newProgress;
+                                });
+                              }, 100);
+                              intervals.push(phase4Interval);
+                              
+                              return 33;
+                            }
+                            return newProgress;
+                          });
+                        }, 50);
+                        intervals.push(phase3Interval);
+                      }, 2000); // Parar por 2 segundos
+                      
+                      return 22;
+                    }
+                    return newProgress;
+                  });
+                }, 50);
+                intervals.push(phase2Interval);
+              }, 30000); // Parar por 30 segundos
+              
+              return 10;
             }
             return newProgress;
           });
-        }, updateInterval);
-        intervals.push(progressInterval);
+        }, 50);
+        intervals.push(phase1Interval);
 
+        // Timeout final para o estágio completo
         const stageTimeout = setTimeout(() => {
-          clearInterval(progressInterval);
           if (onComplete) {
             onComplete();
           }

@@ -46,9 +46,10 @@ export interface PatentByCountry {
   pais: string;
   numero?: string;
   status?: string;
-  data_expiracao_primaria: string; // Pode vir como data_expiracao no JSON
+  data_expiracao_primaria: string;
+  data_expiracao?: string; // Campo alternativo que pode vir do JSON
   data_expiracao_secundaria: string;
-  tipos: string[]; // Pode vir como tipo no JSON
+  tipos: string[];
   fonte?: string;
   link?: string;
 }

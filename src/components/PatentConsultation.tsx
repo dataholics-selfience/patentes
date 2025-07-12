@@ -8,6 +8,7 @@ import PatentLoadingAnimation from './PatentLoadingAnimation';
 import PatentResultsPage from './PatentResultsPage';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { auth } from '../firebase';
+import { WebhookProcessingError } from '../utils/patentParser';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -348,7 +349,7 @@ const PatentDataCard: React.FC<{ patent: PatentData; index: number }> = ({ paten
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex flex-wrap gap-1">
-                    {(country.tipo || country.tipos || []).map((tipo, i) => (
+                    {(country.tipos || country.tipo || []).map((tipo, i) => (
                       <span key={i} className="px-2 py-1 bg-blue-400 text-blue-900 rounded text-xs font-medium">
                         {tipo}
                       </span>
@@ -448,17 +449,53 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     setError('');
     setResult(null);
 
+    let retryCount = 0;
+    const maxRetries = 10; // Máximo de 10 tentativas (3 minutos total)
+    const retryDelay = 18000; // 18 segundos entre tentativas
+
     try {
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
       
-      // Aguardar resposta completa do webhook com timeout de 3 minutos
-      const resultado = await Promise.race([
-        onConsultation(produto.trim(), nomeComercial.trim(), sessionId),
-        new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 3 minutos')), 180000)
-        )
-      ]);
+      // Função para tentar obter resultado com retry automático
+      const tryGetResult = async (): Promise<PatentResultType> => {
+        while (retryCount < maxRetries) {
+          try {
+            console.log(`🔄 Tentativa ${retryCount + 1}/${maxRetries} de obter resultado do webhook`);
+            
+            const resultado = await Promise.race([
+              onConsultation(produto.trim(), nomeComercial.trim(), sessionId),
+              new Promise<never>((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout: Consulta demorou mais que 3 minutos')), 180000)
+              )
+            ]);
+            
+            // Se chegou aqui, obteve resultado válido
+            return resultado;
+            
+          } catch (err) {
+            if (err instanceof WebhookProcessingError) {
+              console.log(`⏳ Webhook ainda processando (tentativa ${retryCount + 1}). Aguardando ${retryDelay/1000}s...`);
+              retryCount++;
+              
+              if (retryCount < maxRetries) {
+                // Aguardar antes da próxima tentativa
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                continue;
+              } else {
+                throw new Error('Timeout: O webhook demorou mais de 3 minutos para processar a consulta. Tente novamente.');
+              }
+            } else {
+              // Outros tipos de erro, não retry
+              throw err;
+            }
+          }
+        }
+        
+        throw new Error('Máximo de tentativas excedido');
+      };
+      
+      const resultado = await tryGetResult();
       
       console.log('📊 Resultado final recebido:', resultado);
       
@@ -478,7 +515,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
       setShowLoadingAnimation(false);
       
       if (err instanceof Error && err.message.includes('Timeout')) {
-        setError('A consulta demorou mais de 3 minutos para ser processada. O webhook pode estar processando múltiplas consultas. Tente novamente em alguns minutos.');
+        setError('A consulta demorou mais de 3 minutos para ser processada. O sistema pode estar processando múltiplas consultas simultaneamente. Tente novamente em alguns minutos.');
       } else {
         setError(err instanceof Error ? err.message : 'Erro ao consultar patente');
       }
