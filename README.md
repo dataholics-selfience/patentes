@@ -7,6 +7,7 @@ Plataforma especializada em consulta e análise de patentes farmacêuticas com i
 ## 🚀 Funcionalidades
 
 - **Consulta de Patentes**: Análise completa de propriedade intelectual farmacêutica
+- **Sistema de Polling Robusto**: Aguarda resposta completa do webhook sem timeout
 - **Dados Químicos**: Informações moleculares detalhadas
 - **Ensaios Clínicos**: Status de estudos em andamento
 - **Regulação**: Análise por país e agência reguladora
@@ -42,10 +43,13 @@ src/
 │   ├── auth/           # Autenticação
 │   ├── PatentConsultation.tsx
 │   ├── PatentResultsPage.tsx
+│   ├── PatentLoadingAnimation.tsx
 │   ├── Layout.tsx
 │   └── ...
 ├── utils/
 │   ├── patentParser.ts
+│   ├── webhookPoller.ts      # Sistema de polling sem timeout
+│   ├── webhookStatusStore.ts # Gerenciamento de status no Firestore
 │   └── unrestrictedEmails.ts
 └── types.ts
 ```
@@ -63,6 +67,7 @@ src/
 - Verificação de email
 - Controle de acesso por planos
 - Proteção de dados LGPD/GDPR
+- Sistema de polling robusto para webhooks
 
 ## 📞 Suporte
 

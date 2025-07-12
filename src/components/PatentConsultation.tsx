@@ -9,7 +9,8 @@ import PatentLoadingAnimation from './PatentLoadingAnimation';
 import PatentResultsPage from './PatentResultsPage';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { auth } from '../firebase';
-import { waitForWebhookResponse } from '../utils/webhookPoller';
+import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
+import { WebhookStatusStore } from '../utils/webhookStatusStore';
 
 interface PatentConsultationProps {
   onConsultation: (produto: string, sessionId: string) => Promise<PatentResultType>;
@@ -478,11 +479,7 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
   const [showResultsPage, setShowResultsPage] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
-  const [pollingProgress, setPollingProgress] = useState<{
-    attempt: number;
-    maxRetries: number;
-    timeElapsed: number;
-  } | null>(null);
+  const [pollingProgress, setPollingProgress] = useState<PollingProgress | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -497,6 +494,13 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
     try {
       const sessionId = uuidv4().replace(/-/g, '');
       console.log('🚀 Iniciando consulta de patente:', { produto, nomeComercial }, 'SessionId:', sessionId);
+      
+      // 1. Criar registro de status no Firestore
+      await WebhookStatusStore.createStatus(
+        sessionId, 
+        auth.currentUser?.uid, 
+        auth.currentUser?.email || undefined
+      );
       
       // 1. Enviar requisição inicial para o webhook
       console.log('📤 Enviando requisição inicial para o webhook...');
@@ -520,21 +524,55 @@ const PatentConsultation = ({ onConsultation, tokenUsage }: PatentConsultationPr
         throw new Error(`Erro ao enviar requisição: ${initialResponse.status} - ${initialResponse.statusText}`);
       }
 
-      console.log('✅ Requisição inicial enviada com sucesso');
+      const responseText = await initialResponse.text();
+      console.log('✅ Requisição inicial enviada com sucesso. Resposta:', responseText);
+      
+      // Verificar se a resposta já contém dados completos
+      try {
+        const immediateResult = JSON.parse(responseText);
+        if (immediateResult && typeof immediateResult === 'object' && 
+            (immediateResult.patentes || immediateResult.quimica || immediateResult.ensaios_clinicos)) {
+          console.log('🚀 Resposta imediata detectada, processando diretamente...');
+          
+          // Atualizar status no Firestore para "completed"
+          await WebhookStatusStore.updateStatus(sessionId, 'completed', immediateResult);
+          
+          const parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+          await WebhookStatusStore.removeStatus(sessionId);
+          
+          setResult(parsedResult);
+          setShowLoadingAnimation(false);
+          setShowResultsPage(true);
+          return;
+        }
+      } catch (parseError) {
+        console.log('📝 Resposta não é JSON válido, continuando com polling...');
+      }
       
       // 2. Aguardar resposta usando o sistema de polling
       console.log('⏳ Aguardando processamento completo do webhook...');
       const resultado = await waitForWebhookResponse(
         sessionId,
-        (attempt, maxRetries, timeElapsed) => {
-          setPollingProgress({ attempt, maxRetries, timeElapsed });
+        (progress: PollingProgress) => {
+          setPollingProgress(progress);
         }
       );
       
-      console.log('📊 Resultado final recebido:', resultado);
+      console.log('📊 Resultado final recebido via polling:', resultado);
       
       // 3. Processar resultado
-      const parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+      let parsedResult;
+      if (resultado && typeof resultado === 'object') {
+        // Se o polling retornou dados estruturados, usar diretamente
+        parsedResult = resultado;
+      } else {
+        // Fallback: tentar processar via onConsultation
+        console.log('🔄 Fallback: processando via onConsultation...');
+        parsedResult = await onConsultation(produto.trim(), nomeComercial.trim(), sessionId);
+      }
+      
+      // 4. Limpar status do Firestore após sucesso
+      await WebhookStatusStore.removeStatus(sessionId);
       
       setResult(parsedResult);
       setShowLoadingAnimation(false);
