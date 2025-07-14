@@ -7,6 +7,9 @@ import PatentResultsPage from './PatentResultsPage';
 import { auth, db } from '../firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { parsePatentResponse } from '../utils/patentParser';
+import { getSerpKeyManager, initializeSerpKeyManager } from '../utils/serpKeyManager';
+import { SERP_API_KEYS } from '../utils/serpKeyData';
+import { useEffect } from 'react';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -21,6 +24,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [error, setError] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Inicializar o gerenciador de chaves SERP na primeira renderização
+  useEffect(() => {
+    initializeSerpKeyManager(SERP_API_KEYS);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +46,15 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
+      
+      // Obter chave SERP disponível
+      const serpKeyManager = getSerpKeyManager();
+      const serpKey = serpKeyManager?.getAvailableKey();
+      
+      if (!serpKey) {
+        throw new Error('Nenhuma chave SERP API disponível no momento. Tente novamente mais tarde.');
+      }
+      
       console.log('🚀 Enviando consulta direta para webhook:', { produto, nomeComercial });
       
       // Enviar requisição direta para o webhook e aguardar resposta
@@ -50,6 +67,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           produto: produto.trim(),
           nome_comercial: nomeComercial.trim(),
           sessionId: sessionId,
+          SERPkey: serpKey,
           query: produto.trim() || nomeComercial.trim(),
           userId: auth.currentUser?.uid,
           userEmail: auth.currentUser?.email
@@ -66,6 +84,15 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       
       // Parse da resposta usando o parser existente
       const parsedResult = parsePatentResponse(responseData);
+      
+      // Registrar uso da chave SERP
+      if (serpKeyManager && serpKey) {
+        serpKeyManager.recordUsage(
+          serpKey, 
+          auth.currentUser?.uid, 
+          produto.trim() || nomeComercial.trim()
+        );
+      }
       
       // Adicionar nome comercial ao resultado se foi fornecido
       if (nomeComercial.trim()) {

@@ -10,6 +10,10 @@ import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { parsePatentResponse } from '../utils/patentParser';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
+import SerpKeyStats from './SerpKeyStats';
+import { Shield } from 'lucide-react';
+import { isAdminUser } from '../utils/serpKeyData';
+import { isAdminUser } from '../utils/serpKeyData';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -170,6 +174,15 @@ const Layout = () => {
                 Acesso Corporativo
               </div>
             )}
+            {auth.currentUser && isAdminUser(auth.currentUser.email) && (
+              <Link
+                to="/admin/serp-keys"
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Shield size={16} />
+                Admin SERP
+              </Link>
+            )}
             {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
               <Link
                 to="/plans"
@@ -242,6 +255,16 @@ const Layout = () => {
                   Planos
                 </Link>
               )}
+              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
+                <Link
+                  to="/admin/serp-keys"
+                  className="flex items-center gap-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  onClick={() => setShowSidebar(false)}
+                >
+                  <Shield size={16} />
+                  Admin SERP
+                </Link>
+              )}
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>
@@ -265,6 +288,13 @@ const Layout = () => {
               checkTokenUsage={() => checkTokenUsage(tokenUsage)}
               tokenUsage={tokenUsage}
             />
+            
+            {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
+            {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
+              <div className="mt-8">
+                <SerpKeyStats />
+              </div>
+            )}
           </div>
         </div>
       </main>
