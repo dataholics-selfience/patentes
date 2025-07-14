@@ -82,17 +82,26 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const responseData = await response.json();
       console.log('✅ Resposta recebida do webhook:', responseData);
       
-      // Parse da resposta usando o parser existente
-      const parsedResult = parsePatentResponse(responseData);
-      
-      // Registrar uso da chave SERP (8 créditos por consulta)
+      // CRÍTICO: Registrar uso da chave SERP ANTES do parse (para garantir desconto)
+      const serpKeyManager = getSerpKeyManager();
       if (serpKeyManager && serpKey) {
-        serpKeyManager.recordUsage(
+        console.log('🔄 Registrando uso de 8 créditos da chave SERP...');
+        const usageRecorded = serpKeyManager.recordUsage(
           serpKey, 
           auth.currentUser?.uid, 
           produto.trim() || nomeComercial.trim()
         );
+        
+        if (!usageRecorded) {
+          console.error('❌ Falha ao registrar uso da chave SERP API');
+          throw new Error('Falha ao registrar uso da chave SERP API. Consulta não foi processada.');
+        } else {
+          console.log('✅ 8 créditos descontados com sucesso da chave SERP');
+        }
       }
+      
+      // Parse da resposta usando o parser existente
+      const parsedResult = parsePatentResponse(responseData);
       
       // Adicionar nome comercial ao resultado se foi fornecido
       if (nomeComercial.trim()) {

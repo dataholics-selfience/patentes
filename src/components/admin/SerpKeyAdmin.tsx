@@ -3,15 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Key, Plus, Edit2, Trash2, RotateCcw, Copy,
   CheckCircle, XCircle, AlertTriangle, Save, X,
-  Shield, Calendar, Phone, Mail, Settings
+  Shield, Calendar, Phone, Mail, Settings, BarChart3, 
+  TrendingUp, Activity, Clock
 } from 'lucide-react';
-import { getSerpKeyManager, SerpKey } from '../../utils/serpKeyManager';
+import { getSerpKeyManager, SerpKey, ConsultationStats } from '../../utils/serpKeyManager';
 import { auth } from '../../firebase';
 import { isAdminUser } from '../../utils/serpKeyData';
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
   const [keys, setKeys] = useState<SerpKey[]>([]);
+  const [consultationStats, setConsultationStats] = useState<ConsultationStats | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingKeyData, setEditingKeyData] = useState<SerpKey | null>(null);
@@ -40,6 +42,7 @@ const SerpKeyAdmin = () => {
     const manager = getSerpKeyManager();
     if (manager) {
       setKeys(manager.getAllKeys());
+      setConsultationStats(manager.getConsultationStats());
     }
   };
 
@@ -153,6 +156,7 @@ const SerpKeyAdmin = () => {
   const totalCredits = keys.reduce((sum, key) => sum + (key.monthlyLimit - key.currentUsage), 0);
   const totalUsed = keys.reduce((sum, key) => sum + key.currentUsage, 0);
   const totalLimit = keys.reduce((sum, key) => sum + key.monthlyLimit, 0);
+  const totalConsultationsAvailable = Math.floor(totalCredits / 8);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -191,7 +195,7 @@ const SerpKeyAdmin = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Estatísticas Gerais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
             <div className="flex items-center gap-3">
               <Key className="text-blue-600" size={24} />
@@ -208,6 +212,7 @@ const SerpKeyAdmin = () => {
               <div>
                 <p className="text-sm text-gray-600">Créditos Restantes</p>
                 <p className="text-2xl font-bold text-green-600">{totalCredits}</p>
+                <p className="text-xs text-gray-500">{totalConsultationsAvailable} consultas</p>
               </div>
             </div>
           </div>
@@ -218,6 +223,7 @@ const SerpKeyAdmin = () => {
               <div>
                 <p className="text-sm text-gray-600">Créditos Usados</p>
                 <p className="text-2xl font-bold text-orange-600">{totalUsed}</p>
+                <p className="text-xs text-gray-500">{Math.floor(totalUsed / 8)} consultas</p>
               </div>
             </div>
           </div>
@@ -228,11 +234,68 @@ const SerpKeyAdmin = () => {
               <div>
                 <p className="text-sm text-gray-600">Limite Total</p>
                 <p className="text-2xl font-bold text-purple-600">{totalLimit}</p>
+                <p className="text-xs text-gray-500">{Math.floor(totalLimit / 8)} consultas máx</p>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Estatísticas de Consultas */}
+        {consultationStats && (
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="text-indigo-600" size={24} />
+              Estatísticas de Consultas
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="text-indigo-600" size={20} />
+                  <span className="text-sm font-medium text-indigo-800">Total de Consultas</span>
+                </div>
+                <p className="text-2xl font-bold text-indigo-900">{consultationStats.totalConsultations}</p>
+                <p className="text-xs text-indigo-600">{consultationStats.totalCreditsUsed} créditos usados</p>
+              </div>
+              
+              <div className="bg-green-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="text-green-600" size={20} />
+                  <span className="text-sm font-medium text-green-800">Hoje</span>
+                </div>
+                <p className="text-2xl font-bold text-green-900">{consultationStats.consultationsToday}</p>
+                <p className="text-xs text-green-600">{consultationStats.consultationsToday * 8} créditos</p>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="text-blue-600" size={20} />
+                  <span className="text-sm font-medium text-blue-800">Este Mês</span>
+                </div>
+                <p className="text-2xl font-bold text-blue-900">{consultationStats.consultationsThisMonth}</p>
+                <p className="text-xs text-blue-600">{consultationStats.consultationsThisMonth * 8} créditos</p>
+              </div>
+              
+              <div className="bg-purple-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="text-purple-600" size={20} />
+                  <span className="text-sm font-medium text-purple-800">Média por Consulta</span>
+                </div>
+                <p className="text-2xl font-bold text-purple-900">
+                  {consultationStats.averageCreditsPerConsultation.toFixed(1)}
+                </p>
+                <p className="text-xs text-purple-600">créditos por consulta</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                💡 <strong>Lembrete:</strong> Cada consulta de patente consome exatamente 8 créditos da SERP API.
+                O sistema automaticamente seleciona chaves com pelo menos 8 créditos disponíveis.
+              </p>
+            </div>
+          </div>
+        )}
         {/* Formulário de Nova Chave */}
         {showAddForm && (
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
@@ -376,6 +439,9 @@ const SerpKeyAdmin = () => {
                         </div>
                         <div className="text-gray-500">
                           {key.monthlyLimit - key.currentUsage} restantes
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          {Math.floor((key.monthlyLimit - key.currentUsage) / 8)} consultas
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                           <div 
