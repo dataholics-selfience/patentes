@@ -165,6 +165,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
   const data = typeof result === 'string' ? JSON.parse(result) : result;
   
   const produto = data.produto || searchTerm;
+  const nomeComercial = data.nome_comercial || '';
   const patentes = data.patentes || [];
   const primeiraPatente = patentes[0]; // Patente principal
   const quimica = data.quimica || {};
@@ -276,11 +277,20 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                 {/* Informações da Patente Principal */}
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-4xl font-bold text-white mb-2">{produto}</h2>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-blue-200 text-lg">Nome da Molécula:</span>
+                        <h2 className="text-4xl text-white">{produto || 'Não informado'}</h2>
+                      </div>
+                      <div>
+                        <span className="text-blue-200 text-lg">Nome Comercial:</span>
+                        <p className="text-2xl text-blue-100">{nomeComercial || 'Não informado'}</p>
+                      </div>
+                    </div>
                     {quimica.molecular_formula && (
                       <p className="text-blue-200 text-xl font-mono">{quimica.molecular_formula}</p>
                     )}
-                    <p className="text-blue-300 text-lg mt-2">Análise completa de propriedade intelectual</p>
+                    <p className="text-blue-300 text-lg mt-4">Análise completa de propriedade intelectual</p>
                   </div>
 
                   <div className="space-y-4">
@@ -292,8 +302,8 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         ) : (
                           <XCircle size={20} className="text-white" />
                         )}
-                        <span className="font-semibold text-white">Status da Patente:</span>
-                        <span className={`font-bold ${primeiraPatente.patente_vigente ? 'text-green-300' : 'text-red-300'}`}>
+                        <span className="text-white">Status da Patente:</span>
+                        <span className={`${primeiraPatente.patente_vigente ? 'text-green-300' : 'text-red-300'}`}>
                           {primeiraPatente.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
                         </span>
                       </div>
@@ -306,8 +316,8 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Calendar size={20} className="text-white" />
-                        <span className="font-semibold text-white">Expiração Principal:</span>
-                        <span className="font-bold text-orange-300">{primeiraPatente.data_expiracao_patente_principal}</span>
+                        <span className="text-white">Expiração Principal:</span>
+                        <span className="text-orange-300">{primeiraPatente.data_expiracao_patente_principal}</span>
                       </div>
                       {primeiraPatente.data_expiracao_patente_secundaria && primeiraPatente.data_expiracao_patente_secundaria !== 'Não informado' && (
                         <span className="text-blue-200 text-sm ml-auto">Sec: {primeiraPatente.data_expiracao_patente_secundaria}</span>
@@ -318,8 +328,8 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Globe size={20} className="text-white" />
-                        <span className="font-semibold text-white">Exploração Comercial:</span>
-                        <span className={`font-bold ${primeiraPatente.exploracao_comercial ? 'text-green-300' : 'text-red-300'}`}>
+                        <span className="text-white">Exploração Comercial:</span>
+                        <span className={`${primeiraPatente.exploracao_comercial ? 'text-green-300' : 'text-red-300'}`}>
                           {primeiraPatente.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
                         </span>
                       </div>
@@ -329,29 +339,17 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Target size={20} className="text-white" />
-                        <span className="font-semibold text-white">Disponível para Novo Produto:</span>
-                        <span className="font-bold text-yellow-300">{primeiraPatente.data_vencimento_para_novo_produto}</span>
+                        <span className="text-white">Disponível para Novo Produto:</span>
+                        <span className="text-yellow-300">{primeiraPatente.data_vencimento_para_novo_produto}</span>
                       </div>
                     </div>
 
-                    {/* Objeto de Proteção */}
-                    {primeiraPatente.objeto_protecao && (
-                      <div className="p-4 bg-blue-800/50 rounded-lg border border-blue-600/50">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Shield size={20} className="text-white" />
-                          <span className="font-semibold text-white">Objeto de Proteção</span>
-                        </div>
-                        <p className="text-blue-100 leading-relaxed">{primeiraPatente.objeto_protecao}</p>
-                      </div>
-                    )}
-
                     {/* Tipo de Proteção Detalhado */}
                     {primeiraPatente.tipo_protecao_detalhado && (
-                      <div className="space-y-3">
-                        <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                           {primeiraPatente.tipo_protecao_detalhado.primaria && primeiraPatente.tipo_protecao_detalhado.primaria.length > 0 && (
                             <div className="p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
-                              <span className="font-semibold text-white block mb-2">Proteção Primária</span>
+                              <span className="text-white block mb-2">Proteção Primária</span>
                               <div className="flex flex-wrap gap-1">
                                 {primeiraPatente.tipo_protecao_detalhado.primaria.map((tipo, idx) => (
                                   <span key={idx} className="px-2 py-1 bg-green-600 text-white rounded text-sm">
@@ -364,7 +362,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                           
                           {primeiraPatente.tipo_protecao_detalhado.secundaria && primeiraPatente.tipo_protecao_detalhado.secundaria.length > 0 && (
                             <div className="p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
-                              <span className="font-semibold text-white block mb-2">Proteção Secundária</span>
+                              <span className="text-white block mb-2">Proteção Secundária</span>
                               <div className="flex flex-wrap gap-1">
                                 {primeiraPatente.tipo_protecao_detalhado.secundaria.map((tipo, idx) => (
                                   <span key={idx} className="px-2 py-1 bg-yellow-600 text-white rounded text-sm">
@@ -374,36 +372,52 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                               </div>
                             </div>
                           )}
-                        </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Score de Oportunidade */}
-                {scoreOportunidade.valor && (
-                  <div className="flex flex-col items-center justify-start">
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-white mb-2">Score de Oportunidade</h3>
-                      <div className="text-4xl font-bold text-white mb-1">{scoreOportunidade.classificacao}</div>
-                    </div>
-                    
-                    <OpportunityGauge 
-                      score={scoreOportunidade.valor} 
-                      classification={scoreOportunidade.classificacao} 
-                      size="large"
-                    />
-                    
-                    {/* Justificativa do Score */}
-                    {scoreOportunidade.justificativa && (
-                      <div className="mt-6 text-center max-w-md">
-                        <p className="text-blue-200 italic leading-relaxed text-sm">
-                          {scoreOportunidade.justificativa}
-                        </p>
+                {/* Lado Direito */}
+                <div className="space-y-6">
+                  {/* Score de Oportunidade */}
+                  {scoreOportunidade.valor && (
+                    <div className="flex flex-col items-center justify-start">
+                      <div className="text-center mb-6">
+                        <h3 className="text-2xl text-white mb-2">Score de Oportunidade</h3>
                       </div>
-                    )}
-                  </div>
-                )}
+                      
+                      <OpportunityGauge 
+                        score={scoreOportunidade.valor} 
+                        classification={scoreOportunidade.classificacao} 
+                        size="large"
+                      />
+                      
+                      <div className="mt-4 text-center">
+                        <div className="text-lg text-white">{scoreOportunidade.classificacao}</div>
+                      </div>
+                      
+                      {/* Justificativa do Score */}
+                      {scoreOportunidade.justificativa && (
+                        <div className="mt-6 text-center max-w-md">
+                          <p className="text-blue-200 italic leading-relaxed text-sm">
+                            {scoreOportunidade.justificativa}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Objeto de Proteção */}
+                  {primeiraPatente.objeto_protecao && (
+                    <div className="p-4 bg-blue-800/50 rounded-lg border border-blue-600/50">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Shield size={20} className="text-white" />
+                        <span className="text-white">Objeto de Proteção</span>
+                      </div>
+                      <p className="text-blue-100 leading-relaxed">{primeiraPatente.objeto_protecao}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
