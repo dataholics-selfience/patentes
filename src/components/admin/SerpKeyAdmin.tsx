@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, Key, Plus, Edit2, Trash2, RotateCcw, 
+  ArrowLeft, Key, Plus, Edit2, Trash2, RotateCcw, Copy,
   CheckCircle, XCircle, AlertTriangle, Save, X,
   Shield, Calendar, Phone, Mail, Settings
 } from 'lucide-react';
@@ -14,6 +14,7 @@ const SerpKeyAdmin = () => {
   const [keys, setKeys] = useState<SerpKey[]>([]);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingKeyData, setEditingKeyData] = useState<SerpKey | null>(null);
   const [newKey, setNewKey] = useState<Partial<SerpKey>>({
     email: '',
     phone: '',
@@ -73,6 +74,7 @@ const SerpKeyAdmin = () => {
       manager.updateKey(keyId, updates);
       loadKeys();
       setEditingKey(null);
+      setEditingKeyData(null);
     }
   };
 
@@ -94,6 +96,43 @@ const SerpKeyAdmin = () => {
         loadKeys();
       }
     }
+  };
+
+  const handleEditClick = (key: SerpKey) => {
+    setEditingKey(key.id);
+    setEditingKeyData({ ...key });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingKey(null);
+    setEditingKeyData(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingKeyData) {
+      handleUpdateKey(editingKeyData.id, editingKeyData);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('API Key copiada para o clipboard!');
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+      // Fallback para navegadores mais antigos
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('API Key copiada para o clipboard!');
+    }
+  };
+
+  const truncateKey = (key: string): string => {
+    return key.length > 12 ? `${key.substring(0, 12)}...` : key;
   };
 
   const getStatusColor = (key: SerpKey) => {
@@ -133,7 +172,7 @@ const SerpKeyAdmin = () => {
               <div className="flex items-center gap-3">
                 <Shield size={32} className="text-red-600" />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Admin - Chaves SERP API</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">Admin SUDO - Chaves SERP API</h1>
                   <p className="text-gray-600">Gerenciamento de chaves da SerpAPI</p>
                 </div>
               </div>
@@ -293,6 +332,7 @@ const SerpKeyAdmin = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Instância</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Conta</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API Key</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uso</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Renovação</th>
@@ -322,6 +362,11 @@ const SerpKeyAdmin = () => {
                           <Phone size={12} />
                           {key.phone}
                         </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-mono text-gray-900">
+                        {truncateKey(key.key)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -365,7 +410,7 @@ const SerpKeyAdmin = () => {
                           <RotateCcw size={16} />
                         </button>
                         <button
-                          onClick={() => setEditingKey(key.id)}
+                          onClick={() => handleEditClick(key)}
                           className="text-gray-600 hover:text-gray-800 p-1 rounded"
                           title="Editar"
                         >
@@ -386,6 +431,121 @@ const SerpKeyAdmin = () => {
             </table>
           </div>
         </div>
+
+        {/* Modal de Edição */}
+        {editingKey && editingKeyData && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">Editar Chave SERP</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    value={editingKeyData.email}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, email: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+                  <input
+                    type="text"
+                    value={editingKeyData.phone}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Instância</label>
+                  <input
+                    type="text"
+                    value={editingKeyData.instance}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, instance: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Limite Mensal</label>
+                  <input
+                    type="number"
+                    value={editingKeyData.monthlyLimit}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, monthlyLimit: parseInt(e.target.value) } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Data de Renovação</label>
+                  <input
+                    type="date"
+                    value={editingKeyData.renewalDate}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, renewalDate: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">API Key Completa</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editingKeyData.key}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, key: e.target.value } : null)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  />
+                  <button
+                    onClick={() => copyToClipboard(editingKeyData.key)}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+                    title="Copiar API Key"
+                  >
+                    <Copy size={16} />
+                    Copiar
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 mb-6">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={editingKeyData.isActive}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, isActive: e.target.checked } : null)}
+                    className="rounded"
+                  />
+                  <span>Ativa</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={editingKeyData.isDev}
+                    onChange={(e) => setEditingKeyData(prev => prev ? { ...prev, isDev: e.target.checked } : null)}
+                    className="rounded"
+                  />
+                  <span>Dev</span>
+                </label>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                >
+                  <Save size={16} />
+                  Salvar
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  <X size={16} />
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

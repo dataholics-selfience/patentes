@@ -52,7 +52,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const serpKey = serpKeyManager?.getAvailableKey();
       
       if (!serpKey) {
-        throw new Error('Nenhuma chave SERP API disponível no momento. Tente novamente mais tarde.');
+        throw new Error('Nenhuma chave SERP API disponível com créditos suficientes (8 créditos necessários por consulta). Tente novamente mais tarde.');
       }
       
       console.log('🚀 Enviando consulta direta para webhook:', { produto, nomeComercial });
@@ -85,7 +85,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Parse da resposta usando o parser existente
       const parsedResult = parsePatentResponse(responseData);
       
-      // Registrar uso da chave SERP
+      // Registrar uso da chave SERP (8 créditos por consulta)
       if (serpKeyManager && serpKey) {
         serpKeyManager.recordUsage(
           serpKey, 

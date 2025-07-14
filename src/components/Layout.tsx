@@ -13,7 +13,6 @@ import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrest
 import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
-import { isAdminUser } from '../utils/serpKeyData';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -180,7 +179,7 @@ const Layout = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 <Shield size={16} />
-                Admin SERP
+                Admin SUDO
               </Link>
             )}
             {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
@@ -262,7 +261,7 @@ const Layout = () => {
                   onClick={() => setShowSidebar(false)}
                 >
                   <Shield size={16} />
-                  Admin SERP
+                  Admin SUDO
                 </Link>
               )}
               <div className="pt-4 border-t border-gray-200">
