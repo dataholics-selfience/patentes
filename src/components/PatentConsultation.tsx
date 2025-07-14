@@ -67,6 +67,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Parse da resposta usando o parser existente
       const parsedResult = parsePatentResponse(responseData);
       
+      // Adicionar nome comercial ao resultado se foi fornecido
+      if (nomeComercial.trim()) {
+        parsedResult.nome_comercial = nomeComercial.trim();
+      }
+      
       // Atualizar tokens após sucesso
       if (auth.currentUser && tokenUsage) {
         await updateDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {

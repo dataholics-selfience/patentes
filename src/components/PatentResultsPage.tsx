@@ -282,15 +282,16 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         <span className="text-blue-200 text-lg">Nome da Molécula:</span>
                         <h2 className="text-4xl text-white">{produto || 'Não informado'}</h2>
                       </div>
-                      <div>
-                        <span className="text-blue-200 text-lg">Nome Comercial:</span>
-                        <p className="text-2xl text-blue-100">{nomeComercial || 'Não informado'}</p>
-                      </div>
+                      {nomeComercial && (
+                        <div>
+                          <span className="text-blue-200 text-lg">Nome Comercial:</span>
+                          <p className="text-2xl text-blue-100">{nomeComercial}</p>
+                        </div>
+                      )}
                     </div>
                     {quimica.molecular_formula && (
                       <p className="text-blue-200 text-xl font-mono">{quimica.molecular_formula}</p>
                     )}
-                    <p className="text-blue-300 text-lg mt-4">Análise completa de propriedade intelectual</p>
                   </div>
 
                   <div className="space-y-4">
@@ -383,7 +384,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   {scoreOportunidade.valor && (
                     <div className="flex flex-col items-center justify-start">
                       <div className="text-center mb-6">
-                        <h3 className="text-2xl text-white mb-2">Score de Oportunidade</h3>
+                        <h3 className="text-lg text-white mb-2">Score de Oportunidade</h3>
                       </div>
                       
                       <OpportunityGauge 
@@ -393,7 +394,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                       />
                       
                       <div className="mt-4 text-center">
-                        <div className="text-lg text-white">{scoreOportunidade.classificacao}</div>
+                        <div className="text-2xl font-bold text-white">{scoreOportunidade.classificacao}</div>
                       </div>
                       
                       {/* Justificativa do Score */}

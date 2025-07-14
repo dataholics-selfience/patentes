@@ -302,6 +302,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
 
     // Legacy compatibility - usar dados da primeira patente se disponível
     substancia: parsedData.produto || parsedData.nome_comercial || 'Produto consultado',
+    nome_comercial: parsedData.nome_comercial || '',
     patente_vigente: primeiraPatente?.patente_vigente || false,
     data_expiracao_patente_principal: primeiraPatente?.data_expiracao_patente_principal || 'Não informado',
     exploracao_comercial: primeiraPatente?.exploracao_comercial || false,

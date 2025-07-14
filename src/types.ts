@@ -162,6 +162,7 @@ export interface PatentResultType {
   
   // Legacy fields for backward compatibility
   substancia?: string;
+  nome_comercial?: string;
   patente_vigente?: boolean;
   data_expiracao_patente_principal?: string;
   exploracao_comercial?: boolean;
