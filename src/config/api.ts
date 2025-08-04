@@ -1,6 +1,7 @@
 export const API_CONFIG = {
   webhook: {
-    url: 'https://primary-production-2e3b.up.railway.app/webhook/production',
+    production: 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev',
+    test: 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev',
     headers: {
       'Content-Type': 'application/json'
     }
