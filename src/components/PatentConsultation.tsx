@@ -241,7 +241,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Selecionar URL baseada no ambiente
       const webhookUrl = environment === 'production' 
         ? API_CONFIG.webhook.production 
-        : API_CONFIG.webhook.test;
+        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
@@ -346,9 +346,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       />
 
       <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="w-full">
           {/* Formulário Principal */}
-          <div className="lg:col-span-2">
+          <div className="w-full">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               {/* Header com seletor de ambiente para admin */}
               <div className="flex items-center justify-between mb-6">
@@ -572,17 +572,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* Sidebar com histórico */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <PatentHistory
-                consultations={consultations}
-                onClose={() => setShowHistory(false)}
-                onConsultationDeleted={handleConsultationDeleted}
-              />
             </div>
           </div>
         </div>
