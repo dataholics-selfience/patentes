@@ -282,20 +282,30 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         setDashboardData(dashboardInfo);
       } else {
         console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
-        const patentData = parsePatentResponse(webhookResponse);
-        setResult(patentData);
-        
-        // Salvar consulta no histórico apenas para dados de patente normais
-        const consultationData: Omit<PatentConsultationType, 'id'> = {
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email || '',
-          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId: userSessionId,
-          resultado: patentData,
-          consultedAt: new Date().toISOString()
-        };
+        try {
+          const patentData = parsePatentResponse(webhookResponse);
+          setResult(patentData);
+          
+          // Salvar consulta no histórico apenas para dados de patente normais
+          const consultationData: Omit<PatentConsultationType, 'id'> = {
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email || '',
+            produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
+            sessionId: userSessionId,
+            resultado: patentData,
+            consultedAt: new Date().toISOString()
+          };
 
-        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+          const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+        } catch (parseError) {
+          if (parseError instanceof Error && parseError.message === 'DASHBOARD_DATA_DETECTED') {
+            console.log('📊 Dashboard data detectado durante parse, redirecionando para dashboard...');
+            const dashboardInfo = parseDashboardData(webhookResponse);
+            setDashboardData(dashboardInfo);
+          } else {
+            throw parseError;
+          }
+        }
       }
 
       // Atualizar tokens do usuário

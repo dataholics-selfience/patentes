@@ -39,7 +39,15 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData = rawResponse;
     }
     
-    return !!(parsedData?.produto_proposto?.comentario_dashboard_bolt || parsedData?.score_oportunidade?.valor);
+    // Verificar se tem estrutura de dashboard
+    return !!(
+      parsedData?.produto_proposto?.comentario_visualizacao ||
+      parsedData?.resumo_oportunidade?.score_oportunidade ||
+      parsedData?.analise_riscos?.comentario_visualizacao ||
+      parsedData?.recomendacoes?.comentario_visualizacao ||
+      parsedData?.comparativo_tecnico?.comentario_visualizacao ||
+      parsedData?.metadados?.cliente
+    );
   } catch {
     return false;
   }
@@ -169,10 +177,28 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
     throw new Error('Estrutura de dados de patente inválida recebida do servidor');
   }
 
-  // Ensure we're working with the correct data structure
+  // Verificar se é dados de dashboard primeiro
+  if (isDashboardData(parsedData)) {
+    console.log('📊 Dados de dashboard detectados no parsePatentResponse, redirecionando...');
+    throw new Error('DASHBOARD_DATA_DETECTED');
+  }
+
+  // Ensure we're working with the correct data structure for patent data
   // The response should have the main patent data structure
   if (!parsedData.patentes && !parsedData.quimica && !parsedData.ensaios_clinicos) {
-    throw new Error('Estrutura de dados de patente incompleta - campos obrigatórios não encontrados');
+    // Verificar se tem pelo menos alguns campos que indicam dados de patente
+    const hasPatentIndicators = !!(
+      parsedData.patente_vigente !== undefined ||
+      parsedData.data_expiracao_patente_principal ||
+      parsedData.molecular_formula ||
+      parsedData.iupac_name ||
+      parsedData.paises_registrados ||
+      parsedData.exploracao_comercial !== undefined
+    );
+    
+    if (!hasPatentIndicators) {
+      throw new Error('Estrutura de dados de patente incompleta - campos obrigatórios não encontrados');
+    }
   }
 
   // Parse patents data
