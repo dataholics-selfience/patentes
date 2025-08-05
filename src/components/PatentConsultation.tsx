@@ -22,6 +22,7 @@ import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
+import PatentLoadingAnimation from './PatentLoadingAnimation';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -82,6 +83,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
   const [userSessionId, setUserSessionId] = useState<string>('');
+  const [loadingStartTime, setLoadingStartTime] = useState<number>(0);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -213,9 +216,23 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     }
 
     setIsLoading(true);
+    setLoadingStartTime(Date.now());
+    setShowTimeoutWarning(false);
     setError('');
     setResult(null);
     setDashboardData(null);
+
+    // Mostrar aviso após 2 minutos
+    const timeoutWarningTimer = setTimeout(() => {
+      setShowTimeoutWarning(true);
+    }, 120000); // 2 minutos
+
+    // Timeout máximo de 5 minutos
+    const maxTimeoutTimer = setTimeout(() => {
+      setIsLoading(false);
+      setError('Timeout: O processamento está demorando mais que o esperado (5 minutos). Isso pode acontecer com análises complexas. Tente novamente em alguns minutos.');
+      clearTimeout(timeoutWarningTimer);
+    }, 300000); // 5 minutos
 
     try {
       // Obter chave SERP disponível
@@ -248,14 +265,19 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição e aguardar resposta diretamente
+      // Enviar requisição com timeout de 5 minutos
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(webhookData)
+        body: JSON.stringify(webhookData),
+        signal: AbortSignal.timeout(300000) // 5 minutos
       });
+
+      // Limpar timers se a resposta chegou
+      clearTimeout(timeoutWarningTimer);
+      clearTimeout(maxTimeoutTimer);
 
       if (!response.ok) {
         throw new Error(`Erro no webhook: ${response.status} ${response.statusText}`);
@@ -263,14 +285,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       const webhookResponse = await response.json();
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
-
-      // IMPORTANTE: Verificar se a resposta está vazia ou incompleta
-      if (!webhookResponse || 
-          (Array.isArray(webhookResponse) && webhookResponse.length === 0) ||
-          (typeof webhookResponse === 'object' && Object.keys(webhookResponse).length === 0)) {
-        console.log('⚠️ Resposta do webhook vazia ou incompleta, aguardando mais tempo...');
-        throw new Error('Webhook retornou resposta vazia. O processamento pode estar demorando mais que o esperado. Tente novamente em alguns minutos.');
-      }
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -283,7 +297,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
 
-      // CORREÇÃO: Verificar se é dashboard ou dados de patente normais com logs detalhados
+      // Verificar se é dashboard ou dados de patente normais
       console.log('🔍 Verificando tipo de dados recebidos...');
       if (isDashboardData(webhookResponse)) {
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
@@ -291,7 +305,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           const dashboardInfo = parseDashboardData(webhookResponse);
           console.log('✅ Dashboard info processado:', dashboardInfo);
           setDashboardData(dashboardInfo);
-          console.log('✅ Dashboard data definido no state');
         } catch (dashboardError) {
           console.error('❌ Erro ao processar dashboard data:', dashboardError);
           throw new Error(`Erro ao processar dados do dashboard: ${dashboardError instanceof Error ? dashboardError.message : 'Erro desconhecido'}`);
@@ -341,15 +354,18 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       }
 
     } catch (error) {
+      // Limpar timers em caso de erro
+      clearTimeout(timeoutWarningTimer);
+      clearTimeout(maxTimeoutTimer);
+      
       console.error('❌ Erro na consulta de patente:', error);
       
-      // Melhorar mensagens de erro para o usuário
-      let errorMessage = 'Erro desconhecido na consulta';
+      let errorMessage = 'Erro na consulta de patente';
       if (error instanceof Error) {
-        if (error.message.includes('resposta vazia')) {
-          errorMessage = 'O webhook está processando sua consulta. Isso pode demorar até 5 minutos para análises complexas. Tente novamente em alguns minutos.';
-        } else if (error.message.includes('Timeout')) {
-          errorMessage = 'A análise está demorando mais que o esperado. Webhooks complexos podem levar até 5 minutos. Tente novamente ou aguarde mais alguns minutos.';
+        if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+          errorMessage = 'A análise demorou mais de 5 minutos para ser concluída. Isso pode acontecer com consultas complexas. Tente novamente.';
+        } else if (error.message.includes('AbortError')) {
+          errorMessage = 'Consulta cancelada devido ao tempo limite de 5 minutos.';
         } else {
           errorMessage = error.message;
         }
@@ -357,7 +373,14 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       setError(errorMessage);
     } finally {
       setIsLoading(false);
+      setShowTimeoutWarning(false);
     }
+  };
+
+  const handleCancelConsultation = () => {
+    setIsLoading(false);
+    setShowTimeoutWarning(false);
+    setError('Consulta cancelada pelo usuário.');
   };
 
   const handleBackToConsultation = () => {
@@ -365,6 +388,39 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setDashboardData(null);
     setError('');
   };
+
+  // Calcular tempo decorrido para mostrar na animação
+  const getElapsedTime = () => {
+    if (!isLoading || loadingStartTime === 0) return 0;
+    return Date.now() - loadingStartTime;
+  };
+
+  // Mostrar animação de loading durante o processamento
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <PatentLoadingAnimation
+          isVisible={true}
+          searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
+          onCancel={handleCancelConsultation}
+        />
+        
+        {/* Aviso de timeout após 2 minutos */}
+        {showTimeoutWarning && (
+          <div className="fixed bottom-4 left-4 right-4 bg-yellow-900/90 border border-yellow-600 rounded-lg p-4 text-center z-50">
+            <div className="text-yellow-200">
+              <p className="font-semibold mb-2">⏱️ Processamento Demorado</p>
+              <p className="text-sm">
+                A análise está demorando mais que o normal. Webhooks complexos podem levar até 5 minutos.
+                <br />
+                Tempo decorrido: {Math.round(getElapsedTime() / 1000)}s
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Se há dashboard data, mostrar dashboard
   if (dashboardData) {
@@ -599,15 +655,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
             <button
               type="submit"
-              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+              disabled={!searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
               className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
             >
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Search size={20} />
-              )}
-              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+              <Search size={20} />
+              Consultar Patente
             </button>
 
           </form>

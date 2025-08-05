@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { FlaskConical, Globe, Building2, TestTube, FileText, TrendingUp, Hourglass, CheckCircle, Clock, X } from 'lucide-react';
-import { PollingProgress } from '../utils/webhookPoller';
 
 interface PatentLoadingAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
   searchTerm?: string;
-  pollingProgress?: PollingProgress;
   onCancel?: () => void;
 }
 
@@ -14,12 +12,11 @@ const PatentLoadingAnimation = ({
   isVisible, 
   onComplete, 
   searchTerm = "medicamento",
-  pollingProgress,
   onCancel
 }: PatentLoadingAnimationProps) => {
   const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
-  const [isWaitingForWebhook, setIsWaitingForWebhook] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   const stages = [
     {
@@ -28,7 +25,7 @@ const PatentLoadingAnimation = ({
       subtitle: "Iniciando processamento da consulta de patente",
       icon: FlaskConical,
       color: "from-blue-400 to-blue-600",
-      duration: 3000
+      duration: 5000
     },
     {
       id: 1,
@@ -36,7 +33,7 @@ const PatentLoadingAnimation = ({
       subtitle: "Acessando INPI, USPTO, EPO e WIPO",
       icon: Building2,
       color: "from-green-400 to-green-600",
-      duration: 5000
+      duration: 10000
     },
     {
       id: 2,
@@ -44,7 +41,7 @@ const PatentLoadingAnimation = ({
       subtitle: "Verificando status de patentes em múltiplas jurisdições",
       icon: Globe,
       color: "from-purple-400 to-purple-600",
-      duration: 7000
+      duration: 15000
     },
     {
       id: 3,
@@ -52,7 +49,7 @@ const PatentLoadingAnimation = ({
       subtitle: "Buscando dados em ClinicalTrials.gov",
       icon: TestTube,
       color: "from-orange-400 to-orange-600",
-      duration: 10000
+      duration: 20000
     },
     {
       id: 4,
@@ -60,29 +57,25 @@ const PatentLoadingAnimation = ({
       subtitle: "Analisando FDA Orange Book e regulações",
       icon: FileText,
       color: "from-pink-400 to-pink-600",
-      duration: 12000
+      duration: 25000
     },
     {
       id: 5,
-      title: "Calculando score de oportunidade",
-      subtitle: "Processando análise final e gerando relatório",
+      title: "Finalizando análise completa",
+      subtitle: "Gerando relatório final com score de oportunidade",
       icon: TrendingUp,
       color: "from-yellow-400 to-yellow-600",
-      duration: 15000
-    },
-    {
-      id: 6,
-      title: "Aguardando processamento completo",
-      subtitle: "Verificando se a análise foi finalizada...",
-      icon: Hourglass,
-      color: "from-indigo-400 to-indigo-600",
-      duration: Infinity // Duração infinita - controlada pelo polling
+      duration: 30000
     }
   ];
 
   useEffect(() => {
     if (!isVisible) return;
 
+    // Timer para contar tempo decorrido
+    const timeTimer = setInterval(() => {
+      setElapsedTime(prev => prev + 1000);
+    }, 1000);
     const intervals: NodeJS.Timeout[] = [];
     const timeouts: NodeJS.Timeout[] = [];
 
@@ -93,60 +86,39 @@ const PatentLoadingAnimation = ({
       setProgress(0);
 
       const stageDuration = stages[stageIndex].duration;
-      const isLastStage = stageIndex === stages.length - 1;
 
-      if (isLastStage) {
-        // Último estágio - aguardando webhook
-        setIsWaitingForWebhook(true);
-        setProgress(10); // Começar com 10%
-      } else {
-        // Estágios normais com progresso automático
-        const updateInterval = 100;
-        const progressIncrement = 100 / (stageDuration / updateInterval);
+      // Progresso automático para todos os estágios
+      const updateInterval = 100;
+      const progressIncrement = 100 / (stageDuration / updateInterval);
 
-        const progressInterval = setInterval(() => {
-          setProgress(prev => {
-            const newProgress = prev + progressIncrement;
-            if (newProgress >= 100) {
-              clearInterval(progressInterval);
-              return 100;
-            }
-            return newProgress;
-          });
-        }, updateInterval);
-        intervals.push(progressInterval);
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = prev + progressIncrement;
+          if (newProgress >= 100) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return newProgress;
+        });
+      }, updateInterval);
+      intervals.push(progressInterval);
 
-        const stageTimeout = setTimeout(() => {
-          clearInterval(progressInterval);
-          startStage(stageIndex + 1);
-        }, stageDuration);
-        timeouts.push(stageTimeout);
-      }
+      const stageTimeout = setTimeout(() => {
+        clearInterval(progressInterval);
+        startStage(stageIndex + 1);
+      }, stageDuration);
+      timeouts.push(stageTimeout);
     };
 
     startStage(0);
 
     return () => {
+      clearInterval(timeTimer);
       intervals.forEach(interval => clearInterval(interval));
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
   }, [isVisible]);
 
-  // Atualizar progresso baseado no polling real
-  useEffect(() => {
-    if (isWaitingForWebhook && pollingProgress) {
-      const { attempt, timeElapsed } = pollingProgress;
-      
-      // Progresso baseado no tempo (10% a 90%)
-      const timeProgress = Math.min((timeElapsed / 150000) * 80, 80); // 2.5 minutos = 80%
-      
-      // Progresso baseado nas tentativas (suavizar)
-      const attemptProgress = Math.min(attempt * 2, 10); // Máximo 10% das tentativas
-      
-      const totalProgress = Math.min(10 + timeProgress + attemptProgress, 95);
-      setProgress(totalProgress);
-    }
-  }, [pollingProgress, isWaitingForWebhook]);
 
   const formatTime = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -159,10 +131,6 @@ const PatentLoadingAnimation = ({
     return `${remainingSeconds}s`;
   };
 
-  const formatEstimatedTime = (ms?: number): string => {
-    if (!ms) return '';
-    return ` (estimativa: ${formatTime(ms)})`;
-  };
 
   if (!isVisible) return null;
 
@@ -291,74 +259,30 @@ const PatentLoadingAnimation = ({
 
         {/* Status Information */}
         <div className="text-white">
-          {isWaitingForWebhook && pollingProgress ? (
-            <div className="flex flex-col items-center space-y-3">
-              <div className="flex items-center space-x-2">
-                <Clock size={20} className="text-white animate-pulse" />
-                <span className="text-lg font-medium text-white">
-                  Aguardando processamento completo...
-                </span>
-              </div>
-              
-              <div className="bg-blue-800/50 rounded-lg p-4 max-w-md">
-                <div className="text-sm text-blue-200 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Verificação:</span>
-                    <span>#{pollingProgress.attempt}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tempo decorrido:</span>
-                    <span>{formatTime(pollingProgress.timeElapsed)}</span>
-                  </div>
-                  {pollingProgress.estimatedTimeRemaining && (
-                    <div className="flex justify-between">
-                      <span>Tempo estimado:</span>
-                      <span>{formatTime(pollingProgress.estimatedTimeRemaining)}</span>
-                    </div>
-                  )}
-                  {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 && (
-                    <div className="flex justify-between">
-                      <span>Renderização forçada em:</span>
-                      <span className="text-blue-300 font-medium">{formatTime(pollingProgress.forceRenderIn)}</span>
-                    </div>
-                  )}
-                  {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn <= 0 && (
-                    <div className="text-center">
-                      <span className="text-yellow-300 font-bold animate-pulse">🚨 FORÇANDO RENDERIZAÇÃO...</span>
-                    </div>
-                  )}
-                  <div className="text-xs text-blue-300 mt-2">
-                    Última verificação: {new Date(pollingProgress.lastCheck).toLocaleTimeString()}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="text-sm text-blue-300 max-w-md text-center">
-                {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 ? (
-                  <>
-                    ⏱️ <strong>Webhook pode demorar até 5 minutos para processar completamente.</strong><br/>
-                    O sistema verifica a cada 10 segundos. Renderização forçada em <strong>{formatTime(pollingProgress.forceRenderIn)}</strong> se necessário.
-                  </>
-                ) : (
-                  <>
-                    ⏱️ <strong>Aguardando processamento completo do webhook...</strong><br/>
-                    O sistema verifica automaticamente a cada 10 segundos. Aguardaremos até 5 minutos para forçar a renderização se necessário.
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center space-x-2">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="flex items-center space-x-2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
               <span className="text-lg font-medium">
-                Analisando propriedade intelectual
+                Processando análise completa...
               </span>
             </div>
-          )}
+            
+            <div className="bg-blue-800/50 rounded-lg p-4 max-w-md">
+              <div className="text-sm text-blue-200 space-y-1">
+                <div className="flex justify-between">
+                  <span>Tempo decorrido:</span>
+                  <span className="font-medium">{formatTime(elapsedTime)}</span>
+                </div>
+                <div className="text-xs text-blue-300 mt-2 text-center">
+                  ⏱️ Análises complexas podem demorar até 5 minutos
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
