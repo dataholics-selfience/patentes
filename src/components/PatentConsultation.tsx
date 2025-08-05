@@ -26,6 +26,8 @@ import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
+import { WebhookStatusStore } from '../utils/webhookStatusStore';
+import { waitForWebhookResponse } from '../utils/webhookPoller';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -87,6 +89,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -176,6 +179,16 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     return true;
   };
 
+  const handleCancelConsultation = () => {
+    if (currentSessionId) {
+      // Limpar status no Firestore se necessário
+      WebhookStatusStore.removeStatus(currentSessionId).catch(console.error);
+      setCurrentSessionId(null);
+    }
+    setIsLoading(false);
+    setError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -207,6 +220,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
+      setCurrentSessionId(sessionId);
+
+      // Inicializar status no Firestore
+      await WebhookStatusStore.createStatus(sessionId, auth.currentUser.uid, auth.currentUser.email);
 
       // Obter chave SERP disponível
       const availableKey = manager.getAvailableKey();
@@ -238,21 +255,26 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      const response = await fetch(webhookUrl, {
+      // Enviar requisição inicial para o webhook (não aguardar resposta completa)
+      fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(webhookData)
+      }).catch(error => {
+        console.error('Erro ao enviar requisição para webhook:', error);
+        // Não interromper o processo, pois vamos aguardar via polling
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
-      }
-
-      // SISTEMA SIMPLIFICADO: Aguardar resposta direta do webhook
-      const webhookResponse = await response.json();
-      console.log('✅ Resposta do webhook recebida:', webhookResponse);
+      // Aguardar resposta via polling do Firestore
+      console.log('⏳ Aguardando resposta do webhook via polling...');
+      const webhookResponse = await waitForWebhookResponse(sessionId, (status) => {
+        console.log('📊 Status atualizado:', status);
+        // Aqui você pode atualizar a UI com o progresso se necessário
+      });
+      
+      console.log('✅ Resposta final do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -299,8 +321,18 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         });
       }
 
+      // Limpar session ID após sucesso
+      setCurrentSessionId(null);
+
     } catch (error) {
       console.error('❌ Erro na consulta de patente:', error);
+      
+      // Limpar session ID em caso de erro
+      if (currentSessionId) {
+        WebhookStatusStore.removeStatus(currentSessionId).catch(console.error);
+        setCurrentSessionId(null);
+      }
+      
       setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
     } finally {
       setIsLoading(false);
@@ -554,6 +586,18 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               )}
               {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
             </button>
+
+            {/* Botão de cancelar durante o carregamento */}
+            {isLoading && (
+              <button
+                type="button"
+                onClick={handleCancelConsultation}
+                className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium mt-3"
+              >
+                <X size={16} />
+                Cancelar Consulta
+              </button>
+            )}
           </form>
 
           {/* Informações sobre tokens */}
