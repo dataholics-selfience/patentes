@@ -1005,57 +1005,71 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
 
           {/* Projeções Financeiras Expandidas */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Preços Propostos */}
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                <DollarSign size={20} />
-                Preços Propostos
-              </h4>
-              <div className="space-y-3">
-                {Object.entries(data.produto_proposto.comparativos.preco_proposto).map(([country, price]) => (
-                  <div key={country} className="flex items-center justify-between bg-white p-3 rounded border border-purple-200">
-                    <div className="flex items-center gap-2">
-                      <Flag 
-                        code={getCountryCode(country)} 
-                        style={{ width: 20, height: 15 }}
-                      />
-                      <span className="font-medium">{country}</span>
-                    </div>
-                    <span className="font-bold text-purple-600">{formatCurrency(price as string, country)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Market Share e Economia */}
-            <div className="space-y-6">
-              {/* Market Share */}
-              <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                <h4 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
-                  <PieChart size={20} />
-                  Projeção de Market Share
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                    <div className="text-3xl font-bold text-indigo-600">
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_1}
-                    </div>
-                    <div className="text-sm text-indigo-700">Ano 1</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                    <div className="text-3xl font-bold text-indigo-600">
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_2}
-                    </div>
-                    <div className="text-sm text-indigo-700">Ano 2</div>
+          {/* Projeções Financeiras Expandidas */}
+          {data.produto_proposto.comparativos && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Preços Propostos */}
+              {data.produto_proposto.comparativos.preco_proposto && (
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+                    <DollarSign size={20} />
+                    Preços Propostos
+                  </h4>
+                  <div className="space-y-3">
+                    {Object.entries(data.produto_proposto.comparativos.preco_proposto || {}).map(([country, price]) => (
+                      <div key={country} className="flex items-center justify-between bg-white p-3 rounded border border-purple-200">
+                        <div className="flex items-center gap-2">
+                          <Flag 
+                            code={getCountryCode(country)} 
+                            style={{ width: 20, height: 15 }}
+                          />
+                          <span className="font-medium">{country}</span>
+                        </div>
+                        <span className="font-bold text-purple-600">{formatCurrency(price as string, country)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Economia Esperada */}
-              <ExpectedSavings savings={data.produto_proposto.comparativos.economia_esperada_por_paciente_ano} />
+              {/* Market Share e Economia */}
+              <div className="space-y-6">
+                {/* Market Share */}
+                {(data.produto_proposto.comparativos.market_share_estimado_ano_1 || 
+                  data.produto_proposto.comparativos.market_share_estimado_ano_2) && (
+                  <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                    <h4 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+                      <PieChart size={20} />
+                      Projeção de Market Share
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {data.produto_proposto.comparativos.market_share_estimado_ano_1 && (
+                        <div className="text-center p-4 bg-white rounded border border-indigo-200">
+                          <div className="text-3xl font-bold text-indigo-600">
+                            {data.produto_proposto.comparativos.market_share_estimado_ano_1}
+                          </div>
+                          <div className="text-sm text-indigo-700">Ano 1</div>
+                        </div>
+                      )}
+                      {data.produto_proposto.comparativos.market_share_estimado_ano_2 && (
+                        <div className="text-center p-4 bg-white rounded border border-indigo-200">
+                          <div className="text-3xl font-bold text-indigo-600">
+                            {data.produto_proposto.comparativos.market_share_estimado_ano_2}
+                          </div>
+                          <div className="text-sm text-indigo-700">Ano 2</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Economia Esperada */}
+                {data.produto_proposto.comparativos.economia_esperada_por_paciente_ano && (
+                  <ExpectedSavings savings={data.produto_proposto.comparativos.economia_esperada_por_paciente_ano} />
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Análise de Riscos */}
           <div className="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">

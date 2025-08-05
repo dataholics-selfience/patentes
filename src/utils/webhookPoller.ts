@@ -26,7 +26,7 @@ export class WebhookPoller {
   private startTime: number;
   private isPolling: boolean = false;
   private maxAttempts: number = 600; // 100 minutos máximo (600 * 10s)
-  private forceRenderTimeout: number = 900000; // 15 minutos (900 segundos)
+  private forceRenderTimeout: number = 300000; // 5 minutos (300 segundos)
 
   constructor(
     sessionId: string, 
@@ -50,7 +50,7 @@ export class WebhookPoller {
       attempt++;
       const timeElapsed = Date.now() - this.startTime;
       
-      // TIMEOUT FORÇADO AUMENTADO - Se passou de 15 minutos, força renderização
+      // TIMEOUT FORÇADO - Se passou de 5 minutos, força renderização
       if (timeElapsed >= this.forceRenderTimeout) {
         console.log(`🚨 TIMEOUT FORÇADO ATIVADO após ${Math.round(timeElapsed / 1000)}s (${Math.round(timeElapsed / 60000)} minutos)`);
         console.log(`🔍 Fazendo última tentativa de buscar dados...`);
@@ -262,7 +262,7 @@ export class WebhookPoller {
   private estimateTimeRemaining(timeElapsed: number): number | undefined {
     // Estimativa baseada em dados históricos ATUALIZADOS
     const averageProcessingTime = 180000; // 3 minutos em média
-    const maxProcessingTime = 900000; // 15 minutos máximo
+    const maxProcessingTime = 300000; // 5 minutos máximo
     
     if (timeElapsed < averageProcessingTime) {
       return averageProcessingTime - timeElapsed;
@@ -270,7 +270,7 @@ export class WebhookPoller {
       return maxProcessingTime - timeElapsed;
     }
     
-    // Após 15 minutos, não dar estimativa
+    // Após 5 minutos, não dar estimativa
     return undefined;
   }
 

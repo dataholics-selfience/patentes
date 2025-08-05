@@ -347,9 +347,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       let errorMessage = 'Erro desconhecido na consulta';
       if (error instanceof Error) {
         if (error.message.includes('resposta vazia')) {
-          errorMessage = 'O webhook está processando sua consulta. Isso pode demorar até 15 minutos para análises complexas. Tente novamente em alguns minutos.';
+          errorMessage = 'O webhook está processando sua consulta. Isso pode demorar até 5 minutos para análises complexas. Tente novamente em alguns minutos.';
         } else if (error.message.includes('Timeout')) {
-          errorMessage = 'A análise está demorando mais que o esperado. Webhooks complexos podem levar até 15 minutos. Tente novamente ou aguarde mais alguns minutos.';
+          errorMessage = 'A análise está demorando mais que o esperado. Webhooks complexos podem levar até 5 minutos. Tente novamente ou aguarde mais alguns minutos.';
         } else {
           errorMessage = error.message;
         }
