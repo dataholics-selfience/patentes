@@ -19,12 +19,9 @@ import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } fro
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType, PatentConsultationType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
-import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
-import { WebhookStatusStore } from '../utils/webhookStatusStore';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
 import PatentHistory from './PatentHistory';
-import { API_CONFIG } from '../config/api';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
@@ -87,7 +84,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [error, setError] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [consultations, setConsultations] = useState<PatentConsultationType[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
@@ -207,14 +203,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setIsLoading(true);
     setError('');
     setResult(null);
-    setPollingProgress(null);
+    setDashboardData(null);
 
     try {
       const sessionId = uuidv4().replace(/-/g, '');
-      setCurrentSessionId(sessionId);
-
-      // Criar status inicial no Firestore
-      await WebhookStatusStore.createStatus(sessionId, auth.currentUser.uid, auth.currentUser.email);
 
       // Obter chave SERP disponível
       const availableKey = manager.getAvailableKey();
@@ -222,7 +214,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         throw new Error('Nenhuma chave SERP API disponível no momento');
       }
 
-      // Preparar dados para o webhook com novos campos
+      // Preparar dados para o webhook
       const webhookData = {
         cliente: userCompany,
         nome_comercial: searchData.nome_comercial.trim(),
@@ -239,22 +231,28 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
 
-      // Selecionar URL baseada no ambiente
+      // CORREÇÃO: Usar URL correta baseada no ambiente
       const webhookUrl = environment === 'production' 
-        ? API_CONFIG.webhook.production 
+        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'  // URL CORRIGIDA
         : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
-        headers: API_CONFIG.webhook.headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(webhookData)
       });
 
       if (!response.ok) {
         throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
       }
+
+      // SISTEMA SIMPLIFICADO: Aguardar resposta direta do webhook
+      const webhookResponse = await response.json();
+      console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -266,11 +264,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       if (!usageRecorded) {
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
-
-      // Aguardar resposta completa do webhook
-      const webhookResponse = await waitForWebhookResponse(sessionId);
-
-      console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Verificar se é dashboard ou dados de patente normais
       if (isDashboardData(webhookResponse)) {
@@ -311,14 +304,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
     } finally {
       setIsLoading(false);
-      setCurrentSessionId(null);
     }
-  };
-
-  const handleCancelConsultation = () => {
-    setIsLoading(false);
-    setCurrentSessionId(null);
-    setError('Consulta cancelada pelo usuário');
   };
 
   const handleConsultationDeleted = (deletedId: string) => {
@@ -353,243 +339,250 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   }
 
   return (
-    <>
-      <div className="max-w-4xl mx-auto">
-        <div className="w-full">
-          {/* Formulário Principal */}
-          <div className="w-full">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              {/* Header com seletor de ambiente para admin */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <FlaskConical size={32} className="text-blue-600" />
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h2>
-                    <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
-                  </div>
-                </div>
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      {/* Formulário Principal */}
+      <div className="lg:col-span-3">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {/* Header com seletor de ambiente para admin */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <FlaskConical size={32} className="text-blue-600" />
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h2>
+                <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
+              </div>
+            </div>
 
-                {/* Seletor de ambiente apenas para admin */}
-                {isAdminUser && (
-                  <div className="relative">
+            {/* Seletor de ambiente apenas para admin */}
+            {isAdminUser && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsEnvironmentSelectorOpen(!isEnvironmentSelectorOpen)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-colors ${
+                    environment === 'production'
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-yellow-600 text-white border-yellow-600'
+                  }`}
+                >
+                  <Settings size={16} />
+                  <span className="font-medium">
+                    {environment === 'production' ? 'PRODUÇÃO' : 'TESTES'}
+                  </span>
+                </button>
+
+                {isEnvironmentSelectorOpen && (
+                  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
                     <button
-                      onClick={() => setIsEnvironmentSelectorOpen(!isEnvironmentSelectorOpen)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-colors ${
-                        environment === 'production'
-                          ? 'bg-green-600 text-white border-green-600'
-                          : 'bg-yellow-600 text-white border-yellow-600'
+                      onClick={() => {
+                        setEnvironment('production');
+                        setIsEnvironmentSelectorOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        environment === 'production' ? 'bg-green-50 text-green-700' : 'text-gray-700'
                       }`}
                     >
-                      <Settings size={16} />
-                      <span className="font-medium">
-                        {environment === 'production' ? 'PRODUÇÃO' : 'TESTES'}
-                      </span>
-                    </button>
-
-                    {isEnvironmentSelectorOpen && (
-                      <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
-                        <button
-                          onClick={() => {
-                            setEnvironment('production');
-                            setIsEnvironmentSelectorOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                            environment === 'production' ? 'bg-green-50 text-green-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <div>
-                            <div className="font-medium">Produção</div>
-                            <div className="text-xs text-gray-500">Webhook principal</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEnvironment('test');
-                            setIsEnvironmentSelectorOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                            environment === 'test' ? 'bg-yellow-50 text-yellow-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                          <div>
-                            <div className="font-medium">Testes</div>
-                            <div className="text-xs text-gray-500">Webhook de desenvolvimento</div>
-                          </div>
-                        </button>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">Produção</div>
+                        <div className="text-xs text-gray-500">Webhook principal</div>
                       </div>
-                    )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEnvironment('test');
+                        setIsEnvironmentSelectorOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        environment === 'test' ? 'bg-yellow-50 text-yellow-700' : 'text-gray-700'
+                      }`}
+                    >
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">Testes</div>
+                        <div className="text-xs text-gray-500">Webhook de desenvolvimento</div>
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
+            )}
+          </div>
 
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600">{error}</p>
-                </div>
-              )}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Campos principais */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Pill size={16} className="inline mr-2 text-blue-600" />
-                      Nome Comercial *
-                    </label>
-                    <input
-                      type="text"
-                      value={searchData.nome_comercial}
-                      onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: Ozempic, Trulicity, Victoza"
-                      required
-                    />
-                  </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Campos principais */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Pill size={16} className="inline mr-2 text-blue-600" />
+                  Nome Comercial *
+                </label>
+                <input
+                  type="text"
+                  value={searchData.nome_comercial}
+                  onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: Ozempic, Trulicity, Victoza"
+                  required
+                />
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <TestTube size={16} className="inline mr-2 text-purple-600" />
-                      Nome da Molécula *
-                    </label>
-                    <input
-                      type="text"
-                      value={searchData.nome_molecula}
-                      onChange={(e) => handleInputChange('nome_molecula', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: Semaglutida, Dulaglutida, Liraglutida"
-                      required
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <TestTube size={16} className="inline mr-2 text-purple-600" />
+                  Nome da Molécula *
+                </label>
+                <input
+                  type="text"
+                  value={searchData.nome_molecula}
+                  onChange={(e) => handleInputChange('nome_molecula', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: Semaglutida, Dulaglutida, Liraglutida"
+                  required
+                />
+              </div>
+            </div>
 
-                {/* Categoria farmacêutica */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Building2 size={16} className="inline mr-2 text-green-600" />
-                    Categoria Farmacêutica
-                  </label>
-                  <select
-                    value={searchData.categoria}
-                    onChange={(e) => handleInputChange('categoria', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            {/* Categoria farmacêutica */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Building2 size={16} className="inline mr-2 text-green-600" />
+                Categoria Farmacêutica
+              </label>
+              <select
+                value={searchData.categoria}
+                onChange={(e) => handleInputChange('categoria', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Selecione uma categoria</option>
+                {PHARMACEUTICAL_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Benefício e doença alvo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Target size={16} className="inline mr-2 text-orange-600" />
+                  Benefício Principal
+                </label>
+                <input
+                  type="text"
+                  value={searchData.beneficio}
+                  onChange={(e) => handleInputChange('beneficio', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: Controle glicêmico e perda de peso"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <Zap size={16} className="inline mr-2 text-red-600" />
+                  Doença Alvo
+                </label>
+                <input
+                  type="text"
+                  value={searchData.doenca_alvo}
+                  onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: Diabetes tipo 2 e obesidade"
+                />
+              </div>
+            </div>
+
+            {/* Seleção de países */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                <Globe size={16} className="inline mr-2 text-indigo-600" />
+                Países Alvo * (selecione pelo menos um)
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {AVAILABLE_COUNTRIES.map(country => (
+                  <label
+                    key={country}
+                    className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                      searchData.pais_alvo.includes(country)
+                        ? 'bg-blue-50 border-blue-300 text-blue-700'
+                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
-                    <option value="">Selecione uma categoria</option>
-                    {PHARMACEUTICAL_CATEGORIES.map(category => (
-                      <option key={category} value={category}>{category}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Benefício e doença alvo */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Target size={16} className="inline mr-2 text-orange-600" />
-                      Benefício Principal
-                    </label>
                     <input
-                      type="text"
-                      value={searchData.beneficio}
-                      onChange={(e) => handleInputChange('beneficio', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: Controle glicêmico e perda de peso"
+                      type="checkbox"
+                      checked={searchData.pais_alvo.includes(country)}
+                      onChange={() => handleCountryToggle(country)}
+                      className="rounded text-blue-600 focus:ring-blue-500"
                     />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Zap size={16} className="inline mr-2 text-red-600" />
-                      Doença Alvo
-                    </label>
-                    <input
-                      type="text"
-                      value={searchData.doenca_alvo}
-                      onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Ex: Diabetes tipo 2 e obesidade"
-                    />
-                  </div>
-                </div>
-
-                {/* Seleção de países */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    <Globe size={16} className="inline mr-2 text-indigo-600" />
-                    Países Alvo * (selecione pelo menos um)
+                    <span className="text-sm font-medium">{country}</span>
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {AVAILABLE_COUNTRIES.map(country => (
-                      <label
-                        key={country}
-                        className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                          searchData.pais_alvo.includes(country)
-                            ? 'bg-blue-50 border-blue-300 text-blue-700'
-                            : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={searchData.pais_alvo.includes(country)}
-                          onChange={() => handleCountryToggle(country)}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-sm font-medium">{country}</span>
-                      </label>
-                    ))}
-                  </div>
-                  
-                  {searchData.pais_alvo.length > 0 && (
-                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin size={16} className="text-blue-600" />
-                        <span className="text-sm font-medium text-blue-700">
-                          Países selecionados ({searchData.pais_alvo.length}):
-                        </span>
-                      </div>
-                      <CountryFlagsFromText 
-                        countriesText={searchData.pais_alvo.join(', ')}
-                        size={20}
-                        showNames={true}
-                        className="flex flex-wrap gap-2"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
-                >
-                  {isLoading ? (
-                    <Loader2 size={20} className="animate-spin" />
-                  ) : (
-                    <Search size={20} />
-                  )}
-                  {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
-                </button>
-              </form>
-
-              {/* Informações sobre tokens */}
-              {tokenUsage && (
-                <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">
-                      Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
-                    </span>
-                    <span className="text-gray-600">
-                      Plano: <strong>{tokenUsage.plan}</strong>
+                ))}
+              </div>
+              
+              {searchData.pais_alvo.length > 0 && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MapPin size={16} className="text-blue-600" />
+                    <span className="text-sm font-medium text-blue-700">
+                      Países selecionados ({searchData.pais_alvo.length}):
                     </span>
                   </div>
+                  <CountryFlagsFromText 
+                    countriesText={searchData.pais_alvo.join(', ')}
+                    size={20}
+                    showNames={true}
+                    className="flex flex-wrap gap-2"
+                  />
                 </div>
               )}
             </div>
-          </div>
+
+            <button
+              type="submit"
+              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
+            >
+              {isLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Search size={20} />
+              )}
+              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+            </button>
+          </form>
+
+          {/* Informações sobre tokens */}
+          {tokenUsage && (
+            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
+                </span>
+                <span className="text-gray-600">
+                  Plano: <strong>{tokenUsage.plan}</strong>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </>
+
+      {/* Histórico de Consultas */}
+      <div className="lg:col-span-1">
+        <div className="sticky top-8">
+          <PatentHistory
+            consultations={consultations}
+            onClose={() => setShowHistory(false)}
+            onConsultationDeleted={handleConsultationDeleted}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 
