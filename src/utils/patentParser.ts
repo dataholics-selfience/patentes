@@ -50,6 +50,9 @@ export const isDashboardData = (rawResponse: any): boolean => {
     // Verificar se tem estrutura de dashboard
     const isDashboard = !!(
       parsedData?.produto_proposto?.comentario_visualizacao ||
+      parsedData?.produto_proposto?.nome_sugerido ||
+      parsedData?.produto_proposto?.go_to_market ||
+      parsedData?.produto_proposto?.linha_do_tempo ||
       parsedData?.resumo_oportunidade?.score_oportunidade ||
       parsedData?.resumo_oportunidade?.comentario_visualizacao ||
       parsedData?.analise_riscos?.comentario_visualizacao ||
@@ -57,7 +60,9 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData?.comparativo_tecnico?.comentario_visualizacao ||
       parsedData?.metadados?.cliente ||
       parsedData?.consulta?.cliente ||
-      parsedData?.score_oportunidade?.valor !== undefined
+      parsedData?.score_oportunidade?.valor !== undefined ||
+      parsedData?.comparativo_similares ||
+      parsedData?.produtos_similares
     );
     
     console.log(`🎯 É dashboard? ${isDashboard}`, {
@@ -65,7 +70,9 @@ export const isDashboardData = (rawResponse: any): boolean => {
       hasResumoOportunidade: !!parsedData?.resumo_oportunidade,
       hasScoreOportunidade: !!parsedData?.score_oportunidade,
       hasConsulta: !!parsedData?.consulta,
-      hasMetadados: !!parsedData?.metadados
+      hasMetadados: !!parsedData?.metadados,
+      hasComparativoSimilares: !!parsedData?.comparativo_similares,
+      hasProdutosSimilares: !!parsedData?.produtos_similares
     });
     
     return isDashboard;

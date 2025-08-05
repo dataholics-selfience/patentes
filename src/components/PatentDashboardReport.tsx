@@ -413,6 +413,22 @@ const ExpectedSavings = ({ savings }: { savings: { [country: string]: string } }
 
 // Componente para Go-to-Market Strategy Melhorada
 const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
+  // Safety check for strategy data
+  if (!strategy || typeof strategy !== 'object') {
+    return (
+      <div className="bg-gradient-to-br from-purple-50 to-indigo-100 p-6 rounded-xl border border-purple-200">
+        <div className="flex items-center gap-3 mb-4">
+          <Zap size={24} className="text-purple-600" />
+          <h4 className="text-xl font-bold text-purple-900">Estratégia Go-to-Market</h4>
+        </div>
+        <div className="text-center py-8">
+          <Target size={48} className="text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600">Estratégia Go-to-Market não disponível</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-br from-purple-50 to-indigo-100 p-6 rounded-xl border border-purple-200">
       <div className="flex items-center gap-3 mb-6">
@@ -428,7 +444,7 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <Target size={20} className="text-purple-600" />
               <span className="font-semibold text-purple-900">Modelo de Negócio</span>
             </div>
-            <p className="text-gray-800">{strategy.modelo}</p>
+            <p className="text-gray-800">{strategy.modelo || 'Não informado'}</p>
           </div>
           
           <div className="bg-white p-4 rounded-lg border border-purple-200">
@@ -436,7 +452,7 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <Award size={20} className="text-purple-600" />
               <span className="font-semibold text-purple-900">Posicionamento</span>
             </div>
-            <p className="text-gray-800">{strategy.posicionamento}</p>
+            <p className="text-gray-800">{strategy.posicionamento || 'Não informado'}</p>
           </div>
           
           <div className="bg-white p-4 rounded-lg border border-purple-200">
@@ -444,7 +460,7 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <DollarSign size={20} className="text-purple-600" />
               <span className="font-semibold text-purple-900">Estratégia de Preço</span>
             </div>
-            <p className="text-gray-800">{strategy.estrategia_preco}</p>
+            <p className="text-gray-800">{strategy.estrategia_preco || 'Não informado'}</p>
           </div>
         </div>
         
@@ -456,11 +472,14 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <span className="font-semibold text-purple-900">Canais de Distribuição</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {strategy.canais?.map((canal: string, index: number) => (
+              {(strategy.canais || []).map((canal: string, index: number) => (
                 <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
                   {canal}
                 </span>
               ))}
+              {(!strategy.canais || strategy.canais.length === 0) && (
+                <span className="text-gray-500 italic">Nenhum canal definido</span>
+              )}
             </div>
           </div>
           
@@ -470,11 +489,14 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <span className="font-semibold text-purple-900">Parcerias Estratégicas</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {strategy.parcerias?.map((parceria: string, index: number) => (
+              {(strategy.parcerias || []).map((parceria: string, index: number) => (
                 <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
                   {parceria}
                 </span>
               ))}
+              {(!strategy.parcerias || strategy.parcerias.length === 0) && (
+                <span className="text-gray-500 italic">Nenhuma parceria definida</span>
+              )}
             </div>
           </div>
           
@@ -483,7 +505,7 @@ const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
               <Calendar size={20} className="text-purple-600" />
               <span className="font-semibold text-purple-900">Timeline de Lançamento</span>
             </div>
-            <p className="text-gray-800 font-medium">{strategy.timeline_lancamento}</p>
+            <p className="text-gray-800 font-medium">{strategy.timeline_lancamento || 'Não informado'}</p>
           </div>
         </div>
       </div>
@@ -573,22 +595,22 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       
       // Cliente e Produto
       pdf.setFontSize(14);
-      pdf.text(`Cliente: ${data.consulta.cliente}`, margin, yPosition);
+      pdf.text(`Cliente: ${data.consulta?.cliente || 'Não informado'}`, margin, yPosition);
       yPosition += 8;
-      pdf.text(`Produto: ${data.consulta.nome_comercial} (${data.consulta.nome_molecula})`, margin, yPosition);
+      pdf.text(`Produto: ${data.consulta?.nome_comercial || 'N/A'} (${data.consulta?.nome_molecula || 'N/A'})`, margin, yPosition);
       yPosition += 8;
       
       // Score
       pdf.setFontSize(12);
-      pdf.text(`Score de Oportunidade: ${data.score_oportunidade.valor}/10`, margin, yPosition);
+      pdf.text(`Score de Oportunidade: ${data.score_oportunidade?.valor || 0}/10`, margin, yPosition);
       yPosition += 10;
       
       // Data
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Data: ${new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')}`, margin, yPosition);
+      pdf.text(`Data: ${data.consulta?.data_consulta ? new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}`, margin, yPosition);
       
-      const fileName = `dashboard-${data.consulta.cliente.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.nome_comercial.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.data_consulta}.pdf`;
+      const fileName = `dashboard-${(data.consulta?.cliente || 'cliente').replace(/\s+/g, '-').toLowerCase()}-${(data.consulta?.nome_comercial || 'produto').replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
     } catch (error) {
@@ -599,7 +621,8 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
     }
   };
 
-  const formatCurrency = (value: string, country: string) => {
+  const formatCurrency = (value: string | undefined, country: string) => {
+    if (!value) return 'Não informado';
     if (country === 'Brasil') {
       return value.startsWith('R$') ? value : `R$ ${value}`;
     }
@@ -703,6 +726,9 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                       <span className="text-white text-sm font-medium">{country}</span>
                     </div>
                   ))}
+                  {(!consulta.pais_alvo || consulta.pais_alvo.length === 0) && (
+                    <span className="text-blue-200 italic">Nenhum país especificado</span>
+                  )}
                 </div>
               </div>
 
@@ -969,7 +995,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
           
           <div className="mb-6">
-            <h4 className="text-2xl font-bold text-yellow-600 mb-4">{data.produto_proposto.nome_sugerido}</h4>
+            <h4 className="text-2xl font-bold text-yellow-600 mb-4">{produtoProposto.nome_sugerido || 'Produto Proposto'}</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div className="bg-white p-3 rounded border border-yellow-200">
@@ -1010,34 +1036,38 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
 
           {/* Go-to-Market Strategy Melhorada */}
-          <div className="mb-8">
-            <GoToMarketStrategy strategy={data.produto_proposto.go_to_market} />
-          </div>
+          {produtoProposto.go_to_market && (
+            <div className="mb-8">
+              <GoToMarketStrategy strategy={produtoProposto.go_to_market} />
+            </div>
+          )}
 
           {/* Timeline Melhorada */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock size={20} className="text-blue-600" />
-              Linha do Tempo de Desenvolvimento
-            </h4>
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <EnhancedTimeline timeline={data.produto_proposto.linha_do_tempo} />
+          {produtoProposto.linha_do_tempo && (
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Clock size={20} className="text-blue-600" />
+                Linha do Tempo de Desenvolvimento
+              </h4>
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <EnhancedTimeline timeline={produtoProposto.linha_do_tempo} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Projeções Financeiras Expandidas */}
           {/* Projeções Financeiras Expandidas */}
-          {data.produto_proposto.comparativos && (
+          {produtoProposto.comparativos && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Preços Propostos */}
-              {data.produto_proposto.comparativos.preco_proposto && (
+              {produtoProposto.comparativos.preco_proposto && (
                 <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
                   <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
                     <DollarSign size={20} />
                     Preços Propostos
                   </h4>
                   <div className="space-y-3">
-                    {Object.entries(data.produto_proposto.comparativos.preco_proposto || {}).map(([country, price]) => (
+                    {Object.entries(produtoProposto.comparativos.preco_proposto || {}).map(([country, price]) => (
                       <div key={country} className="flex items-center justify-between bg-white p-3 rounded border border-purple-200">
                         <div className="flex items-center gap-2">
                           <Flag 
@@ -1056,26 +1086,26 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
               {/* Market Share e Economia */}
               <div className="space-y-6">
                 {/* Market Share */}
-                {(data.produto_proposto.comparativos.market_share_estimado_ano_1 || 
-                  data.produto_proposto.comparativos.market_share_estimado_ano_2) && (
+                {(produtoProposto.comparativos.market_share_estimado_ano_1 || 
+                  produtoProposto.comparativos.market_share_estimado_ano_2) && (
                   <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
                     <h4 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
                       <PieChart size={20} />
                       Projeção de Market Share
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_1 && (
+                      {produtoProposto.comparativos.market_share_estimado_ano_1 && (
                         <div className="text-center p-4 bg-white rounded border border-indigo-200">
                           <div className="text-3xl font-bold text-indigo-600">
-                            {data.produto_proposto.comparativos.market_share_estimado_ano_1}
+                            {produtoProposto.comparativos.market_share_estimado_ano_1}
                           </div>
                           <div className="text-sm text-indigo-700">Ano 1</div>
                         </div>
                       )}
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_2 && (
+                      {produtoProposto.comparativos.market_share_estimado_ano_2 && (
                         <div className="text-center p-4 bg-white rounded border border-indigo-200">
                           <div className="text-3xl font-bold text-indigo-600">
-                            {data.produto_proposto.comparativos.market_share_estimado_ano_2}
+                            {produtoProposto.comparativos.market_share_estimado_ano_2}
                           </div>
                           <div className="text-sm text-indigo-700">Ano 2</div>
                         </div>
@@ -1085,26 +1115,28 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                 )}
 
                 {/* Economia Esperada */}
-                {data.produto_proposto.comparativos.economia_esperada_por_paciente_ano && (
-                  <ExpectedSavings savings={data.produto_proposto.comparativos.economia_esperada_por_paciente_ano} />
+                {produtoProposto.comparativos?.economia_esperada_por_paciente_ano && (
+                  <ExpectedSavings savings={produtoProposto.comparativos.economia_esperada_por_paciente_ano} />
                 )}
               </div>
             </div>
           )}
 
           {/* Análise de Riscos */}
-          <div className="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
-            <h4 className="text-lg font-semibold text-red-900 mb-3 flex items-center gap-2">
-              <AlertTriangle size={20} />
-              Análise de Riscos
-            </h4>
-            <p className="text-red-800 leading-relaxed">{data.produto_proposto.analise_de_riscos}</p>
-          </div>
+          {produtoProposto.analise_de_riscos && (
+            <div className="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
+              <h4 className="text-lg font-semibold text-red-900 mb-3 flex items-center gap-2">
+                <AlertTriangle size={20} />
+                Análise de Riscos
+              </h4>
+              <p className="text-red-800 leading-relaxed">{produtoProposto.analise_de_riscos}</p>
+            </div>
+          )}
         </div>
         </div>
 
         {/* 6. Insights do Dashboard (Comentários Bolt) */}
-        {data.produto_proposto.comentario_dashboard_bolt && (
+        {produtoProposto.comentario_dashboard_bolt && (
           <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
             <div className="flex items-center gap-3 mb-4">
               <LineChart size={24} className="text-gray-300" />
@@ -1114,39 +1146,39 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-green-400 mb-2">
-                  {data.score_oportunidade.valor}/10
+                  {scoreOportunidade.valor || 0}/10
                 </div>
                 <div className="text-gray-300 text-sm">Score de Oportunidade</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_score}</div>
+                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_score || 'N/A'}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-400 mb-2">
-                  {data.comparativo_similares.length}
+                  {comparativoSimilares.length}
                 </div>
                 <div className="text-gray-300 text-sm">Concorrentes</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_comparativo}</div>
+                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_comparativo || 'N/A'}</div>
               </div>
               
               <div className="text-center">
                 <div className="text-3xl font-bold text-purple-400 mb-2">
-                  {Object.keys(data.produto_proposto.linha_do_tempo).length}
+                  {Object.keys(produtoProposto.linha_do_tempo || {}).length}
                 </div>
                 <div className="text-gray-300 text-sm">Fases do Projeto</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_timeline}</div>
+                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_timeline || 'N/A'}</div>
               </div>
             </div>
             
             <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
               <h4 className="font-semibold text-gray-200 mb-2">Observações Técnicas:</h4>
               <p className="text-gray-300 italic leading-relaxed">
-                {data.produto_proposto.comentario_dashboard_bolt.observacoes}
+                {produtoProposto.comentario_dashboard_bolt?.observacoes || 'Nenhuma observação disponível'}
               </p>
             </div>
             
             <div className="mt-6 text-center">
               <p className="text-gray-300 italic">
-                "Análise gerada em {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')} para {data.consulta.cliente}"
+                "Análise gerada em {consulta.data_consulta ? new Date(consulta.data_consulta).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')} para {consulta.cliente || 'Cliente'}"
               </p>
             </div>
           </div>
