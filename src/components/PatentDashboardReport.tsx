@@ -1,158 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   ArrowLeft, 
   Download,
+  FlaskConical,
+  Shield,
+  Beaker,
+  TestTube,
+  FileText,
   TrendingUp,
-  Calendar,
-  MapPin,
+  CheckCircle,
+  XCircle,
+  Globe,
   Building2,
-  Pill,
-  Target,
+  Calendar,
+  ExternalLink,
+  Award,
   DollarSign,
+  BookOpen,
+  Pill,
+  MapPin,
+  AlertTriangle,
+  Target,
+  Lightbulb,
+  Users,
   Clock,
+  Star,
+  Zap,
   BarChart3,
   PieChart,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Globe,
-  Users,
-  Zap,
-  Award,
-  Lightbulb,
-  FileText,
-  ExternalLink,
-  Search,
-  TestTube,
-  Stethoscope,
-  TrendingDown,
-  Shield,
-  Banknote,
   LineChart
 } from 'lucide-react';
-import Flag from 'react-world-flags';
 import jsPDF from 'jspdf';
-
-interface DashboardData {
-  consulta: {
-    cliente: string;
-    termo_pesquisado: string;
-    pais_alvo: string[];
-    data_consulta: string;
-    nome_comercial: string;
-    nome_molecula: string;
-    industria: string;
-    setor: string;
-    categoria: string;
-    beneficio: string;
-    doenca_alvo: string;
-  };
-  score_oportunidade: {
-    valor: number;
-    justificativa_detalhada: string;
-    fatores_quantitativos: {
-      patente_proxima_do_vencimento: boolean;
-      quantidade_buscas_google: {
-        [country: string]: number;
-      };
-      prescricoes_clinicas_identificadas: number;
-      ensaios_clinicos_em_andamento: number;
-      volume_shopping?: {
-        [country: string]: {
-          preco_medio: string;
-          faixa_preco: string;
-          principais_fabricantes: string[];
-        };
-      };
-    };
-    fatores_qualitativos: {
-      tendencia_midiatica: string;
-      receptividade_de_mercado: string;
-      riscos: string;
-      justificativa: string;
-    };
-  };
-  comparativo_similares: Array<{
-    nome_comercial: string;
-    nome_molecula: string;
-    status_patente: string;
-    preco_medio: string;
-    fabricante: string;
-    registro_fda: boolean;
-    registro_anvisa: boolean;
-  }>;
-  produto_proposto: {
-    nome_sugerido: string;
-    tipo: string;
-    industria: string;
-    setor: string;
-    categoria: string;
-    molecula_base: string;
-    beneficio: string;
-    doenca_alvo: string;
-    justificativa: string;
-    analise_de_riscos: string;
-    go_to_market: {
-      modelo: string;
-      canais: string[];
-      parcerias: string[];
-      posicionamento: string;
-      estrategia_preco: string;
-      timeline_lancamento: string;
-    };
-    linha_do_tempo: {
-      [phase: string]: string;
-    };
-    comparativos: {
-      preco_proposto: {
-        [country: string]: string;
-      };
-      market_share_estimado_ano_1: string;
-      market_share_estimado_ano_2: string;
-      economia_esperada_por_paciente_ano: {
-        [country: string]: string;
-      };
-    };
-    comentario_dashboard_bolt: {
-      tipo_grafico_score: string;
-      tipo_grafico_comparativo: string;
-      tipo_grafico_timeline: string;
-      observacoes: string;
-    };
-  };
-}
+import Flag from 'react-world-flags';
 
 interface PatentDashboardReportProps {
-  data: DashboardData;
+  data: any;
   onBack: () => void;
 }
 
 // Mapeamento de países para códigos de bandeiras
 const countryCodeMap: { [key: string]: string } = {
-  'Brasil': 'BR',
   'Estados Unidos': 'US',
-  'EUA': 'US',
-  'União Europeia': 'EU',
+  'United States': 'US',
+  'Brasil': 'BR',
+  'Brazil': 'BR',
   'Japão': 'JP',
-  'China': 'CN',
-  'Canadá': 'CA',
+  'Japan': 'JP',
   'Argentina': 'AR',
+  'Colômbia': 'CO',
+  'Colombia': 'CO',
+  'Chile': 'CL',
   'México': 'MX',
+  'Mexico': 'MX',
+  'União Europeia': 'EU',
+  'European Union': 'EU',
+  'China': 'CN',
   'Alemanha': 'DE',
+  'Germany': 'DE',
   'França': 'FR',
-  'Reino Unido': 'GB'
+  'France': 'FR',
+  'Reino Unido': 'GB',
+  'United Kingdom': 'GB'
 };
 
 const getCountryCode = (countryName: string): string => {
   return countryCodeMap[countryName] || 'UN';
 };
 
-// Componente Gauge para Score de Oportunidade - ATUALIZADO COM CORES BRANCAS
+// Componente Gauge para Score de Oportunidade
 const OpportunityGauge = ({ 
   score, 
-  size = 'large' 
+  classification, 
+  size = 'normal' 
 }: { 
   score: number; 
+  classification: string; 
   size?: 'normal' | 'large';
 }) => {
   const radius = size === 'large' ? 120 : 80;
@@ -164,7 +86,7 @@ const OpportunityGauge = ({
   const [animatedScore, setAnimatedScore] = useState(0);
   const [strokeDashoffset, setStrokeDashoffset] = useState(circumference);
 
-  useEffect(() => {
+  useState(() => {
     const duration = 2000; // 2 segundos
     const steps = 60;
     const increment = score / steps;
@@ -174,8 +96,8 @@ const OpportunityGauge = ({
     const timer = setInterval(() => {
       currentStep++;
       const currentScore = Math.min(increment * currentStep, score);
-      setAnimatedScore(Math.round(currentScore * 10) / 10);
-      setStrokeDashoffset(circumference - (currentScore / 10) * circumference);
+      setAnimatedScore(Math.round(currentScore));
+      setStrokeDashoffset(circumference - (currentScore / 100) * circumference);
 
       if (currentStep >= steps) {
         clearInterval(timer);
@@ -183,20 +105,13 @@ const OpportunityGauge = ({
     }, stepDuration);
 
     return () => clearInterval(timer);
-  }, [score, circumference]);
+  });
 
   const getColor = (score: number) => {
-    if (score >= 8) return '#10B981'; // Verde
-    if (score >= 6) return '#F59E0B'; // Amarelo
-    if (score >= 4) return '#F97316'; // Laranja
+    if (score >= 80) return '#10B981'; // Verde
+    if (score >= 60) return '#F59E0B'; // Amarelo
+    if (score >= 40) return '#F97316'; // Laranja
     return '#EF4444'; // Vermelho
-  };
-
-  const getClassification = (score: number) => {
-    if (score >= 8) return 'EXCELENTE';
-    if (score >= 6) return 'BOA';
-    if (score >= 4) return 'MODERADA';
-    return 'BAIXA';
   };
 
   return (
@@ -231,179 +146,188 @@ const OpportunityGauge = ({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-5xl font-bold text-white">
+          <span className={`font-bold text-white ${size === 'large' ? 'text-5xl' : 'text-3xl'}`}>
             {animatedScore}
           </span>
-          <span className="text-base text-white">
-            de 10
+          <span className={`text-blue-200 ${size === 'large' ? 'text-base' : 'text-sm'}`}>
+            de 100
           </span>
         </div>
       </div>
-      <div className="mt-4 text-center">
-        <div className="text-2xl font-bold text-white">{getClassification(animatedScore)}</div>
-        <div className="text-sm text-white">Score de Oportunidade</div>
-      </div>
+      {size === 'normal' && (
+        <div className="mt-4 text-center">
+          <div className="text-lg font-semibold text-gray-900">{classification}</div>
+          <div className="text-sm text-gray-600">Score de Oportunidade</div>
+        </div>
+      )}
     </div>
   );
 };
 
-// Componente para Timeline Melhorada
-const EnhancedTimeline = ({ timeline }: { timeline: any }) => {
-  // Add safety checks for timeline data
-  if (!timeline || typeof timeline !== 'object') {
-    return (
-      <div className="text-center py-8">
-        <Clock size={48} className="text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">Timeline não disponível</p>
-      </div>
-    );
-  }
-
-  const timelineEntries = Object.entries(timeline);
-  
-  if (timelineEntries.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <Clock size={48} className="text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">Nenhuma fase de timeline encontrada</p>
-      </div>
-    );
-  }
-
-  const phases = timelineEntries.map(([key, value]) => ({
-    name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-      .replace(/ProduçãO/g, 'Produção')
-      .replace(/LançAmento/g, 'Lançamento'),
-    duration: (value as string) || 'Duração não informada'
-  }));
+// Componente para Timeline de Go-to-Market
+const GoToMarketTimeline = ({ timeline }: { timeline: any[] }) => {
+  if (!timeline || !Array.isArray(timeline)) return null;
 
   return (
-    <div className="relative">
-      {/* Linha conectora */}
-      <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"></div>
+    <div className="space-y-6">
+      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+        <Clock className="text-blue-600" size={24} />
+        Linha do Tempo - Go to Market
+      </h3>
       
-      <div className="space-y-6">
-        {phases.map((phase, index) => (
-          <div key={index} className="relative flex items-start gap-6 group">
-            {/* Bolinha da timeline */}
-            <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm shadow-lg">
-              {index + 1}
-            </div>
-            
-            {/* Conteúdo da fase */}
-            <div className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-200 group-hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-gray-900 text-lg">{phase.name}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Clock size={16} className="text-blue-600" />
-                    <span className="text-blue-600 font-medium">{phase.duration}</span>
-                  </div>
-                </div>
-                <div className="text-2xl">
-                  {index === 0 ? '🔬' : 
-                   index === 1 ? '⚗️' : 
-                   index === 2 ? '🧪' : 
-                   index === 3 ? '📋' : 
-                   index === 4 ? '🏭' : '🚀'}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Componente para Gráfico de Barras de Buscas Google
-const GoogleSearchChart = ({ searchData }: { searchData: { [country: string]: number } }) => {
-  const maxValue = Math.max(...Object.values(searchData));
-  
-  return (
-    <div className="space-y-4">
-      {Object.entries(searchData).map(([country, searches]) => {
-        const percentage = (searches / maxValue) * 100;
+      <div className="relative">
+        {/* Timeline line */}
+        <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"></div>
         
-        return (
-          <div key={country} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flag 
-                  code={getCountryCode(country)} 
-                  style={{ width: 20, height: 15 }}
-                />
-                <span className="font-medium text-gray-900">{country}</span>
+        <div className="space-y-8">
+          {timeline.map((phase, index) => (
+            <div key={index} className="relative flex items-start gap-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-blue-600 bg-white text-blue-600 font-bold text-lg z-10">
+                {index + 1}
               </div>
-              <span className="font-bold text-blue-600">
-                {searches.toLocaleString('pt-BR')} buscas
-              </span>
+              <div className="flex-1 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-lg font-bold text-gray-900">{phase.fase || phase.etapa || `Fase ${index + 1}`}</h4>
+                  <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                    {phase.duracao || phase.tempo || 'Duração não especificada'}
+                  </span>
+                </div>
+                <p className="text-gray-700 leading-relaxed">{phase.descricao || phase.atividades || 'Descrição não disponível'}</p>
+                
+                {phase.marcos && Array.isArray(phase.marcos) && (
+                  <div className="mt-4">
+                    <h5 className="text-sm font-medium text-gray-600 mb-2">Marcos importantes:</h5>
+                    <ul className="space-y-1">
+                      {phase.marcos.map((marco: string, marcoIndex: number) => (
+                        <li key={marcoIndex} className="flex items-center gap-2 text-sm text-gray-700">
+                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                          {marco}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
 
-// Componente para Métricas Clínicas
-const ClinicalMetrics = ({ 
-  prescricoes, 
-  ensaios 
-}: { 
-  prescricoes: number; 
-  ensaios: number; 
-}) => {
+// Componente para Comparativo de Preços
+const PriceComparisonChart = ({ comparativo }: { comparativo: any }) => {
+  if (!comparativo || !comparativo.produtos) return null;
+
+  const produtos = Array.isArray(comparativo.produtos) ? comparativo.produtos : [];
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-        <div className="flex items-center gap-3 mb-2">
-          <Stethoscope size={24} className="text-green-600" />
-          <span className="text-sm font-medium text-green-800">Prescrições Clínicas</span>
-        </div>
-        <div className="text-3xl font-bold text-green-900">{prescricoes.toLocaleString('pt-BR')}</div>
-        <div className="text-sm text-green-700">Identificadas</div>
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <BarChart3 className="text-green-600" size={24} />
+        Comparativo de Preços
+      </h3>
+      
+      <div className="space-y-4">
+        {produtos.map((produto: any, index: number) => {
+          // Fix: Add null checks and provide default values
+          const nome = produto?.nome || produto?.produto || `Produto ${index + 1}`;
+          const preco = produto?.preco || produto?.valor || produto?.price || 'Não informado';
+          const mercado = produto?.mercado || produto?.pais || produto?.market || 'Não informado';
+          
+          // Fix: Ensure preco is a string before calling replace
+          const precoFormatado = typeof preco === 'string' && preco !== 'Não informado' 
+            ? preco.replace(/[^\d,.-]/g, '') 
+            : preco;
+
+          return (
+            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">{nome}</h4>
+                <p className="text-sm text-gray-600">{mercado}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-bold text-green-600">
+                  {precoFormatado}
+                </div>
+                {produto?.unidade && (
+                  <div className="text-xs text-gray-500">{produto.unidade}</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-100 p-6 rounded-xl border border-blue-200">
-        <div className="flex items-center gap-3 mb-2">
-          <TestTube size={24} className="text-blue-600" />
-          <span className="text-sm font-medium text-blue-800">Ensaios Clínicos</span>
+      {comparativo.observacoes && (
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">{comparativo.observacoes}</p>
         </div>
-        <div className="text-3xl font-bold text-blue-900">{ensaios}</div>
-        <div className="text-sm text-blue-700">Em Andamento</div>
-      </div>
+      )}
     </div>
   );
 };
 
-// Componente para Economia Esperada
-const ExpectedSavings = ({ savings }: { savings: { [country: string]: string } }) => {
+// Componente para Produtos Similares
+const SimilarProductsSection = ({ produtos }: { produtos: any[] }) => {
+  if (!produtos || !Array.isArray(produtos)) return null;
+
   return (
-    <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-      <div className="flex items-center gap-3 mb-4">
-        <Banknote size={24} className="text-green-600" />
-        <h4 className="text-lg font-bold text-green-900">Economia Esperada por Paciente/Ano</h4>
-      </div>
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <Pill className="text-purple-600" size={24} />
+        Produtos Similares no Mercado
+      </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(savings).map(([country, amount]) => (
-          <div key={country} className="bg-white p-4 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Flag 
-                code={getCountryCode(country)} 
-                style={{ width: 24, height: 18 }}
-              />
-              <span className="font-medium text-gray-900">{country}</span>
+        {produtos.map((produto, index) => (
+          <div key={index} className="border border-gray-200 rounded-lg p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <h4 className="font-bold text-lg text-gray-900">
+                  {produto.nome || produto.produto || `Produto ${index + 1}`}
+                </h4>
+                {produto.fabricante && (
+                  <p className="text-sm text-gray-600">{produto.fabricante}</p>
+                )}
+              </div>
+              {produto.score && (
+                <div className="flex items-center gap-1">
+                  <Star size={16} className="text-yellow-500" />
+                  <span className="text-sm font-medium">{produto.score}</span>
+                </div>
+              )}
             </div>
-            <div className="text-2xl font-bold text-green-600">{amount}</div>
-            <div className="text-sm text-green-700">por paciente/ano</div>
+            
+            {produto.principio_ativo && (
+              <div className="mb-2">
+                <span className="text-xs text-gray-500">Princípio Ativo:</span>
+                <p className="text-sm font-medium">{produto.principio_ativo}</p>
+              </div>
+            )}
+            
+            {produto.indicacoes && Array.isArray(produto.indicacoes) && (
+              <div className="mb-3">
+                <span className="text-xs text-gray-500">Indicações:</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {produto.indicacoes.map((indicacao: string, idx: number) => (
+                    <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                      {indicacao}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {produto.preco && (
+              <div className="text-right">
+                <span className="text-lg font-bold text-green-600">{produto.preco}</span>
+                {produto.unidade && (
+                  <span className="text-xs text-gray-500 ml-1">/{produto.unidade}</span>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -411,142 +335,128 @@ const ExpectedSavings = ({ savings }: { savings: { [country: string]: string } }
   );
 };
 
-// Componente para Go-to-Market Strategy Melhorada
-const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
-  // Safety check for strategy data
-  if (!strategy || typeof strategy !== 'object') {
-    return (
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-100 p-6 rounded-xl border border-purple-200">
-        <div className="flex items-center gap-3 mb-4">
-          <Zap size={24} className="text-purple-600" />
-          <h4 className="text-xl font-bold text-purple-900">Estratégia Go-to-Market</h4>
-        </div>
-        <div className="text-center py-8">
-          <Target size={48} className="text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">Estratégia Go-to-Market não disponível</p>
-        </div>
-      </div>
-    );
-  }
+// Componente para Análise de Riscos
+const RiskAnalysisSection = ({ analise }: { analise: any }) => {
+  if (!analise) return null;
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 p-6 rounded-xl border border-purple-200">
-      <div className="flex items-center gap-3 mb-6">
-        <Zap size={24} className="text-purple-600" />
-        <h4 className="text-xl font-bold text-purple-900">Estratégia Go-to-Market</h4>
-      </div>
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <AlertTriangle className="text-red-600" size={24} />
+        Análise de Riscos
+      </h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Modelo e Posicionamento */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Target size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Modelo de Negócio</span>
+      <div className="space-y-6">
+        {analise.riscos_regulatorios && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Riscos Regulatórios</h4>
+            <div className="space-y-2">
+              {Array.isArray(analise.riscos_regulatorios) ? (
+                analise.riscos_regulatorios.map((risco: string, index: number) => (
+                  <div key={index} className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <AlertTriangle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-red-800">{risco}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <span className="text-red-800">{analise.riscos_regulatorios}</span>
+                </div>
+              )}
             </div>
-            <p className="text-gray-800">{strategy.modelo || 'Não informado'}</p>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Award size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Posicionamento</span>
-            </div>
-            <p className="text-gray-800">{strategy.posicionamento || 'Não informado'}</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Estratégia de Preço</span>
-            </div>
-            <p className="text-gray-800">{strategy.estrategia_preco || 'Não informado'}</p>
-          </div>
-        </div>
+        )}
         
-        {/* Canais e Parcerias */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Globe size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Canais de Distribuição</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(strategy.canais || []).map((canal: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                  {canal}
-                </span>
-              ))}
-              {(!strategy.canais || strategy.canais.length === 0) && (
-                <span className="text-gray-500 italic">Nenhum canal definido</span>
+        {analise.riscos_comerciais && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Riscos Comerciais</h4>
+            <div className="space-y-2">
+              {Array.isArray(analise.riscos_comerciais) ? (
+                analise.riscos_comerciais.map((risco: string, index: number) => (
+                  <div key={index} className="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <DollarSign size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-orange-800">{risco}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <span className="text-orange-800">{analise.riscos_comerciais}</span>
+                </div>
               )}
             </div>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Users size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Parcerias Estratégicas</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {(strategy.parcerias || []).map((parceria: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
-                  {parceria}
-                </span>
-              ))}
-              {(!strategy.parcerias || strategy.parcerias.length === 0) && (
-                <span className="text-gray-500 italic">Nenhuma parceria definida</span>
-              )}
-            </div>
+        )}
+        
+        {analise.comentario_visualizacao && (
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <h4 className="font-semibold text-gray-900 mb-2">Resumo da Análise</h4>
+            <p className="text-gray-700 leading-relaxed">{analise.comentario_visualizacao}</p>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Timeline de Lançamento</span>
-            </div>
-            <p className="text-gray-800 font-medium">{strategy.timeline_lancamento || 'Não informado'}</p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Componente para Gráfico de Comparativo de Preços
-const PriceComparisonChart = ({ competitors }: { competitors: any[] }) => {
-  const prices = competitors.map(comp => {
-    const price = comp.preco_medio.replace(/[^\d,]/g, '').replace(',', '.');
-    return parseFloat(price) || 0;
-  });
-  
-  const maxPrice = Math.max(...prices);
-  
+// Componente para Recomendações
+const RecommendationsSection = ({ recomendacoes }: { recomendacoes: any }) => {
+  if (!recomendacoes) return null;
+
   return (
-    <div className="space-y-4">
-      {competitors.map((competitor, index) => {
-        const price = prices[index];
-        const percentage = maxPrice > 0 ? (price / maxPrice) * 100 : 0;
-        
-        return (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                <span className="font-medium text-gray-900">{competitor.nome_comercial}</span>
-                <span className="text-sm text-gray-600">({competitor.fabricante})</span>
-              </div>
-              <span className="font-bold text-green-600">{competitor.preco_medio}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="h-2 bg-gradient-to-r from-green-400 to-emerald-600 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${percentage}%` }}
-              />
+    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <Lightbulb className="text-yellow-600" size={24} />
+        Recomendações Estratégicas
+      </h3>
+      
+      <div className="space-y-6">
+        {recomendacoes.acoes_imediatas && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Ações Imediatas</h4>
+            <div className="space-y-2">
+              {Array.isArray(recomendacoes.acoes_imediatas) ? (
+                recomendacoes.acoes_imediatas.map((acao: string, index: number) => (
+                  <div key={index} className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <CheckCircle size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-green-800">{acao}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <span className="text-green-800">{recomendacoes.acoes_imediatas}</span>
+                </div>
+              )}
             </div>
           </div>
-        );
-      })}
+        )}
+        
+        {recomendacoes.estrategias_longo_prazo && (
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Estratégias de Longo Prazo</h4>
+            <div className="space-y-2">
+              {Array.isArray(recomendacoes.estrategias_longo_prazo) ? (
+                recomendacoes.estrategias_longo_prazo.map((estrategia: string, index: number) => (
+                  <div key={index} className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <Target size={16} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-blue-800">{estrategia}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <span className="text-blue-800">{recomendacoes.estrategias_longo_prazo}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {recomendacoes.comentario_visualizacao && (
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <h4 className="font-semibold text-gray-900 mb-2">Resumo das Recomendações</h4>
+            <p className="text-gray-700 leading-relaxed">{recomendacoes.comentario_visualizacao}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -554,29 +464,23 @@ const PriceComparisonChart = ({ competitors }: { competitors: any[] }) => {
 const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Log dos dados recebidos para debug
-  useEffect(() => {
-    console.log('📊 PatentDashboardReport renderizando com dados:', data);
-  }, [data]);
+  console.log('🎯 Dashboard data recebido:', data);
 
-  // Verificação de segurança dos dados
-  if (!data) {
-    console.error('❌ PatentDashboardReport: dados não fornecidos');
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Erro nos Dados</h2>
-          <p className="text-gray-600 mb-6">Os dados do dashboard não foram carregados corretamente.</p>
-          <button
-            onClick={onBack}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Voltar
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Extrair dados principais
+  const produtoProposto = data?.produto_proposto || {};
+  const resumoOportunidade = data?.resumo_oportunidade || {};
+  const analiseRiscos = data?.analise_riscos || {};
+  const recomendacoes = data?.recomendacoes || {};
+  const comparativoTecnico = data?.comparativo_tecnico || {};
+  const scoreOportunidade = data?.score_oportunidade || resumoOportunidade?.score_oportunidade || {};
+  const metadados = data?.metadados || data?.consulta || {};
+  const comparativoSimilares = data?.comparativo_similares || {};
+  const produtosSimilares = data?.produtos_similares || [];
+
+  // Dados do cliente e consulta
+  const nomeCliente = metadados?.cliente || 'Cliente';
+  const nomeProduto = produtoProposto?.nome_sugerido || metadados?.nome_comercial || 'Produto Analisado';
+  const nomeMolecula = metadados?.nome_molecula || 'Molécula';
 
   const handleSavePDF = async () => {
     setIsGeneratingPDF(true);
@@ -590,27 +494,34 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       // Título
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('DASHBOARD EXECUTIVO - ANÁLISE DE OPORTUNIDADE', margin, yPosition);
+      pdf.text('RELATÓRIO EXECUTIVO - ANÁLISE DE OPORTUNIDADE', margin, yPosition);
       yPosition += 15;
       
-      // Cliente e Produto
+      // Produto
       pdf.setFontSize(14);
-      pdf.text(`Cliente: ${data.consulta?.cliente || 'Não informado'}`, margin, yPosition);
-      yPosition += 8;
-      pdf.text(`Produto: ${data.consulta?.nome_comercial || 'N/A'} (${data.consulta?.nome_molecula || 'N/A'})`, margin, yPosition);
-      yPosition += 8;
+      pdf.text(`Produto: ${nomeProduto} (${nomeMolecula})`, margin, yPosition);
+      yPosition += 10;
       
-      // Score
+      // Cliente
       pdf.setFontSize(12);
-      pdf.text(`Score de Oportunidade: ${data.score_oportunidade?.valor || 0}/10`, margin, yPosition);
+      pdf.text(`Cliente: ${nomeCliente}`, margin, yPosition);
       yPosition += 10;
       
       // Data
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Data: ${data.consulta?.data_consulta ? new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}`, margin, yPosition);
+      pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPosition);
+      yPosition += 15;
       
-      const fileName = `dashboard-${(data.consulta?.cliente || 'cliente').replace(/\s+/g, '-').toLowerCase()}-${(data.consulta?.nome_comercial || 'produto').replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      // Score
+      if (scoreOportunidade?.valor) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text(`Score de Oportunidade: ${scoreOportunidade.valor}/100 (${scoreOportunidade.classificacao})`, margin, yPosition);
+        yPosition += 10;
+      }
+      
+      const fileName = `dashboard-${nomeProduto.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
     } catch (error) {
@@ -621,26 +532,8 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
     }
   };
 
-  const formatCurrency = (value: string | undefined, country: string) => {
-    if (!value) return 'Não informado';
-    if (country === 'Brasil') {
-      return value.startsWith('R$') ? value : `R$ ${value}`;
-    }
-    return value.startsWith('$') ? value : `$ ${value}`;
-  };
-
-  // Verificações de segurança para evitar erros de renderização
-  const consulta = data.consulta || {};
-  const scoreOportunidade = data.score_oportunidade || data.resumo_oportunidade || {};
-  const produtoProposto = data.produto_proposto || {};
-  const comparativoSimilares = data.comparativo_similares || data.produtos_similares || [];
-  const analiseRiscos = data.analise_riscos || {};
-  const recomendacoes = data.recomendacoes || {};
-  const comparativoTecnico = data.comparativo_tecnico || {};
-
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -654,9 +547,12 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                 <span>Voltar</span>
               </button>
               
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard Executivo</h1>
-                <p className="text-gray-600">Análise de Oportunidade de Mercado</p>
+              <div className="flex items-center gap-3">
+                <FlaskConical size={32} className="text-blue-600" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Dashboard Executivo</h1>
+                  <p className="text-gray-600">Análise completa de oportunidade de mercado</p>
+                </div>
               </div>
             </div>
 
@@ -681,510 +577,122 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 1. Dashboard Summary */}
-        <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-xl shadow-2xl border border-blue-700 p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Informações Principais */}
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <Building2 size={24} className="text-blue-200" />
-                  <span className="text-blue-200 text-lg">Cliente:</span>
-                </div>
-                <h2 className="text-4xl font-bold text-white mb-2">{consulta.cliente || 'Cliente não informado'}</h2>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Pill size={16} className="text-blue-300" />
-                    <span className="text-blue-100 text-lg">{consulta.nome_comercial || 'Produto não informado'}</span>
-                    <span className="text-blue-200">({consulta.nome_molecula || 'Molécula não informada'})</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Target size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{consulta.categoria || 'Categoria não informada'}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Activity size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{consulta.doenca_alvo || 'Doença alvo não informada'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Países Alvo */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin size={20} className="text-blue-200" />
-                  <span className="text-blue-200">Países Alvo:</span>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {(consulta.pais_alvo || []).map((country, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-blue-800/50 px-3 py-2 rounded-lg border border-blue-600/50">
-                      <Flag 
-                        code={getCountryCode(country)} 
-                        style={{ width: 20, height: 15 }}
-                      />
-                      <span className="text-white text-sm font-medium">{country}</span>
-                    </div>
-                  ))}
-                  {(!consulta.pais_alvo || consulta.pais_alvo.length === 0) && (
-                    <span className="text-blue-200 italic">Nenhum país especificado</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Data da Consulta */}
-              <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-blue-200" />
-                <span className="text-blue-200">Data da Consulta:</span>
-                <span className="text-white font-medium">
-                  {consulta.data_consulta ? new Date(consulta.data_consulta).toLocaleDateString('pt-BR') : 'Data não informada'}
-                </span>
-              </div>
-            </div>
-
-            {/* Score de Oportunidade */}
-            <div className="flex flex-col items-center justify-center">
-              <OpportunityGauge score={scoreOportunidade.valor || scoreOportunidade.score_oportunidade || 0} size="large" />
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Análise Detalhada da Oportunidade - EXPANDIDA */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <BarChart3 size={24} className="text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Detalhada da Oportunidade</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* Justificativa */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Justificativa do Score</h4>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <p className="text-gray-700 leading-relaxed">
-                  {scoreOportunidade.justificativa_detalhada || 
-                   scoreOportunidade.justificativas_score?.beneficio_diferenciado || 
-                   'Justificativa não disponível'}
-                </p>
-              </div>
-            </div>
-
-            {/* Status da Patente */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Status da Patente</h4>
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-3">
-                  {(scoreOportunidade.fatores_quantitativos?.patente_proxima_do_vencimento || 
-                    scoreOportunidade.justificativas_score?.expiracao_patente) ? (
-                    <>
-                      <CheckCircle size={24} className="text-green-600" />
-                      <div>
-                        <div className="font-semibold text-green-800">Próxima do Vencimento</div>
-                        <div className="text-sm text-green-600">Oportunidade para entrada no mercado</div>
-                        {scoreOportunidade.justificativas_score?.expiracao_patente && (
-                          <div className="text-xs text-green-600 mt-1">
-                            Expira em: {scoreOportunidade.justificativas_score.expiracao_patente}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Shield size={24} className="text-red-600" />
-                      <div>
-                        <div className="font-semibold text-red-800">Patente Protegida</div>
-                        <div className="text-sm text-red-600">Ainda em período de proteção</div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Métricas Clínicas */}
-          {(scoreOportunidade.fatores_quantitativos?.prescricoes_clinicas_identificadas || 
-            scoreOportunidade.fatores_quantitativos?.ensaios_clinicos_em_andamento) && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados Clínicos</h4>
-              <ClinicalMetrics 
-                prescricoes={scoreOportunidade.fatores_quantitativos?.prescricoes_clinicas_identificadas || 0}
-                ensaios={scoreOportunidade.fatores_quantitativos?.ensaios_clinicos_em_andamento || 0}
-              />
-            </div>
-          )}
-
-          {/* Volume de Buscas Google */}
-          {scoreOportunidade.fatores_quantitativos?.quantidade_buscas_google && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Search size={20} className="text-blue-600" />
-                Volume de Buscas no Google
-              </h4>
-              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                <GoogleSearchChart searchData={scoreOportunidade.fatores_quantitativos.quantidade_buscas_google} />
-              </div>
-            </div>
-          )}
-
-          {/* Dados de Mercado */}
-          {scoreOportunidade.fatores_quantitativos?.volume_shopping && (
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados de Mercado</h4>
-              {Object.entries(scoreOportunidade.fatores_quantitativos.volume_shopping).map(([country, marketData]: [string, any]) => (
-                <div key={country} className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag 
-                      code={getCountryCode(country)} 
-                      style={{ width: 20, height: 15 }}
-                    />
-                    <span className="font-semibold">{country}</span>
-                  </div>
-                  <div className="text-sm space-y-1">
-                    <div><strong>Preço Médio:</strong> {marketData.preco_medio || 'N/A'}</div>
-                    <div><strong>Faixa:</strong> {marketData.faixa_preco || 'N/A'}</div>
-                    <div><strong>Fabricantes:</strong> {marketData.principais_fabricantes?.join(', ') || 'N/A'}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 3. Análise Qualitativa Expandida */}
-        {scoreOportunidade.fatores_qualitativos && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <TrendingUp size={24} className="text-orange-600" />
-              <h3 className="text-xl font-bold text-gray-900">Análise Qualitativa</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {scoreOportunidade.fatores_qualitativos.tendencia_midiatica && (
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
-                  <p className="text-blue-800 text-sm">{scoreOportunidade.fatores_qualitativos.tendencia_midiatica}</p>
-                </div>
-              )}
-              {scoreOportunidade.fatores_qualitativos.receptividade_de_mercado && (
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
-                  <p className="text-green-800 text-sm">{scoreOportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
-                </div>
-              )}
-            </div>
-            
-            {/* Riscos com Justificativa */}
-            {(scoreOportunidade.fatores_qualitativos.riscos || analiseRiscos.regulatorio) && (
-              <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-                <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
-                  <AlertTriangle size={20} />
-                  Riscos Identificados
-                </h5>
-                <div className="space-y-3">
-                  {scoreOportunidade.fatores_qualitativos.riscos && (
-                    <div>
-                      <h6 className="font-medium text-red-800 mb-1">Análise de Riscos:</h6>
-                      <p className="text-red-700 text-sm leading-relaxed">{scoreOportunidade.fatores_qualitativos.riscos}</p>
-                    </div>
-                  )}
-                  {analiseRiscos.regulatorio && (
-                    <div>
-                      <h6 className="font-medium text-red-800 mb-1">Risco Regulatório:</h6>
-                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.regulatorio}</p>
-                    </div>
-                  )}
-                  {analiseRiscos.comercial && (
-                    <div>
-                      <h6 className="font-medium text-red-800 mb-1">Risco Comercial:</h6>
-                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.comercial}</p>
-                    </div>
-                  )}
-                  {analiseRiscos.tecnologico && (
-                    <div>
-                      <h6 className="font-medium text-red-800 mb-1">Risco Tecnológico:</h6>
-                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.tecnologico}</p>
-                    </div>
-                  )}
-                  {scoreOportunidade.fatores_qualitativos.justificativa && (
-                    <div>
-                      <h6 className="font-medium text-red-800 mb-1">Justificativa:</h6>
-                      <p className="text-red-700 text-sm leading-relaxed">{scoreOportunidade.fatores_qualitativos.justificativa}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 4. Análise Competitiva com Gráfico */}
-        {comparativoSimilares.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <PieChart size={24} className="text-green-600" />
-              <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
-            </div>
-            
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="space-y-8">
+          {/* Card Principal - Produto Proposto */}
+          <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-xl shadow-2xl border border-blue-700 p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Gráfico de Preços */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Comparativo de Preços</h4>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <PriceComparisonChart competitors={comparativoSimilares} />
-                </div>
-              </div>
-              
-              {/* Tabela Detalhada */}
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Detalhes dos Concorrentes</h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 font-semibold text-gray-700">Produto</th>
-                        <th className="text-left py-2 font-semibold text-gray-700">Status</th>
-                        <th className="text-left py-2 font-semibold text-gray-700">Registros</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comparativoSimilares.map((product, index) => (
-                        <tr key={index} className="border-b border-gray-100">
-                          <td className="py-2">
-                            <div>
-                              <div className="font-medium text-gray-900">{product.nome_comercial || 'N/A'}</div>
-                              <div className="text-xs text-gray-600">{product.fabricante || 'N/A'}</div>
-                            </div>
-                          </td>
-                          <td className="py-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              (product.status_patente || product.patente?.status || '').includes('ativa') || 
-                              (product.status_patente || product.patente?.status || '').includes('2026') || 
-                              (product.status_patente || product.patente?.status || '').includes('2027')
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}>
-                              {product.status_patente || product.patente?.status || 'N/A'}
-                            </span>
-                          </td>
-                          <td className="py-2">
-                            <div className="flex gap-1">
-                              {product.registro_fda && (
-                                <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
-                              )}
-                              {product.registro_anvisa && (
-                                <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 5. Produto Proposto - EXPANDIDO */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Lightbulb size={24} className="text-yellow-600" />
-            <h3 className="text-xl font-bold text-gray-900">Produto Proposto</h3>
-          </div>
-          
-          <div className="mb-6">
-            <h4 className="text-2xl font-bold text-yellow-600 mb-4">{produtoProposto.nome_sugerido || 'Produto Proposto'}</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Tipo</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.tipo}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Indústria</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.industria}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Setor</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.setor}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Categoria</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.categoria}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Molécula Base</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.molecula_base}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Doença Alvo</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.doenca_alvo}</div>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded border border-yellow-200">
-              <span className="text-sm font-medium text-gray-600">Benefício Principal</span>
-              <p className="text-gray-900 mt-1">{data.produto_proposto.beneficio}</p>
-            </div>
-            
-            <div className="bg-white p-4 rounded border border-yellow-200 mt-4">
-              <span className="text-sm font-medium text-gray-600">Justificativa</span>
-              <p className="text-gray-900 mt-1 leading-relaxed">{data.produto_proposto.justificativa}</p>
-            </div>
-          </div>
-
-          {/* Go-to-Market Strategy Melhorada */}
-          {produtoProposto.go_to_market && (
-            <div className="mb-8">
-              <GoToMarketStrategy strategy={produtoProposto.go_to_market} />
-            </div>
-          )}
-
-          {/* Timeline Melhorada */}
-          {produtoProposto.linha_do_tempo && (
-            <div className="mb-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock size={20} className="text-blue-600" />
-                Linha do Tempo de Desenvolvimento
-              </h4>
-              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                <EnhancedTimeline timeline={produtoProposto.linha_do_tempo} />
-              </div>
-            </div>
-          )}
-
-          {/* Projeções Financeiras Expandidas */}
-          {/* Projeções Financeiras Expandidas */}
-          {produtoProposto.comparativos && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Preços Propostos */}
-              {produtoProposto.comparativos.preco_proposto && (
-                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                  <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                    <DollarSign size={20} />
-                    Preços Propostos
-                  </h4>
-                  <div className="space-y-3">
-                    {Object.entries(produtoProposto.comparativos.preco_proposto || {}).map(([country, price]) => (
-                      <div key={country} className="flex items-center justify-between bg-white p-3 rounded border border-purple-200">
-                        <div className="flex items-center gap-2">
-                          <Flag 
-                            code={getCountryCode(country)} 
-                            style={{ width: 20, height: 15 }}
-                          />
-                          <span className="font-medium">{country}</span>
-                        </div>
-                        <span className="font-bold text-purple-600">{formatCurrency(price as string, country)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Market Share e Economia */}
+              {/* Informações do Produto */}
               <div className="space-y-6">
-                {/* Market Share */}
-                {(produtoProposto.comparativos.market_share_estimado_ano_1 || 
-                  produtoProposto.comparativos.market_share_estimado_ano_2) && (
-                  <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                    <h4 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
-                      <PieChart size={20} />
-                      Projeção de Market Share
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4">
-                      {produtoProposto.comparativos.market_share_estimado_ano_1 && (
-                        <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                          <div className="text-3xl font-bold text-indigo-600">
-                            {produtoProposto.comparativos.market_share_estimado_ano_1}
-                          </div>
-                          <div className="text-sm text-indigo-700">Ano 1</div>
-                        </div>
-                      )}
-                      {produtoProposto.comparativos.market_share_estimado_ano_2 && (
-                        <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                          <div className="text-3xl font-bold text-indigo-600">
-                            {produtoProposto.comparativos.market_share_estimado_ano_2}
-                          </div>
-                          <div className="text-sm text-indigo-700">Ano 2</div>
-                        </div>
-                      )}
+                <div>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-blue-200 text-lg">Produto Proposto:</span>
+                      <h2 className="text-4xl text-white">{nomeProduto}</h2>
+                    </div>
+                    <div>
+                      <span className="text-blue-200 text-lg">Molécula:</span>
+                      <p className="text-2xl text-blue-100">{nomeMolecula}</p>
+                    </div>
+                    <div>
+                      <span className="text-blue-200 text-lg">Cliente:</span>
+                      <p className="text-xl text-blue-100">{nomeCliente}</p>
                     </div>
                   </div>
-                )}
+                </div>
 
-                {/* Economia Esperada */}
-                {produtoProposto.comparativos?.economia_esperada_por_paciente_ano && (
-                  <ExpectedSavings savings={produtoProposto.comparativos.economia_esperada_por_paciente_ano} />
+                {produtoProposto.comentario_visualizacao && (
+                  <div className="p-4 bg-blue-800/50 rounded-lg border border-blue-600/50">
+                    <h4 className="text-white font-semibold mb-2">Visão Geral</h4>
+                    <p className="text-blue-100 leading-relaxed">{produtoProposto.comentario_visualizacao}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Score de Oportunidade */}
+              <div className="space-y-6">
+                {scoreOportunidade?.valor && (
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="text-center mb-6">
+                      <h3 className="text-lg text-white mb-2">Score de Oportunidade</h3>
+                    </div>
+                    
+                    <OpportunityGauge 
+                      score={scoreOportunidade.valor} 
+                      classification={scoreOportunidade.classificacao || 'Não classificado'} 
+                      size="large"
+                    />
+                    
+                    <div className="mt-4 text-center">
+                      <div className="text-2xl font-bold text-white">{scoreOportunidade.classificacao || 'Não classificado'}</div>
+                    </div>
+                    
+                    {scoreOportunidade.justificativa && (
+                      <div className="mt-6 text-center max-w-md">
+                        <p className="text-blue-200 italic leading-relaxed text-sm">
+                          {scoreOportunidade.justificativa}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Go to Market Timeline */}
+          {produtoProposto.go_to_market && (
+            <GoToMarketTimeline timeline={produtoProposto.go_to_market} />
+          )}
+
+          {/* Resumo de Oportunidade */}
+          {resumoOportunidade.comentario_visualizacao && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <TrendingUp className="text-green-600" size={24} />
+                Resumo de Oportunidade
+              </h3>
+              <div className="prose prose-lg max-w-none">
+                <p className="text-gray-700 leading-relaxed">{resumoOportunidade.comentario_visualizacao}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Comparativo de Preços */}
+          {comparativoSimilares && (
+            <PriceComparisonChart comparativo={comparativoSimilares} />
+          )}
+
+          {/* Produtos Similares */}
+          {produtosSimilares.length > 0 && (
+            <SimilarProductsSection produtos={produtosSimilares} />
           )}
 
           {/* Análise de Riscos */}
-          {produtoProposto.analise_de_riscos && (
-            <div className="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
-              <h4 className="text-lg font-semibold text-red-900 mb-3 flex items-center gap-2">
-                <AlertTriangle size={20} />
-                Análise de Riscos
-              </h4>
-              <p className="text-red-800 leading-relaxed">{produtoProposto.analise_de_riscos}</p>
+          {analiseRiscos && (
+            <RiskAnalysisSection analise={analiseRiscos} />
+          )}
+
+          {/* Recomendações */}
+          {recomendacoes && (
+            <RecommendationsSection recomendacoes={recomendacoes} />
+          )}
+
+          {/* Comparativo Técnico */}
+          {comparativoTecnico.comentario_visualizacao && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <TestTube className="text-purple-600" size={24} />
+                Comparativo Técnico
+              </h3>
+              <div className="prose prose-lg max-w-none">
+                <p className="text-gray-700 leading-relaxed">{comparativoTecnico.comentario_visualizacao}</p>
+              </div>
             </div>
           )}
         </div>
-        </div>
-
-        {/* 6. Insights do Dashboard (Comentários Bolt) */}
-        {produtoProposto.comentario_dashboard_bolt && (
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <LineChart size={24} className="text-gray-300" />
-              <h3 className="text-xl font-bold">Insights do Dashboard</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">
-                  {scoreOportunidade.valor || 0}/10
-                </div>
-                <div className="text-gray-300 text-sm">Score de Oportunidade</div>
-                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_score || 'N/A'}</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">
-                  {comparativoSimilares.length}
-                </div>
-                <div className="text-gray-300 text-sm">Concorrentes</div>
-                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_comparativo || 'N/A'}</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-2">
-                  {Object.keys(produtoProposto.linha_do_tempo || {}).length}
-                </div>
-                <div className="text-gray-300 text-sm">Fases do Projeto</div>
-                <div className="text-xs text-gray-400 mt-1">{produtoProposto.comentario_dashboard_bolt?.tipo_grafico_timeline || 'N/A'}</div>
-              </div>
-            </div>
-            
-            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-              <h4 className="font-semibold text-gray-200 mb-2">Observações Técnicas:</h4>
-              <p className="text-gray-300 italic leading-relaxed">
-                {produtoProposto.comentario_dashboard_bolt?.observacoes || 'Nenhuma observação disponível'}
-              </p>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <p className="text-gray-300 italic">
-                "Análise gerada em {consulta.data_consulta ? new Date(consulta.data_consulta).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')} para {consulta.cliente || 'Cliente'}"
-              </p>
-            </div>
-          </div>
-        )}
       </div>
-    </>
+    </div>
   );
 };
 
