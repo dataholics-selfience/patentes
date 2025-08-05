@@ -595,7 +595,8 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
   const comparativoTecnico = data.comparativo_tecnico || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -940,6 +941,14 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
         )}
 
         {/* 5. Produto Proposto - EXPANDIDO */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Lightbulb size={24} className="text-yellow-600" />
+            <h3 className="text-xl font-bold text-gray-900">Produto Proposto</h3>
+          </div>
+          
+          <div className="mb-6">
+            <h4 className="text-2xl font-bold text-yellow-600 mb-4">{data.produto_proposto.nome_sugerido}</h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div className="bg-white p-3 rounded border border-yellow-200">
@@ -1057,6 +1066,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
             <p className="text-red-800 leading-relaxed">{data.produto_proposto.analise_de_riscos}</p>
           </div>
         </div>
+        </div>
 
         {/* 6. Insights do Dashboard (Comentários Bolt) */}
         {data.produto_proposto.comentario_dashboard_bolt && (
@@ -1107,7 +1117,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
