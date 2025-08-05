@@ -249,11 +249,32 @@ const OpportunityGauge = ({
 
 // Componente para Timeline Melhorada
 const EnhancedTimeline = ({ timeline }: { timeline: any }) => {
-  const phases = Object.entries(timeline).map(([key, value]) => ({
+  // Add safety checks for timeline data
+  if (!timeline || typeof timeline !== 'object') {
+    return (
+      <div className="text-center py-8">
+        <Clock size={48} className="text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">Timeline não disponível</p>
+      </div>
+    );
+  }
+
+  const timelineEntries = Object.entries(timeline);
+  
+  if (timelineEntries.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Clock size={48} className="text-gray-400 mx-auto mb-4" />
+        <p className="text-gray-600">Nenhuma fase de timeline encontrada</p>
+      </div>
+    );
+  }
+
+  const phases = timelineEntries.map(([key, value]) => ({
     name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
       .replace(/ProduçãO/g, 'Produção')
       .replace(/LançAmento/g, 'Lançamento'),
-    duration: value as string
+    duration: (value as string) || 'Duração não informada'
   }));
 
   return (
