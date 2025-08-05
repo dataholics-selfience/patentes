@@ -278,7 +278,7 @@ const PatentLoadingAnimation = ({
                   <span className="font-medium">{formatTime(elapsedTime)}</span>
                 </div>
                 <div className="text-xs text-blue-300 mt-2 text-center">
-                  ⏱️ Análises complexas podem demorar até 5 minutos
+                  ⏱️ Consultas complexas podem levar até 5 minutos. Aguarde...
                 </div>
               </div>
             </div>

@@ -225,12 +225,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     // Mostrar aviso após 2 minutos
     const timeoutWarningTimer = setTimeout(() => {
       setShowTimeoutWarning(true);
-    }, 120000); // 2 minutos
+    }, 180000); // 3 minutos
 
     // Timeout máximo de 5 minutos
     const maxTimeoutTimer = setTimeout(() => {
       setIsLoading(false);
-      setError('Timeout: O processamento está demorando mais que o esperado (5 minutos). Isso pode acontecer com análises complexas. Tente novamente em alguns minutos.');
+      setError('A consulta demorou mais de 5 minutos para ser processada. Consultas complexas podem demorar mais que o esperado. Tente novamente.');
       clearTimeout(timeoutWarningTimer);
     }, 300000); // 5 minutos
 
@@ -407,11 +407,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         
         {/* Aviso de timeout após 2 minutos */}
         {showTimeoutWarning && (
-          <div className="fixed bottom-4 left-4 right-4 bg-yellow-900/90 border border-yellow-600 rounded-lg p-4 text-center z-50">
+          <div className="fixed bottom-4 left-4 right-4 bg-blue-900/90 border border-blue-600 rounded-lg p-4 text-center z-50">
             <div className="text-yellow-200">
-              <p className="font-semibold mb-2">⏱️ Processamento Demorado</p>
+              <p className="font-semibold mb-2">⏱️ Aguardando Resposta</p>
               <p className="text-sm">
-                A análise está demorando mais que o normal. Webhooks complexos podem levar até 5 minutos.
+                A análise está demorando mais que o normal. Consultas complexas podem levar até 5 minutos. Aguarde...
                 <br />
                 Tempo decorrido: {Math.round(getElapsedTime() / 1000)}s
               </p>
