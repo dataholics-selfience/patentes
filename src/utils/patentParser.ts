@@ -8,8 +8,14 @@ export const isDashboardData = (rawResponse: any): boolean => {
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
       if (rawResponse[0].output) {
         if (typeof rawResponse[0].output === 'string') {
+          // Clean markdown code blocks before parsing
+          const cleanOutput = rawResponse[0].output
+            .replace(/```json\n?/g, '')
+            .replace(/```\n?/g, '')
+            .trim();
+          
           try {
-            parsedData = JSON.parse(rawResponse[0].output);
+            parsedData = JSON.parse(cleanOutput);
           } catch {
             return false;
           }
@@ -18,8 +24,14 @@ export const isDashboardData = (rawResponse: any): boolean => {
         }
       }
     } else if (typeof rawResponse === 'string') {
+      // Clean markdown code blocks from string responses
+      const cleanString = rawResponse
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      
       try {
-        parsedData = JSON.parse(rawResponse);
+        parsedData = JSON.parse(cleanString);
       } catch {
         return false;
       }
@@ -41,6 +53,7 @@ export const parseDashboardData = (rawResponse: any): any => {
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
       if (rawResponse[0].output) {
         if (typeof rawResponse[0].output === 'string') {
+          // Clean markdown code blocks before parsing
           const cleanOutput = rawResponse[0].output
             .replace(/```json\n?/g, '')
             .replace(/```\n?/g, '')
@@ -51,6 +64,7 @@ export const parseDashboardData = (rawResponse: any): any => {
         }
       }
     } else if (typeof rawResponse === 'string') {
+      // Clean markdown code blocks from string responses
       const cleanString = rawResponse
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
@@ -80,10 +94,16 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       if (rawResponse[0].output) {
         // Check if it's a nested structure
         if (typeof rawResponse[0].output === 'string') {
+          // Clean markdown code blocks BEFORE trying to parse
+          const cleanOutput = rawResponse[0].output
+            .replace(/```json\n?/g, '')
+            .replace(/```\n?/g, '')
+            .trim();
+          
           try {
-            parsedData = JSON.parse(rawResponse[0].output);
+            parsedData = JSON.parse(cleanOutput);
           } catch {
-            jsonString = rawResponse[0].output;
+            jsonString = cleanOutput;
           }
         } else {
           parsedData = rawResponse[0].output;
@@ -93,7 +113,11 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         parsedData = rawResponse[0];
       }
     } else if (typeof rawResponse === 'string') {
-      jsonString = rawResponse;
+      // Clean markdown code blocks from string responses too
+      jsonString = rawResponse
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
     } else if (typeof rawResponse === 'object' && rawResponse !== null) {
       parsedData = rawResponse;
     }
@@ -105,12 +129,6 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
       if (!trimmedString.startsWith('{') && !trimmedString.startsWith('[')) {
         throw new Error('O servidor retornou uma resposta em texto ao invés de dados estruturados. Tente novamente em alguns instantes.');
       }
-      
-      // Remove markdown code block fences and clean up
-      jsonString = jsonString
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
       
       // Parse the actual patent data
       try {
