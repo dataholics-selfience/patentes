@@ -11,17 +11,18 @@ import {
   MapPin,
   Settings,
   TestTube,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType, PatentConsultationType } from '../types';
-import { parsePatentResponse } from '../utils/patentParser';
+import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
 import { WebhookStatusStore } from '../utils/webhookStatusStore';
 import PatentResultsPage from './PatentResultsPage';
-import PatentLoadingAnimation from './PatentLoadingAnimation';
+import PatentDashboardReport from './PatentDashboardReport';
 import PatentHistory from './PatentHistory';
 import { API_CONFIG } from '../config/api';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
@@ -82,10 +83,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   });
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [consultations, setConsultations] = useState<PatentConsultationType[]>([]);
-  const [pollingProgress, setPollingProgress] = useState<PollingProgress | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
@@ -267,11 +268,36 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       }
 
       // Aguardar resposta completa do webhook
-      const patentData = await waitForWebhookResponse(sessionId, (progress) => {
-        setPollingProgress(progress);
-      });
+      const webhookResponse = await waitForWebhookResponse(sessionId);
 
-      console.log('✅ Dados de patente recebidos:', patentData);
+      console.log('✅ Resposta do webhook recebida:', webhookResponse);
+
+      // Verificar se é dashboard ou dados de patente normais
+      if (isDashboardData(webhookResponse)) {
+        console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
+        const dashboardInfo = parseDashboardData(webhookResponse);
+        setDashboardData(dashboardInfo);
+      } else {
+        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
+        const patentData = parsePatentResponse(webhookResponse);
+        setResult(patentData);
+        
+        // Salvar consulta no histórico apenas para dados de patente normais
+        const consultationData: Omit<PatentConsultationType, 'id'> = {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email || '',
+          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
+          sessionId,
+          resultado: patentData,
+          consultedAt: new Date().toISOString()
+        };
+
+        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+        
+        // Atualizar lista local
+        const newConsultation = { id: docRef.id, ...consultationData };
+        setConsultations(prev => [newConsultation, ...prev]);
+      }
 
       // Atualizar tokens do usuário
       if (tokenUsage) {
@@ -280,37 +306,17 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         });
       }
 
-      // Salvar consulta no histórico
-      const consultationData: Omit<PatentConsultationType, 'id'> = {
-        userId: auth.currentUser.uid,
-        userEmail: auth.currentUser.email || '',
-        produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-        sessionId,
-        resultado: patentData,
-        consultedAt: new Date().toISOString()
-      };
-
-      const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
-      
-      // Atualizar lista local
-      const newConsultation = { id: docRef.id, ...consultationData };
-      setConsultations(prev => [newConsultation, ...prev]);
-
-      setResult(patentData);
-
     } catch (error) {
       console.error('❌ Erro na consulta de patente:', error);
       setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
     } finally {
       setIsLoading(false);
-      setPollingProgress(null);
       setCurrentSessionId(null);
     }
   };
 
   const handleCancelConsultation = () => {
     setIsLoading(false);
-    setPollingProgress(null);
     setCurrentSessionId(null);
     setError('Consulta cancelada pelo usuário');
   };
@@ -321,10 +327,21 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
   const handleBackToConsultation = () => {
     setResult(null);
+    setDashboardData(null);
     setError('');
   };
 
-  // Se há resultado, mostrar página de resultados
+  // Se há dashboard data, mostrar dashboard
+  if (dashboardData) {
+    return (
+      <PatentDashboardReport
+        data={dashboardData}
+        onBack={handleBackToConsultation}
+      />
+    );
+  }
+
+  // Se há resultado de patente, mostrar página de resultados
   if (result) {
     return (
       <PatentResultsPage
@@ -337,14 +354,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
   return (
     <>
-      {/* Animação de carregamento */}
-      <PatentLoadingAnimation
-        isVisible={isLoading}
-        searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
-        pollingProgress={pollingProgress}
-        onCancel={handleCancelConsultation}
-      />
-
       <div className="max-w-4xl mx-auto">
         <div className="w-full">
           {/* Formulário Principal */}
@@ -554,7 +563,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
                 >
-                  <Search size={20} />
+                  {isLoading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <Search size={20} />
+                  )}
                   {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
                 </button>
               </form>

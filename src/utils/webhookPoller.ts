@@ -26,7 +26,7 @@ export class WebhookPoller {
   private startTime: number;
   private isPolling: boolean = false;
   private maxAttempts: number = 300; // 50 minutos máximo (300 * 10s)
-  private forceRenderTimeout: number = 70000; // 70 segundos = 1min 10s
+  private forceRenderTimeout: number = 300000; // 5 minutos
 
   constructor(
     sessionId: string, 
