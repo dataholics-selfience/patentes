@@ -3,6 +3,8 @@ import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeB
 // Check if response is dashboard data
 export const isDashboardData = (rawResponse: any): boolean => {
   try {
+    console.log('🔍 Verificando se é dashboard data:', rawResponse);
+    
     let parsedData: any = null;
     
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
@@ -16,11 +18,14 @@ export const isDashboardData = (rawResponse: any): boolean => {
           
           try {
             parsedData = JSON.parse(cleanOutput);
+            console.log('📊 Dados parseados do output string:', parsedData);
           } catch {
+            console.log('❌ Falha ao parsear output string');
             return false;
           }
         } else {
           parsedData = rawResponse[0].output;
+          console.log('📊 Dados do output object:', parsedData);
         }
       }
     } else if (typeof rawResponse === 'string') {
@@ -32,23 +37,40 @@ export const isDashboardData = (rawResponse: any): boolean => {
       
       try {
         parsedData = JSON.parse(cleanString);
+        console.log('📊 Dados parseados de string:', parsedData);
       } catch {
+        console.log('❌ Falha ao parsear string');
         return false;
       }
     } else if (typeof rawResponse === 'object' && rawResponse !== null) {
       parsedData = rawResponse;
+      console.log('📊 Dados de object direto:', parsedData);
     }
     
     // Verificar se tem estrutura de dashboard
-    return !!(
+    const isDashboard = !!(
       parsedData?.produto_proposto?.comentario_visualizacao ||
       parsedData?.resumo_oportunidade?.score_oportunidade ||
+      parsedData?.resumo_oportunidade?.comentario_visualizacao ||
       parsedData?.analise_riscos?.comentario_visualizacao ||
       parsedData?.recomendacoes?.comentario_visualizacao ||
       parsedData?.comparativo_tecnico?.comentario_visualizacao ||
-      parsedData?.metadados?.cliente
+      parsedData?.metadados?.cliente ||
+      parsedData?.consulta?.cliente ||
+      parsedData?.score_oportunidade?.valor !== undefined
     );
+    
+    console.log(`🎯 É dashboard? ${isDashboard}`, {
+      hasProdutoProposto: !!parsedData?.produto_proposto,
+      hasResumoOportunidade: !!parsedData?.resumo_oportunidade,
+      hasScoreOportunidade: !!parsedData?.score_oportunidade,
+      hasConsulta: !!parsedData?.consulta,
+      hasMetadados: !!parsedData?.metadados
+    });
+    
+    return isDashboard;
   } catch {
+    console.log('❌ Erro na verificação de dashboard data');
     return false;
   }
 };
@@ -56,6 +78,8 @@ export const isDashboardData = (rawResponse: any): boolean => {
 // Parse dashboard data
 export const parseDashboardData = (rawResponse: any): any => {
   try {
+    console.log('📊 Iniciando parse de dashboard data:', rawResponse);
+    
     let parsedData: any = null;
     
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
@@ -67,8 +91,10 @@ export const parseDashboardData = (rawResponse: any): any => {
             .replace(/```\n?/g, '')
             .trim();
           parsedData = JSON.parse(cleanOutput);
+          console.log('✅ Dashboard data parseado de string:', parsedData);
         } else {
           parsedData = rawResponse[0].output;
+          console.log('✅ Dashboard data de object:', parsedData);
         }
       }
     } else if (typeof rawResponse === 'string') {
@@ -78,12 +104,16 @@ export const parseDashboardData = (rawResponse: any): any => {
         .replace(/```\n?/g, '')
         .trim();
       parsedData = JSON.parse(cleanString);
+      console.log('✅ Dashboard data parseado de string direta:', parsedData);
     } else if (typeof rawResponse === 'object' && rawResponse !== null) {
       parsedData = rawResponse;
+      console.log('✅ Dashboard data de object direto:', parsedData);
     }
     
+    console.log('🎯 Dashboard data final:', parsedData);
     return parsedData;
   } catch (error) {
+    console.error('❌ Erro ao processar dados do dashboard:', error);
     throw new Error('Erro ao processar dados do dashboard');
   }
 };

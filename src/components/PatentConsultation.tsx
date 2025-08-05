@@ -283,15 +283,24 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
 
-      // Verificar se é dashboard ou dados de patente normais
+      // CORREÇÃO: Verificar se é dashboard ou dados de patente normais com logs detalhados
+      console.log('🔍 Verificando tipo de dados recebidos...');
       if (isDashboardData(webhookResponse)) {
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        const dashboardInfo = parseDashboardData(webhookResponse);
-        setDashboardData(dashboardInfo);
+        try {
+          const dashboardInfo = parseDashboardData(webhookResponse);
+          console.log('✅ Dashboard info processado:', dashboardInfo);
+          setDashboardData(dashboardInfo);
+          console.log('✅ Dashboard data definido no state');
+        } catch (dashboardError) {
+          console.error('❌ Erro ao processar dashboard data:', dashboardError);
+          throw new Error(`Erro ao processar dados do dashboard: ${dashboardError instanceof Error ? dashboardError.message : 'Erro desconhecido'}`);
+        }
       } else {
         console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
         try {
           const patentData = parsePatentResponse(webhookResponse);
+          console.log('✅ Patent data processado:', patentData);
           setResult(patentData);
           
           // Salvar consulta no histórico apenas para dados de patente normais
@@ -305,12 +314,20 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           };
 
           const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+          console.log('✅ Consulta salva no histórico:', docRef.id);
         } catch (parseError) {
           if (parseError instanceof Error && parseError.message === 'DASHBOARD_DATA_DETECTED') {
             console.log('📊 Dashboard data detectado durante parse, redirecionando para dashboard...');
-            const dashboardInfo = parseDashboardData(webhookResponse);
-            setDashboardData(dashboardInfo);
+            try {
+              const dashboardInfo = parseDashboardData(webhookResponse);
+              console.log('✅ Dashboard info processado (fallback):', dashboardInfo);
+              setDashboardData(dashboardInfo);
+            } catch (dashboardError) {
+              console.error('❌ Erro no fallback do dashboard:', dashboardError);
+              throw dashboardError;
+            }
           } else {
+            console.error('❌ Erro no parse de patente:', parseError);
             throw parseError;
           }
         }

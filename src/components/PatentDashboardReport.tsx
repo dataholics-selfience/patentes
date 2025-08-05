@@ -511,6 +511,30 @@ const PriceComparisonChart = ({ competitors }: { competitors: any[] }) => {
 const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
+  // Log dos dados recebidos para debug
+  useEffect(() => {
+    console.log('📊 PatentDashboardReport renderizando com dados:', data);
+  }, [data]);
+
+  // Verificação de segurança dos dados
+  if (!data) {
+    console.error('❌ PatentDashboardReport: dados não fornecidos');
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Erro nos Dados</h2>
+          <p className="text-gray-600 mb-6">Os dados do dashboard não foram carregados corretamente.</p>
+          <button
+            onClick={onBack}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Voltar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const handleSavePDF = async () => {
     setIsGeneratingPDF(true);
     
@@ -560,6 +584,15 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
     }
     return value.startsWith('$') ? value : `$ ${value}`;
   };
+
+  // Verificações de segurança para evitar erros de renderização
+  const consulta = data.consulta || {};
+  const scoreOportunidade = data.score_oportunidade || data.resumo_oportunidade || {};
+  const produtoProposto = data.produto_proposto || {};
+  const comparativoSimilares = data.comparativo_similares || data.produtos_similares || [];
+  const analiseRiscos = data.analise_riscos || {};
+  const recomendacoes = data.recomendacoes || {};
+  const comparativoTecnico = data.comparativo_tecnico || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -614,20 +647,20 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                   <Building2 size={24} className="text-blue-200" />
                   <span className="text-blue-200 text-lg">Cliente:</span>
                 </div>
-                <h2 className="text-4xl font-bold text-white mb-2">{data.consulta.cliente}</h2>
+                <h2 className="text-4xl font-bold text-white mb-2">{consulta.cliente || 'Cliente não informado'}</h2>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Pill size={16} className="text-blue-300" />
-                    <span className="text-blue-100 text-lg">{data.consulta.nome_comercial}</span>
-                    <span className="text-blue-200">({data.consulta.nome_molecula})</span>
+                    <span className="text-blue-100 text-lg">{consulta.nome_comercial || 'Produto não informado'}</span>
+                    <span className="text-blue-200">({consulta.nome_molecula || 'Molécula não informada'})</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Target size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{data.consulta.categoria}</span>
+                    <span className="text-blue-100">{consulta.categoria || 'Categoria não informada'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Activity size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{data.consulta.doenca_alvo}</span>
+                    <span className="text-blue-100">{consulta.doenca_alvo || 'Doença alvo não informada'}</span>
                   </div>
                 </div>
               </div>
@@ -639,7 +672,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                   <span className="text-blue-200">Países Alvo:</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {data.consulta.pais_alvo.map((country, index) => (
+                  {(consulta.pais_alvo || []).map((country, index) => (
                     <div key={index} className="flex items-center gap-2 bg-blue-800/50 px-3 py-2 rounded-lg border border-blue-600/50">
                       <Flag 
                         code={getCountryCode(country)} 
@@ -656,14 +689,14 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                 <Calendar size={20} className="text-blue-200" />
                 <span className="text-blue-200">Data da Consulta:</span>
                 <span className="text-white font-medium">
-                  {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')}
+                  {consulta.data_consulta ? new Date(consulta.data_consulta).toLocaleDateString('pt-BR') : 'Data não informada'}
                 </span>
               </div>
             </div>
 
             {/* Score de Oportunidade */}
             <div className="flex flex-col items-center justify-center">
-              <OpportunityGauge score={data.score_oportunidade.valor} size="large" />
+              <OpportunityGauge score={scoreOportunidade.valor || scoreOportunidade.score_oportunidade || 0} size="large" />
             </div>
           </div>
         </div>
@@ -680,7 +713,11 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Justificativa do Score</h4>
               <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <p className="text-gray-700 leading-relaxed">{data.score_oportunidade.justificativa_detalhada}</p>
+                <p className="text-gray-700 leading-relaxed">
+                  {scoreOportunidade.justificativa_detalhada || 
+                   scoreOportunidade.justificativas_score?.beneficio_diferenciado || 
+                   'Justificativa não disponível'}
+                </p>
               </div>
             </div>
 
@@ -689,12 +726,18 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Status da Patente</h4>
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-3">
-                  {data.score_oportunidade.fatores_quantitativos.patente_proxima_do_vencimento ? (
+                  {(scoreOportunidade.fatores_quantitativos?.patente_proxima_do_vencimento || 
+                    scoreOportunidade.justificativas_score?.expiracao_patente) ? (
                     <>
                       <CheckCircle size={24} className="text-green-600" />
                       <div>
                         <div className="font-semibold text-green-800">Próxima do Vencimento</div>
                         <div className="text-sm text-green-600">Oportunidade para entrada no mercado</div>
+                        {scoreOportunidade.justificativas_score?.expiracao_patente && (
+                          <div className="text-xs text-green-600 mt-1">
+                            Expira em: {scoreOportunidade.justificativas_score.expiracao_patente}
+                          </div>
+                        )}
                       </div>
                     </>
                   ) : (
@@ -712,30 +755,35 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
 
           {/* Métricas Clínicas */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados Clínicos</h4>
-            <ClinicalMetrics 
-              prescricoes={data.score_oportunidade.fatores_quantitativos.prescricoes_clinicas_identificadas}
-              ensaios={data.score_oportunidade.fatores_quantitativos.ensaios_clinicos_em_andamento}
-            />
-          </div>
+          {(scoreOportunidade.fatores_quantitativos?.prescricoes_clinicas_identificadas || 
+            scoreOportunidade.fatores_quantitativos?.ensaios_clinicos_em_andamento) && (
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados Clínicos</h4>
+              <ClinicalMetrics 
+                prescricoes={scoreOportunidade.fatores_quantitativos?.prescricoes_clinicas_identificadas || 0}
+                ensaios={scoreOportunidade.fatores_quantitativos?.ensaios_clinicos_em_andamento || 0}
+              />
+            </div>
+          )}
 
           {/* Volume de Buscas Google */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Search size={20} className="text-blue-600" />
-              Volume de Buscas no Google
-            </h4>
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <GoogleSearchChart searchData={data.score_oportunidade.fatores_quantitativos.quantidade_buscas_google} />
+          {scoreOportunidade.fatores_quantitativos?.quantidade_buscas_google && (
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Search size={20} className="text-blue-600" />
+                Volume de Buscas no Google
+              </h4>
+              <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                <GoogleSearchChart searchData={scoreOportunidade.fatores_quantitativos.quantidade_buscas_google} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Dados de Mercado */}
-          {data.score_oportunidade.fatores_quantitativos.volume_shopping && (
+          {scoreOportunidade.fatores_quantitativos?.volume_shopping && (
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados de Mercado</h4>
-              {Object.entries(data.score_oportunidade.fatores_quantitativos.volume_shopping).map(([country, data]: [string, any]) => (
+              {Object.entries(scoreOportunidade.fatores_quantitativos.volume_shopping).map(([country, marketData]: [string, any]) => (
                 <div key={country} className="bg-gray-50 p-4 rounded-lg mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Flag 
@@ -745,9 +793,9 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                     <span className="font-semibold">{country}</span>
                   </div>
                   <div className="text-sm space-y-1">
-                    <div><strong>Preço Médio:</strong> {data.preco_medio}</div>
-                    <div><strong>Faixa:</strong> {data.faixa_preco}</div>
-                    <div><strong>Fabricantes:</strong> {data.principais_fabricantes?.join(', ')}</div>
+                    <div><strong>Preço Médio:</strong> {marketData.preco_medio || 'N/A'}</div>
+                    <div><strong>Faixa:</strong> {marketData.faixa_preco || 'N/A'}</div>
+                    <div><strong>Fabricantes:</strong> {marketData.principais_fabricantes?.join(', ') || 'N/A'}</div>
                   </div>
                 </div>
               ))}
@@ -756,120 +804,142 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
         </div>
 
         {/* 3. Análise Qualitativa Expandida */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp size={24} className="text-orange-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Qualitativa</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
-              <p className="text-blue-800 text-sm">{data.score_oportunidade.fatores_qualitativos.tendencia_midiatica}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
-              <p className="text-green-800 text-sm">{data.score_oportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
-            </div>
-          </div>
-          
-          {/* Riscos com Justificativa */}
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-            <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
-              <AlertTriangle size={20} />
-              Riscos Identificados
-            </h5>
-            <div className="space-y-3">
-              <div>
-                <h6 className="font-medium text-red-800 mb-1">Análise de Riscos:</h6>
-                <p className="text-red-700 text-sm leading-relaxed">{data.score_oportunidade.fatores_qualitativos.riscos}</p>
-              </div>
-              <div>
-                <h6 className="font-medium text-red-800 mb-1">Justificativa:</h6>
-                <p className="text-red-700 text-sm leading-relaxed">{data.score_oportunidade.fatores_qualitativos.justificativa}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Análise Competitiva com Gráfico */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <PieChart size={24} className="text-green-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Gráfico de Preços */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Comparativo de Preços</h4>
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <PriceComparisonChart competitors={data.comparativo_similares} />
-              </div>
+        {scoreOportunidade.fatores_qualitativos && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <TrendingUp size={24} className="text-orange-600" />
+              <h3 className="text-xl font-bold text-gray-900">Análise Qualitativa</h3>
             </div>
             
-            {/* Tabela Detalhada */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Detalhes dos Concorrentes</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 font-semibold text-gray-700">Produto</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Registros</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.comparativo_similares.map((product, index) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-2">
-                          <div>
-                            <div className="font-medium text-gray-900">{product.nome_comercial}</div>
-                            <div className="text-xs text-gray-600">{product.fabricante}</div>
-                          </div>
-                        </td>
-                        <td className="py-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            product.status_patente.includes('Ativa') || product.status_patente.includes('2026') || product.status_patente.includes('2027')
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {product.status_patente}
-                          </span>
-                        </td>
-                        <td className="py-2">
-                          <div className="flex gap-1">
-                            {product.registro_fda && (
-                              <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
-                            )}
-                            {product.registro_anvisa && (
-                              <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
-                            )}
-                          </div>
-                        </td>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              {scoreOportunidade.fatores_qualitativos.tendencia_midiatica && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
+                  <p className="text-blue-800 text-sm">{scoreOportunidade.fatores_qualitativos.tendencia_midiatica}</p>
+                </div>
+              )}
+              {scoreOportunidade.fatores_qualitativos.receptividade_de_mercado && (
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
+                  <p className="text-green-800 text-sm">{scoreOportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Riscos com Justificativa */}
+            {(scoreOportunidade.fatores_qualitativos.riscos || analiseRiscos.regulatorio) && (
+              <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
+                  <AlertTriangle size={20} />
+                  Riscos Identificados
+                </h5>
+                <div className="space-y-3">
+                  {scoreOportunidade.fatores_qualitativos.riscos && (
+                    <div>
+                      <h6 className="font-medium text-red-800 mb-1">Análise de Riscos:</h6>
+                      <p className="text-red-700 text-sm leading-relaxed">{scoreOportunidade.fatores_qualitativos.riscos}</p>
+                    </div>
+                  )}
+                  {analiseRiscos.regulatorio && (
+                    <div>
+                      <h6 className="font-medium text-red-800 mb-1">Risco Regulatório:</h6>
+                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.regulatorio}</p>
+                    </div>
+                  )}
+                  {analiseRiscos.comercial && (
+                    <div>
+                      <h6 className="font-medium text-red-800 mb-1">Risco Comercial:</h6>
+                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.comercial}</p>
+                    </div>
+                  )}
+                  {analiseRiscos.tecnologico && (
+                    <div>
+                      <h6 className="font-medium text-red-800 mb-1">Risco Tecnológico:</h6>
+                      <p className="text-red-700 text-sm leading-relaxed">{analiseRiscos.tecnologico}</p>
+                    </div>
+                  )}
+                  {scoreOportunidade.fatores_qualitativos.justificativa && (
+                    <div>
+                      <h6 className="font-medium text-red-800 mb-1">Justificativa:</h6>
+                      <p className="text-red-700 text-sm leading-relaxed">{scoreOportunidade.fatores_qualitativos.justificativa}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 4. Análise Competitiva com Gráfico */}
+        {comparativoSimilares.length > 0 && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <PieChart size={24} className="text-green-600" />
+              <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Gráfico de Preços */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Comparativo de Preços</h4>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <PriceComparisonChart competitors={comparativoSimilares} />
+                </div>
+              </div>
+              
+              {/* Tabela Detalhada */}
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Detalhes dos Concorrentes</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 font-semibold text-gray-700">Produto</th>
+                        <th className="text-left py-2 font-semibold text-gray-700">Status</th>
+                        <th className="text-left py-2 font-semibold text-gray-700">Registros</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {comparativoSimilares.map((product, index) => (
+                        <tr key={index} className="border-b border-gray-100">
+                          <td className="py-2">
+                            <div>
+                              <div className="font-medium text-gray-900">{product.nome_comercial || 'N/A'}</div>
+                              <div className="text-xs text-gray-600">{product.fabricante || 'N/A'}</div>
+                            </div>
+                          </td>
+                          <td className="py-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              (product.status_patente || product.patente?.status || '').includes('ativa') || 
+                              (product.status_patente || product.patente?.status || '').includes('2026') || 
+                              (product.status_patente || product.patente?.status || '').includes('2027')
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {product.status_patente || product.patente?.status || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="py-2">
+                            <div className="flex gap-1">
+                              {product.registro_fda && (
+                                <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
+                              )}
+                              {product.registro_anvisa && (
+                                <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 5. Produto Proposto - EXPANDIDO */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Lightbulb size={24} className="text-yellow-600" />
-            <h3 className="text-xl font-bold text-gray-900">Produto Proposto</h3>
-          </div>
-          
-          {/* Metadados do Produto */}
-          <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-8">
-            <h4 className="text-xl font-bold text-yellow-900 mb-4 flex items-center gap-2">
-              <Award size={24} />
-              {data.produto_proposto.nome_sugerido}
-            </h4>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               <div className="bg-white p-3 rounded border border-yellow-200">
