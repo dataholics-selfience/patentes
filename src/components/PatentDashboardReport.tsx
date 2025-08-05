@@ -21,14 +21,7 @@ import {
   Award,
   Lightbulb,
   FileText,
-  ExternalLink,
-  Search,
-  TestTube,
-  Stethoscope,
-  TrendingDown,
-  Shield,
-  Banknote,
-  LineChart
+  ExternalLink
 } from 'lucide-react';
 import Flag from 'react-world-flags';
 import jsPDF from 'jspdf';
@@ -50,27 +43,8 @@ interface DashboardData {
   score_oportunidade: {
     valor: number;
     justificativa_detalhada: string;
-    fatores_quantitativos: {
-      patente_proxima_do_vencimento: boolean;
-      quantidade_buscas_google: {
-        [country: string]: number;
-      };
-      prescricoes_clinicas_identificadas: number;
-      ensaios_clinicos_em_andamento: number;
-      volume_shopping?: {
-        [country: string]: {
-          preco_medio: string;
-          faixa_preco: string;
-          principais_fabricantes: string[];
-        };
-      };
-    };
-    fatores_qualitativos: {
-      tendencia_midiatica: string;
-      receptividade_de_mercado: string;
-      riscos: string;
-      justificativa: string;
-    };
+    fatores_quantitativos: any;
+    fatores_qualitativos: any;
   };
   comparativo_similares: Array<{
     nome_comercial: string;
@@ -84,41 +58,12 @@ interface DashboardData {
   produto_proposto: {
     nome_sugerido: string;
     tipo: string;
-    industria: string;
-    setor: string;
-    categoria: string;
-    molecula_base: string;
-    beneficio: string;
-    doenca_alvo: string;
     justificativa: string;
     analise_de_riscos: string;
-    go_to_market: {
-      modelo: string;
-      canais: string[];
-      parcerias: string[];
-      posicionamento: string;
-      estrategia_preco: string;
-      timeline_lancamento: string;
-    };
-    linha_do_tempo: {
-      [phase: string]: string;
-    };
-    comparativos: {
-      preco_proposto: {
-        [country: string]: string;
-      };
-      market_share_estimado_ano_1: string;
-      market_share_estimado_ano_2: string;
-      economia_esperada_por_paciente_ano: {
-        [country: string]: string;
-      };
-    };
-    comentario_dashboard_bolt: {
-      tipo_grafico_score: string;
-      tipo_grafico_comparativo: string;
-      tipo_grafico_timeline: string;
-      observacoes: string;
-    };
+    go_to_market: any;
+    linha_do_tempo: any;
+    comparativos: any;
+    comentario_dashboard_bolt: any;
   };
 }
 
@@ -131,7 +76,6 @@ interface PatentDashboardReportProps {
 const countryCodeMap: { [key: string]: string } = {
   'Brasil': 'BR',
   'Estados Unidos': 'US',
-  'EUA': 'US',
   'União Europeia': 'EU',
   'Japão': 'JP',
   'China': 'CN',
@@ -147,7 +91,7 @@ const getCountryCode = (countryName: string): string => {
   return countryCodeMap[countryName] || 'UN';
 };
 
-// Componente Gauge para Score de Oportunidade - ATUALIZADO COM CORES BRANCAS
+// Componente Gauge para Score de Oportunidade
 const OpportunityGauge = ({ 
   score, 
   size = 'large' 
@@ -231,279 +175,45 @@ const OpportunityGauge = ({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-5xl font-bold text-white">
+          <span className="text-5xl font-bold text-gray-900">
             {animatedScore}
           </span>
-          <span className="text-base text-white">
+          <span className="text-base text-gray-600">
             de 10
           </span>
         </div>
       </div>
       <div className="mt-4 text-center">
-        <div className="text-2xl font-bold text-white">{getClassification(animatedScore)}</div>
-        <div className="text-sm text-white">Score de Oportunidade</div>
+        <div className="text-2xl font-bold text-gray-900">{getClassification(animatedScore)}</div>
+        <div className="text-sm text-gray-600">Score de Oportunidade</div>
       </div>
     </div>
   );
 };
 
-// Componente para Timeline Melhorada
-const EnhancedTimeline = ({ timeline }: { timeline: any }) => {
+// Componente para Timeline
+const Timeline = ({ timeline }: { timeline: any }) => {
   const phases = Object.entries(timeline).map(([key, value]) => ({
-    name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-      .replace(/ProduçãO/g, 'Produção')
-      .replace(/LançAmento/g, 'Lançamento'),
+    name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     duration: value as string
   }));
 
   return (
-    <div className="relative">
-      {/* Linha conectora */}
-      <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"></div>
-      
-      <div className="space-y-6">
-        {phases.map((phase, index) => (
-          <div key={index} className="relative flex items-start gap-6 group">
-            {/* Bolinha da timeline */}
-            <div className="relative z-10 flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm shadow-lg">
-              {index + 1}
-            </div>
-            
-            {/* Conteúdo da fase */}
-            <div className="flex-1 bg-white rounded-lg p-4 shadow-sm border border-gray-200 group-hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-gray-900 text-lg">{phase.name}</h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Clock size={16} className="text-blue-600" />
-                    <span className="text-blue-600 font-medium">{phase.duration}</span>
-                  </div>
-                </div>
-                <div className="text-2xl">
-                  {index === 0 ? '🔬' : 
-                   index === 1 ? '⚗️' : 
-                   index === 2 ? '🧪' : 
-                   index === 3 ? '📋' : 
-                   index === 4 ? '🏭' : '🚀'}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Componente para Gráfico de Barras de Buscas Google
-const GoogleSearchChart = ({ searchData }: { searchData: { [country: string]: number } }) => {
-  const maxValue = Math.max(...Object.values(searchData));
-  
-  return (
     <div className="space-y-4">
-      {Object.entries(searchData).map(([country, searches]) => {
-        const percentage = (searches / maxValue) * 100;
-        
-        return (
-          <div key={country} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Flag 
-                  code={getCountryCode(country)} 
-                  style={{ width: 20, height: 15 }}
-                />
-                <span className="font-medium text-gray-900">{country}</span>
-              </div>
-              <span className="font-bold text-blue-600">
-                {searches.toLocaleString('pt-BR')} buscas
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
-                className="h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
+      {phases.map((phase, index) => (
+        <div key={index} className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
+            {index + 1}
           </div>
-        );
-      })}
-    </div>
-  );
-};
-
-// Componente para Métricas Clínicas
-const ClinicalMetrics = ({ 
-  prescricoes, 
-  ensaios 
-}: { 
-  prescricoes: number; 
-  ensaios: number; 
-}) => {
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-        <div className="flex items-center gap-3 mb-2">
-          <Stethoscope size={24} className="text-green-600" />
-          <span className="text-sm font-medium text-green-800">Prescrições Clínicas</span>
+          <div className="flex-1">
+            <div className="font-semibold text-gray-900">{phase.name}</div>
+            <div className="text-sm text-gray-600">{phase.duration}</div>
+          </div>
+          {index < phases.length - 1 && (
+            <div className="w-px h-8 bg-gray-300 ml-4"></div>
+          )}
         </div>
-        <div className="text-3xl font-bold text-green-900">{prescricoes.toLocaleString('pt-BR')}</div>
-        <div className="text-sm text-green-700">Identificadas</div>
-      </div>
-      
-      <div className="bg-gradient-to-br from-blue-50 to-cyan-100 p-6 rounded-xl border border-blue-200">
-        <div className="flex items-center gap-3 mb-2">
-          <TestTube size={24} className="text-blue-600" />
-          <span className="text-sm font-medium text-blue-800">Ensaios Clínicos</span>
-        </div>
-        <div className="text-3xl font-bold text-blue-900">{ensaios}</div>
-        <div className="text-sm text-blue-700">Em Andamento</div>
-      </div>
-    </div>
-  );
-};
-
-// Componente para Economia Esperada
-const ExpectedSavings = ({ savings }: { savings: { [country: string]: string } }) => {
-  return (
-    <div className="bg-gradient-to-br from-green-50 to-emerald-100 p-6 rounded-xl border border-green-200">
-      <div className="flex items-center gap-3 mb-4">
-        <Banknote size={24} className="text-green-600" />
-        <h4 className="text-lg font-bold text-green-900">Economia Esperada por Paciente/Ano</h4>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {Object.entries(savings).map(([country, amount]) => (
-          <div key={country} className="bg-white p-4 rounded-lg border border-green-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Flag 
-                code={getCountryCode(country)} 
-                style={{ width: 24, height: 18 }}
-              />
-              <span className="font-medium text-gray-900">{country}</span>
-            </div>
-            <div className="text-2xl font-bold text-green-600">{amount}</div>
-            <div className="text-sm text-green-700">por paciente/ano</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Componente para Go-to-Market Strategy Melhorada
-const GoToMarketStrategy = ({ strategy }: { strategy: any }) => {
-  return (
-    <div className="bg-gradient-to-br from-purple-50 to-indigo-100 p-6 rounded-xl border border-purple-200">
-      <div className="flex items-center gap-3 mb-6">
-        <Zap size={24} className="text-purple-600" />
-        <h4 className="text-xl font-bold text-purple-900">Estratégia Go-to-Market</h4>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Modelo e Posicionamento */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Target size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Modelo de Negócio</span>
-            </div>
-            <p className="text-gray-800">{strategy.modelo}</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Award size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Posicionamento</span>
-            </div>
-            <p className="text-gray-800">{strategy.posicionamento}</p>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Estratégia de Preço</span>
-            </div>
-            <p className="text-gray-800">{strategy.estrategia_preco}</p>
-          </div>
-        </div>
-        
-        {/* Canais e Parcerias */}
-        <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Globe size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Canais de Distribuição</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {strategy.canais?.map((canal: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                  {canal}
-                </span>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Users size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Parcerias Estratégicas</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {strategy.parcerias?.map((parceria: string, index: number) => (
-                <span key={index} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
-                  {parceria}
-                </span>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-lg border border-purple-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar size={20} className="text-purple-600" />
-              <span className="font-semibold text-purple-900">Timeline de Lançamento</span>
-            </div>
-            <p className="text-gray-800 font-medium">{strategy.timeline_lancamento}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Componente para Gráfico de Comparativo de Preços
-const PriceComparisonChart = ({ competitors }: { competitors: any[] }) => {
-  const prices = competitors.map(comp => {
-    const price = comp.preco_medio.replace(/[^\d,]/g, '').replace(',', '.');
-    return parseFloat(price) || 0;
-  });
-  
-  const maxPrice = Math.max(...prices);
-  
-  return (
-    <div className="space-y-4">
-      {competitors.map((competitor, index) => {
-        const price = prices[index];
-        const percentage = maxPrice > 0 ? (price / maxPrice) * 100 : 0;
-        
-        return (
-          <div key={index} className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                <span className="font-medium text-gray-900">{competitor.nome_comercial}</span>
-                <span className="text-sm text-gray-600">({competitor.fabricante})</span>
-              </div>
-              <span className="font-bold text-green-600">{competitor.preco_medio}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="h-2 bg-gradient-to-r from-green-400 to-emerald-600 rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+      ))}
     </div>
   );
 };
@@ -668,14 +378,14 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
         </div>
 
-        {/* 2. Análise Detalhada da Oportunidade - EXPANDIDA */}
+        {/* 2. Análise da Consulta Atual */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <BarChart3 size={24} className="text-purple-600" />
             <h3 className="text-xl font-bold text-gray-900">Análise Detalhada da Oportunidade</h3>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Justificativa */}
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Justificativa do Score</h4>
@@ -684,297 +394,208 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
               </div>
             </div>
 
-            {/* Status da Patente */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Status da Patente</h4>
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-3">
-                  {data.score_oportunidade.fatores_quantitativos.patente_proxima_do_vencimento ? (
-                    <>
-                      <CheckCircle size={24} className="text-green-600" />
-                      <div>
-                        <div className="font-semibold text-green-800">Próxima do Vencimento</div>
-                        <div className="text-sm text-green-600">Oportunidade para entrada no mercado</div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <Shield size={24} className="text-red-600" />
-                      <div>
-                        <div className="font-semibold text-red-800">Patente Protegida</div>
-                        <div className="text-sm text-red-600">Ainda em período de proteção</div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Métricas Clínicas */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados Clínicos</h4>
-            <ClinicalMetrics 
-              prescricoes={data.score_oportunidade.fatores_quantitativos.prescricoes_clinicas_identificadas}
-              ensaios={data.score_oportunidade.fatores_quantitativos.ensaios_clinicos_em_andamento}
-            />
-          </div>
-
-          {/* Volume de Buscas Google */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Search size={20} className="text-blue-600" />
-              Volume de Buscas no Google
-            </h4>
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <GoogleSearchChart searchData={data.score_oportunidade.fatores_quantitativos.quantidade_buscas_google} />
-            </div>
-          </div>
-
-          {/* Dados de Mercado */}
-          {data.score_oportunidade.fatores_quantitativos.volume_shopping && (
+            {/* Fatores Quantitativos */}
             <div>
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados de Mercado</h4>
-              {Object.entries(data.score_oportunidade.fatores_quantitativos.volume_shopping).map(([country, data]: [string, any]) => (
-                <div key={country} className="bg-gray-50 p-4 rounded-lg mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Flag 
-                      code={getCountryCode(country)} 
-                      style={{ width: 20, height: 15 }}
-                    />
-                    <span className="font-semibold">{country}</span>
-                  </div>
-                  <div className="text-sm space-y-1">
-                    <div><strong>Preço Médio:</strong> {data.preco_medio}</div>
-                    <div><strong>Faixa:</strong> {data.faixa_preco}</div>
-                    <div><strong>Fabricantes:</strong> {data.principais_fabricantes?.join(', ')}</div>
-                  </div>
+              {data.score_oportunidade.fatores_quantitativos?.volume_shopping && (
+                <div className="space-y-4">
+                  {Object.entries(data.score_oportunidade.fatores_quantitativos.volume_shopping).map(([country, data]: [string, any]) => (
+                    <div key={country} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Flag 
+                          code={getCountryCode(country)} 
+                          style={{ width: 20, height: 15 }}
+                        />
+                        <span className="font-semibold">{country}</span>
+                      </div>
+                      <div className="text-sm space-y-1">
+                        <div><strong>Preço Médio:</strong> {data.preco_medio}</div>
+                        <div><strong>Faixa:</strong> {data.faixa_preco}</div>
+                        <div><strong>Fabricantes:</strong> {data.principais_fabricantes?.join(', ')}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+            </div>
+          </div>
+
+          {/* Fatores Qualitativos */}
+          {data.score_oportunidade.fatores_qualitativos && (
+            <div className="mt-8">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Análise Qualitativa</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
+                  <p className="text-blue-800 text-sm">{data.score_oportunidade.fatores_qualitativos.tendencia_midiatica}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
+                  <p className="text-green-800 text-sm">{data.score_oportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
+                </div>
+              </div>
+              
+              {data.score_oportunidade.fatores_qualitativos.riscos && (
+                <div className="mt-4 bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <h5 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                    <AlertTriangle size={16} />
+                    Riscos Identificados
+                  </h5>
+                  <p className="text-orange-800 text-sm">{data.score_oportunidade.fatores_qualitativos.riscos}</p>
+                </div>
+              )}
             </div>
           )}
         </div>
 
-        {/* 3. Análise Qualitativa Expandida */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp size={24} className="text-orange-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Qualitativa</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
-              <p className="text-blue-800 text-sm">{data.score_oportunidade.fatores_qualitativos.tendencia_midiatica}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
-              <p className="text-green-800 text-sm">{data.score_oportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
-            </div>
-          </div>
-          
-          {/* Riscos com Justificativa */}
-          <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-            <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
-              <AlertTriangle size={20} />
-              Riscos Identificados
-            </h5>
-            <div className="space-y-3">
-              <div>
-                <h6 className="font-medium text-red-800 mb-1">Análise de Riscos:</h6>
-                <p className="text-red-700 text-sm leading-relaxed">{data.score_oportunidade.fatores_qualitativos.riscos}</p>
-              </div>
-              <div>
-                <h6 className="font-medium text-red-800 mb-1">Justificativa:</h6>
-                <p className="text-red-700 text-sm leading-relaxed">{data.score_oportunidade.fatores_qualitativos.justificativa}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Análise Competitiva com Gráfico */}
+        {/* 3. Comparativo com Produtos Similares */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <PieChart size={24} className="text-green-600" />
             <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Gráfico de Preços */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Comparativo de Preços</h4>
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <PriceComparisonChart competitors={data.comparativo_similares} />
-              </div>
-            </div>
-            
-            {/* Tabela Detalhada */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Detalhes dos Concorrentes</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 font-semibold text-gray-700">Produto</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Status</th>
-                      <th className="text-left py-2 font-semibold text-gray-700">Registros</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.comparativo_similares.map((product, index) => (
-                      <tr key={index} className="border-b border-gray-100">
-                        <td className="py-2">
-                          <div>
-                            <div className="font-medium text-gray-900">{product.nome_comercial}</div>
-                            <div className="text-xs text-gray-600">{product.fabricante}</div>
-                          </div>
-                        </td>
-                        <td className="py-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            product.status_patente.includes('Ativa') || product.status_patente.includes('2026') || product.status_patente.includes('2027')
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {product.status_patente}
-                          </span>
-                        </td>
-                        <td className="py-2">
-                          <div className="flex gap-1">
-                            {product.registro_fda && (
-                              <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
-                            )}
-                            {product.registro_anvisa && (
-                              <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Produto</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Molécula</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Fabricante</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Status Patente</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Preço Médio</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Registros</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.comparativo_similares.map((product, index) => (
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 font-medium text-gray-900">{product.nome_comercial}</td>
+                    <td className="py-3 px-4 text-gray-700">{product.nome_molecula}</td>
+                    <td className="py-3 px-4 text-gray-700">{product.fabricante}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        product.status_patente.includes('Ativa') || product.status_patente.includes('2026') || product.status_patente.includes('2027')
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        {product.status_patente}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-green-600">{product.preco_medio}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-2">
+                        {product.registro_fda && (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
+                        )}
+                        {product.registro_anvisa && (
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* 5. Produto Proposto - EXPANDIDO */}
+        {/* 4. Produto Proposto */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
             <Lightbulb size={24} className="text-yellow-600" />
             <h3 className="text-xl font-bold text-gray-900">Produto Proposto</h3>
           </div>
           
-          {/* Metadados do Produto */}
-          <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200 mb-8">
-            <h4 className="text-xl font-bold text-yellow-900 mb-4 flex items-center gap-2">
-              <Award size={24} />
-              {data.produto_proposto.nome_sugerido}
-            </h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Tipo</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.tipo}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Indústria</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.industria}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Setor</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.setor}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Categoria</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.categoria}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Molécula Base</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.molecula_base}</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-yellow-200">
-                <span className="text-xs font-medium text-gray-600">Doença Alvo</span>
-                <div className="font-semibold text-gray-900">{data.produto_proposto.doenca_alvo}</div>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded border border-yellow-200">
-              <span className="text-sm font-medium text-gray-600">Benefício Principal</span>
-              <p className="text-gray-900 mt-1">{data.produto_proposto.beneficio}</p>
-            </div>
-            
-            <div className="bg-white p-4 rounded border border-yellow-200 mt-4">
-              <span className="text-sm font-medium text-gray-600">Justificativa</span>
-              <p className="text-gray-900 mt-1 leading-relaxed">{data.produto_proposto.justificativa}</p>
-            </div>
-          </div>
-
-          {/* Go-to-Market Strategy Melhorada */}
-          <div className="mb-8">
-            <GoToMarketStrategy strategy={data.produto_proposto.go_to_market} />
-          </div>
-
-          {/* Timeline Melhorada */}
-          <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Clock size={20} className="text-blue-600" />
-              Linha do Tempo de Desenvolvimento
-            </h4>
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <EnhancedTimeline timeline={data.produto_proposto.linha_do_tempo} />
-            </div>
-          </div>
-
-          {/* Projeções Financeiras Expandidas */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Preços Propostos */}
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                <DollarSign size={20} />
-                Preços Propostos
-              </h4>
-              <div className="space-y-3">
-                {Object.entries(data.produto_proposto.comparativos.preco_proposto).map(([country, price]) => (
-                  <div key={country} className="flex items-center justify-between bg-white p-3 rounded border border-purple-200">
-                    <div className="flex items-center gap-2">
-                      <Flag 
-                        code={getCountryCode(country)} 
-                        style={{ width: 20, height: 15 }}
-                      />
-                      <span className="font-medium">{country}</span>
-                    </div>
-                    <span className="font-bold text-purple-600">{formatCurrency(price as string, country)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Market Share e Economia */}
+            {/* Proposta Técnica */}
             <div className="space-y-6">
-              {/* Market Share */}
-              <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
-                <h4 className="text-lg font-semibold text-indigo-900 mb-4 flex items-center gap-2">
-                  <PieChart size={20} />
-                  Projeção de Market Share
+              <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                <h4 className="text-lg font-semibold text-yellow-900 mb-3 flex items-center gap-2">
+                  <Award size={20} />
+                  {data.produto_proposto.nome_sugerido}
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                    <div className="text-3xl font-bold text-indigo-600">
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_1}
-                    </div>
-                    <div className="text-sm text-indigo-700">Ano 1</div>
-                  </div>
-                  <div className="text-center p-4 bg-white rounded border border-indigo-200">
-                    <div className="text-3xl font-bold text-indigo-600">
-                      {data.produto_proposto.comparativos.market_share_estimado_ano_2}
-                    </div>
-                    <div className="text-sm text-indigo-700">Ano 2</div>
-                  </div>
+                <div className="space-y-3 text-sm">
+                  <div><strong>Tipo:</strong> {data.produto_proposto.tipo}</div>
+                  <div><strong>Justificativa:</strong></div>
+                  <p className="text-yellow-800 leading-relaxed">{data.produto_proposto.justificativa}</p>
                 </div>
               </div>
 
-              {/* Economia Esperada */}
-              <ExpectedSavings savings={data.produto_proposto.comparativos.economia_esperada_por_paciente_ano} />
+              {/* Go-to-Market */}
+              {data.produto_proposto.go_to_market && (
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                  <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <Zap size={20} />
+                    Estratégia Go-to-Market
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div><strong>Modelo:</strong> {data.produto_proposto.go_to_market.modelo}</div>
+                    <div><strong>Canais:</strong> {data.produto_proposto.go_to_market.canais?.join(', ')}</div>
+                    <div><strong>Parcerias:</strong> {data.produto_proposto.go_to_market.parcerias?.join(', ')}</div>
+                    <div><strong>Posicionamento:</strong> {data.produto_proposto.go_to_market.posicionamento}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Timeline e Comparativos */}
+            <div className="space-y-6">
+              {/* Timeline */}
+              {data.produto_proposto.linha_do_tempo && (
+                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                  <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
+                    <Clock size={20} />
+                    Linha do Tempo
+                  </h4>
+                  <Timeline timeline={data.produto_proposto.linha_do_tempo} />
+                </div>
+              )}
+
+              {/* Comparativos Financeiros */}
+              {data.produto_proposto.comparativos && (
+                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                  <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
+                    <DollarSign size={20} />
+                    Projeções Financeiras
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    {data.produto_proposto.comparativos.preco_proposto && (
+                      <div>
+                        <strong>Preço Proposto:</strong>
+                        <div className="mt-1 space-y-1">
+                          {Object.entries(data.produto_proposto.comparativos.preco_proposto).map(([country, price]) => (
+                            <div key={country} className="flex items-center gap-2">
+                              <Flag 
+                                code={getCountryCode(country)} 
+                                style={{ width: 16, height: 12 }}
+                              />
+                              <span>{country}: {formatCurrency(price as string, country)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {data.produto_proposto.comparativos.market_share_estimado_ano_1 && (
+                      <div className="grid grid-cols-2 gap-4 mt-4">
+                        <div className="text-center p-3 bg-white rounded border">
+                          <div className="text-2xl font-bold text-purple-600">
+                            {data.produto_proposto.comparativos.market_share_estimado_ano_1}
+                          </div>
+                          <div className="text-xs text-gray-600">Market Share Ano 1</div>
+                        </div>
+                        <div className="text-center p-3 bg-white rounded border">
+                          <div className="text-2xl font-bold text-purple-600">
+                            {data.produto_proposto.comparativos.market_share_estimado_ano_2}
+                          </div>
+                          <div className="text-xs text-gray-600">Market Share Ano 2</div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -988,54 +609,42 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
         </div>
 
-        {/* 6. Insights do Dashboard (Comentários Bolt) */}
-        {data.produto_proposto.comentario_dashboard_bolt && (
-          <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
-            <div className="flex items-center gap-3 mb-4">
-              <LineChart size={24} className="text-gray-300" />
-              <h3 className="text-xl font-bold">Insights do Dashboard</h3>
+        {/* Resumo Executivo */}
+        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText size={24} className="text-gray-300" />
+            <h3 className="text-xl font-bold">Resumo Executivo</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-400 mb-2">
+                {data.score_oportunidade.valor}/10
+              </div>
+              <div className="text-gray-300 text-sm">Score de Oportunidade</div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">
-                  {data.score_oportunidade.valor}/10
-                </div>
-                <div className="text-gray-300 text-sm">Score de Oportunidade</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_score}</div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-blue-400 mb-2">
+                {data.comparativo_similares.length}
               </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">
-                  {data.comparativo_similares.length}
-                </div>
-                <div className="text-gray-300 text-sm">Concorrentes</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_comparativo}</div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-2">
-                  {Object.keys(data.produto_proposto.linha_do_tempo).length}
-                </div>
-                <div className="text-gray-300 text-sm">Fases do Projeto</div>
-                <div className="text-xs text-gray-400 mt-1">{data.produto_proposto.comentario_dashboard_bolt.tipo_grafico_timeline}</div>
-              </div>
+              <div className="text-gray-300 text-sm">Concorrentes Analisados</div>
             </div>
             
-            <div className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-              <h4 className="font-semibold text-gray-200 mb-2">Observações Técnicas:</h4>
-              <p className="text-gray-300 italic leading-relaxed">
-                {data.produto_proposto.comentario_dashboard_bolt.observacoes}
-              </p>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <p className="text-gray-300 italic">
-                "Análise gerada em {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')} para {data.consulta.cliente}"
-              </p>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-purple-400 mb-2">
+                {data.consulta.pais_alvo.length}
+              </div>
+              <div className="text-gray-300 text-sm">Mercados Alvo</div>
             </div>
           </div>
-        )}
+          
+          <div className="mt-6 text-center">
+            <p className="text-gray-300 italic">
+              "Análise gerada em {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')} para {data.consulta.cliente}"
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
