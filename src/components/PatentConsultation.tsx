@@ -18,10 +18,12 @@ import { PatentResultType, TokenUsageType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
+import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
+import PatentLoadingAnimation from './PatentLoadingAnimation';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -82,6 +84,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
   const [userSessionId, setUserSessionId] = useState<string>('');
+  const [loadingStartTime, setLoadingStartTime] = useState<number>(0);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [pollingProgress, setPollingProgress] = useState<PollingProgress | null>(null);
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -213,9 +218,18 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     }
 
     setIsLoading(true);
+    setLoadingStartTime(Date.now());
+    setShowTimeoutWarning(false);
+    setPollingProgress(null);
     setError('');
     setResult(null);
     setDashboardData(null);
+
+    // Mostrar aviso após 2 minutos
+    const timeoutWarningTimer = setTimeout(() => {
+      setShowTimeoutWarning(true);
+    }, 120000); // 2 minutos
+
 
     try {
       // Obter chave SERP disponível
@@ -248,21 +262,20 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição e aguardar resposta diretamente
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(webhookData)
-      });
+      // Usar sistema de polling robusto
+      const result = await waitForWebhookResponse(
+        userSessionId,
+        webhookUrl,
+        webhookData,
+        (progress) => {
+          setPollingProgress(progress);
+          console.log(`📊 Progresso do polling:`, progress);
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error(`Erro no webhook: ${response.status} ${response.statusText}`);
-      }
+      // Limpar timers se a resposta chegou
+      clearTimeout(timeoutWarningTimer);
 
-      const webhookResponse = await response.json();
-      console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -275,15 +288,13 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
 
-      // Verificar se é dashboard ou dados de patente normais
-      if (isDashboardData(webhookResponse)) {
-        console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        const dashboardInfo = parseDashboardData(webhookResponse);
-        setDashboardData(dashboardInfo);
+      // Processar resultado baseado no tipo
+      if (result.type === 'dashboard') {
+        console.log('📊 Renderizando dashboard');
+        setDashboardData(result.data);
       } else {
-        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
-        const patentData = parsePatentResponse(webhookResponse);
-        setResult(patentData);
+        console.log('📋 Renderizando dados de patente');
+        setResult(result.data);
         
         // Salvar consulta no histórico apenas para dados de patente normais
         const consultationData: Omit<PatentConsultationType, 'id'> = {
@@ -291,11 +302,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           userEmail: auth.currentUser.email || '',
           produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
           sessionId: userSessionId,
-          resultado: patentData,
+          resultado: result.data,
           consultedAt: new Date().toISOString()
         };
 
         const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+        console.log('✅ Consulta salva no histórico:', docRef.id);
       }
 
       // Atualizar tokens do usuário
@@ -306,11 +318,34 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       }
 
     } catch (error) {
+      // Limpar timers em caso de erro
+      clearTimeout(timeoutWarningTimer);
+      
       console.error('❌ Erro na consulta de patente:', error);
-      setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
+      
+      let errorMessage = 'Erro na consulta de patente';
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+          errorMessage = 'A análise demorou mais de 5 minutos para ser concluída. Isso pode acontecer com consultas complexas. Tente novamente.';
+        } else if (error.message.includes('AbortError')) {
+          errorMessage = 'Consulta cancelada devido ao tempo limite de 5 minutos.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
+      setShowTimeoutWarning(false);
+      setPollingProgress(null);
     }
+  };
+
+  const handleCancelConsultation = () => {
+    setIsLoading(false);
+    setShowTimeoutWarning(false);
+    setPollingProgress(null);
+    setError('Consulta cancelada pelo usuário.');
   };
 
   const handleBackToConsultation = () => {
@@ -318,6 +353,50 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setDashboardData(null);
     setError('');
   };
+
+  // Calcular tempo decorrido para mostrar na animação
+  const getElapsedTime = () => {
+    if (!isLoading || loadingStartTime === 0) return 0;
+    return Date.now() - loadingStartTime;
+  };
+
+  // Mostrar animação de loading durante o processamento
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <PatentLoadingAnimation
+          isVisible={true}
+          searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
+          onCancel={handleCancelConsultation}
+          pollingProgress={pollingProgress}
+        />
+        
+        {/* Aviso de progresso após 2 minutos */}
+        {showTimeoutWarning && (
+          <div className="fixed bottom-4 left-4 right-4 bg-blue-900/90 border border-blue-600 rounded-lg p-4 text-center z-50">
+            <div className="text-yellow-200">
+              <p className="font-semibold mb-2">⏱️ Processamento em Andamento</p>
+              <p className="text-sm">
+                {pollingProgress ? (
+                  <>
+                    {pollingProgress.stage} - Tentativa {pollingProgress.attempt}
+                    <br />
+                    Tempo decorrido: {Math.round(pollingProgress.timeElapsed / 1000)}s
+                  </>
+                ) : (
+                  <>
+                    A análise está em processamento. Consultas complexas podem levar até 5 minutos.
+                    <br />
+                    Tempo decorrido: {Math.round(getElapsedTime() / 1000)}s
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Se há dashboard data, mostrar dashboard
   if (dashboardData) {
@@ -552,15 +631,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
             <button
               type="submit"
-              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+              disabled={!searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
               className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
             >
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Search size={20} />
-              )}
-              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+              <Search size={20} />
+              Consultar Patente
             </button>
 
           </form>
