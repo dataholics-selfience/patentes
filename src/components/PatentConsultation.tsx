@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { 
   FlaskConical, 
   Search, 
-  History, 
-  X, 
   Globe,
   Building2,
   Pill,
@@ -14,13 +12,12 @@ import {
   Zap,
   Loader2
 } from 'lucide-react';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { PatentResultType, TokenUsageType, PatentConsultationType } from '../types';
+import { PatentResultType, TokenUsageType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
-import PatentHistory from './PatentHistory';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
@@ -81,11 +78,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
-  const [consultations, setConsultations] = useState<PatentConsultationType[]>([]);
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
+  const [userSessionId, setUserSessionId] = useState<string>('');
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -94,6 +90,52 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   useEffect(() => {
     initializeSerpKeyManager(SERP_API_KEYS);
   }, []);
+
+  // Gerar ou recuperar sessionId persistente para o usuário
+  useEffect(() => {
+    const getOrCreateUserSessionId = async () => {
+      if (!auth.currentUser) return;
+      
+      try {
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          
+          if (userData.sessionId) {
+            // Usar sessionId existente
+            setUserSessionId(userData.sessionId);
+          } else {
+            // Gerar novo sessionId de 24 caracteres alfanuméricos
+            const newSessionId = generateSessionId();
+            
+            // Salvar no documento do usuário
+            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+              sessionId: newSessionId
+            });
+            
+            setUserSessionId(newSessionId);
+            console.log(`🆔 Novo sessionId gerado para usuário: ${newSessionId}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error getting/creating sessionId:', error);
+        // Fallback: gerar sessionId temporário
+        setUserSessionId(generateSessionId());
+      }
+    };
+
+    getOrCreateUserSessionId();
+  }, []);
+
+  // Função para gerar sessionId de 24 caracteres alfanuméricos
+  const generateSessionId = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 24; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
 
   // Buscar dados do usuário
   useEffect(() => {
@@ -112,35 +154,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     };
 
     fetchUserData();
-  }, []);
-
-  // Buscar histórico de consultas
-  useEffect(() => {
-    const fetchConsultations = async () => {
-      if (!auth.currentUser) return;
-      
-      try {
-        const q = query(
-          collection(db, 'patentConsultations'),
-          where('userId', '==', auth.currentUser.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        const consultationsList = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as PatentConsultationType[];
-        
-        consultationsList.sort((a, b) => 
-          new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime()
-        );
-        
-        setConsultations(consultationsList);
-      } catch (error) {
-        console.error('Error fetching consultations:', error);
-      }
-    };
-
-    fetchConsultations();
   }, []);
 
   const handleInputChange = (field: string, value: string | string[]) => {
@@ -214,6 +227,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Preparar dados para o webhook
       const webhookData = {
         cliente: userCompany,
+        sessionId: userSessionId,
         nome_comercial: searchData.nome_comercial.trim(),
         nome_molecula: searchData.nome_molecula.trim(),
         industria: 'Farmacêutica',
@@ -276,16 +290,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email || '',
           produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId: crypto.randomUUID(),
+          sessionId: userSessionId,
           resultado: patentData,
           consultedAt: new Date().toISOString()
         };
 
         const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
-        
-        // Atualizar lista local
-        const newConsultation = { id: docRef.id, ...consultationData };
-        setConsultations(prev => [newConsultation, ...prev]);
       }
 
       // Atualizar tokens do usuário
@@ -301,10 +311,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleConsultationDeleted = (deletedId: string) => {
-    setConsultations(prev => prev.filter(c => c.id !== deletedId));
   };
 
   const handleBackToConsultation = () => {
@@ -335,9 +341,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <div className="max-w-4xl mx-auto">
       {/* Formulário Principal */}
-      <div className="lg:col-span-3">
+      <div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {/* Header com seletor de ambiente para admin */}
           <div className="flex items-center justify-between mb-6">
@@ -557,17 +563,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
             </button>
 
-            {/* Botão de cancelar durante o carregamento */}
-            {isLoading && (
-              <button
-                type="button"
-                onClick={() => setIsLoading(false)}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium mt-3"
-              >
-                <X size={16} />
-                Cancelar Consulta
-              </button>
-            )}
           </form>
 
           {/* Informações sobre tokens */}
@@ -583,17 +578,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Histórico de Consultas */}
-      <div className="lg:col-span-1">
-        <div className="sticky top-8">
-          <PatentHistory
-            consultations={consultations}
-            onClose={() => setShowHistory(false)}
-            onConsultationDeleted={handleConsultationDeleted}
-          />
         </div>
       </div>
     </div>
