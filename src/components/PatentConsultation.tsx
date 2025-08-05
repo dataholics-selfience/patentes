@@ -14,7 +14,6 @@ import {
   Zap,
   Loader2
 } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType, PatentConsultationType } from '../types';
@@ -26,8 +25,6 @@ import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
-import { WebhookStatusStore } from '../utils/webhookStatusStore';
-import { waitForWebhookResponse } from '../utils/webhookPoller';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -89,7 +86,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -179,16 +175,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     return true;
   };
 
-  const handleCancelConsultation = () => {
-    if (currentSessionId) {
-      // Limpar status no Firestore se necessário
-      WebhookStatusStore.removeStatus(currentSessionId).catch(console.error);
-      setCurrentSessionId(null);
-    }
-    setIsLoading(false);
-    setError('');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -219,12 +205,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setDashboardData(null);
 
     try {
-      const sessionId = uuidv4().replace(/-/g, '');
-      setCurrentSessionId(sessionId);
-
-      // Inicializar status no Firestore
-      await WebhookStatusStore.createStatus(sessionId, auth.currentUser.uid, auth.currentUser.email);
-
       // Obter chave SERP disponível
       const availableKey = manager.getAvailableKey();
       if (!availableKey) {
@@ -242,39 +222,33 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        sessionId,
         serpApiKey: availableKey
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
 
-      // CORREÇÃO: Usar URL correta baseada no ambiente
+      // URL do webhook baseada no ambiente
       const webhookUrl = environment === 'production' 
-        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'  // URL CORRIGIDA
+        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'
         : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição inicial para o webhook (não aguardar resposta completa)
-      fetch(webhookUrl, {
+      // Enviar requisição e aguardar resposta diretamente
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(webhookData)
-      }).catch(error => {
-        console.error('Erro ao enviar requisição para webhook:', error);
-        // Não interromper o processo, pois vamos aguardar via polling
       });
 
-      // Aguardar resposta via polling do Firestore
-      console.log('⏳ Aguardando resposta do webhook via polling...');
-      const webhookResponse = await waitForWebhookResponse(sessionId, (status) => {
-        console.log('📊 Status atualizado:', status);
-        // Aqui você pode atualizar a UI com o progresso se necessário
-      });
-      
-      console.log('✅ Resposta final do webhook recebida:', webhookResponse);
+      if (!response.ok) {
+        throw new Error(`Erro no webhook: ${response.status} ${response.statusText}`);
+      }
+
+      const webhookResponse = await response.json();
+      console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -302,7 +276,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           userId: auth.currentUser.uid,
           userEmail: auth.currentUser.email || '',
           produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId,
+          sessionId: crypto.randomUUID(),
           resultado: patentData,
           consultedAt: new Date().toISOString()
         };
@@ -321,18 +295,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         });
       }
 
-      // Limpar session ID após sucesso
-      setCurrentSessionId(null);
-
     } catch (error) {
       console.error('❌ Erro na consulta de patente:', error);
-      
-      // Limpar session ID em caso de erro
-      if (currentSessionId) {
-        WebhookStatusStore.removeStatus(currentSessionId).catch(console.error);
-        setCurrentSessionId(null);
-      }
-      
       setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
     } finally {
       setIsLoading(false);
@@ -461,6 +425,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Ozempic, Trulicity, Victoza"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -476,6 +441,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Semaglutida, Dulaglutida, Liraglutida"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -490,6 +456,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 value={searchData.categoria}
                 onChange={(e) => handleInputChange('categoria', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={isLoading}
               >
                 <option value="">Selecione uma categoria</option>
                 {PHARMACEUTICAL_CATEGORIES.map(category => (
@@ -511,6 +478,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('beneficio', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Controle glicêmico e perda de peso"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -525,6 +493,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Diabetes tipo 2 e obesidade"
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -543,13 +512,14 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                       searchData.pais_alvo.includes(country)
                         ? 'bg-blue-50 border-blue-300 text-blue-700'
                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                    }`}
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <input
                       type="checkbox"
                       checked={searchData.pais_alvo.includes(country)}
-                      onChange={() => handleCountryToggle(country)}
+                      onChange={() => !isLoading && handleCountryToggle(country)}
                       className="rounded text-blue-600 focus:ring-blue-500"
+                      disabled={isLoading}
                     />
                     <span className="text-sm font-medium">{country}</span>
                   </label>
@@ -591,7 +561,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             {isLoading && (
               <button
                 type="button"
-                onClick={handleCancelConsultation}
+                onClick={() => setIsLoading(false)}
                 className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium mt-3"
               >
                 <X size={16} />
