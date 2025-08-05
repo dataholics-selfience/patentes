@@ -18,6 +18,7 @@ import { PatentResultType, TokenUsageType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
+import { waitForWebhookResponse, PollingProgress } from '../utils/webhookPoller';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
@@ -85,6 +86,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [userSessionId, setUserSessionId] = useState<string>('');
   const [loadingStartTime, setLoadingStartTime] = useState<number>(0);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+  const [pollingProgress, setPollingProgress] = useState<PollingProgress | null>(null);
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -218,6 +220,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setIsLoading(true);
     setLoadingStartTime(Date.now());
     setShowTimeoutWarning(false);
+    setPollingProgress(null);
     setError('');
     setResult(null);
     setDashboardData(null);
@@ -225,14 +228,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     // Mostrar aviso após 2 minutos
     const timeoutWarningTimer = setTimeout(() => {
       setShowTimeoutWarning(true);
-    }, 180000); // 3 minutos
+    }, 120000); // 2 minutos
 
-    // Timeout máximo de 5 minutos
-    const maxTimeoutTimer = setTimeout(() => {
-      setIsLoading(false);
-      setError('A consulta demorou mais de 5 minutos para ser processada. Consultas complexas podem demorar mais que o esperado. Tente novamente.');
-      clearTimeout(timeoutWarningTimer);
-    }, 300000); // 5 minutos
 
     try {
       // Obter chave SERP disponível
@@ -265,26 +262,20 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição com timeout de 5 minutos
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(webhookData),
-        signal: AbortSignal.timeout(300000) // 5 minutos
-      });
+      // Usar sistema de polling robusto
+      const result = await waitForWebhookResponse(
+        userSessionId,
+        webhookUrl,
+        webhookData,
+        (progress) => {
+          setPollingProgress(progress);
+          console.log(`📊 Progresso do polling:`, progress);
+        }
+      );
 
       // Limpar timers se a resposta chegou
       clearTimeout(timeoutWarningTimer);
-      clearTimeout(maxTimeoutTimer);
 
-      if (!response.ok) {
-        throw new Error(`Erro no webhook: ${response.status} ${response.statusText}`);
-      }
-
-      const webhookResponse = await response.json();
-      console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
@@ -297,53 +288,26 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
 
-      // Verificar se é dashboard ou dados de patente normais
-      console.log('🔍 Verificando tipo de dados recebidos...');
-      if (isDashboardData(webhookResponse)) {
-        console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        try {
-          const dashboardInfo = parseDashboardData(webhookResponse);
-          console.log('✅ Dashboard info processado:', dashboardInfo);
-          setDashboardData(dashboardInfo);
-        } catch (dashboardError) {
-          console.error('❌ Erro ao processar dashboard data:', dashboardError);
-          throw new Error(`Erro ao processar dados do dashboard: ${dashboardError instanceof Error ? dashboardError.message : 'Erro desconhecido'}`);
-        }
+      // Processar resultado baseado no tipo
+      if (result.type === 'dashboard') {
+        console.log('📊 Renderizando dashboard');
+        setDashboardData(result.data);
       } else {
-        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
-        try {
-          const patentData = parsePatentResponse(webhookResponse);
-          console.log('✅ Patent data processado:', patentData);
-          setResult(patentData);
-          
-          // Salvar consulta no histórico apenas para dados de patente normais
-          const consultationData: Omit<PatentConsultationType, 'id'> = {
-            userId: auth.currentUser.uid,
-            userEmail: auth.currentUser.email || '',
-            produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-            sessionId: userSessionId,
-            resultado: patentData,
-            consultedAt: new Date().toISOString()
-          };
+        console.log('📋 Renderizando dados de patente');
+        setResult(result.data);
+        
+        // Salvar consulta no histórico apenas para dados de patente normais
+        const consultationData: Omit<PatentConsultationType, 'id'> = {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email || '',
+          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
+          sessionId: userSessionId,
+          resultado: result.data,
+          consultedAt: new Date().toISOString()
+        };
 
-          const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
-          console.log('✅ Consulta salva no histórico:', docRef.id);
-        } catch (parseError) {
-          if (parseError instanceof Error && parseError.message === 'DASHBOARD_DATA_DETECTED') {
-            console.log('📊 Dashboard data detectado durante parse, redirecionando para dashboard...');
-            try {
-              const dashboardInfo = parseDashboardData(webhookResponse);
-              console.log('✅ Dashboard info processado (fallback):', dashboardInfo);
-              setDashboardData(dashboardInfo);
-            } catch (dashboardError) {
-              console.error('❌ Erro no fallback do dashboard:', dashboardError);
-              throw dashboardError;
-            }
-          } else {
-            console.error('❌ Erro no parse de patente:', parseError);
-            throw parseError;
-          }
-        }
+        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+        console.log('✅ Consulta salva no histórico:', docRef.id);
       }
 
       // Atualizar tokens do usuário
@@ -356,7 +320,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     } catch (error) {
       // Limpar timers em caso de erro
       clearTimeout(timeoutWarningTimer);
-      clearTimeout(maxTimeoutTimer);
       
       console.error('❌ Erro na consulta de patente:', error);
       
@@ -374,12 +337,14 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     } finally {
       setIsLoading(false);
       setShowTimeoutWarning(false);
+      setPollingProgress(null);
     }
   };
 
   const handleCancelConsultation = () => {
     setIsLoading(false);
     setShowTimeoutWarning(false);
+    setPollingProgress(null);
     setError('Consulta cancelada pelo usuário.');
   };
 
@@ -403,17 +368,28 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           isVisible={true}
           searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
           onCancel={handleCancelConsultation}
+          pollingProgress={pollingProgress}
         />
         
-        {/* Aviso de timeout após 2 minutos */}
+        {/* Aviso de progresso após 2 minutos */}
         {showTimeoutWarning && (
           <div className="fixed bottom-4 left-4 right-4 bg-blue-900/90 border border-blue-600 rounded-lg p-4 text-center z-50">
             <div className="text-yellow-200">
-              <p className="font-semibold mb-2">⏱️ Aguardando Resposta</p>
+              <p className="font-semibold mb-2">⏱️ Processamento em Andamento</p>
               <p className="text-sm">
-                A análise está demorando mais que o normal. Consultas complexas podem levar até 5 minutos. Aguarde...
-                <br />
-                Tempo decorrido: {Math.round(getElapsedTime() / 1000)}s
+                {pollingProgress ? (
+                  <>
+                    {pollingProgress.stage} - Tentativa {pollingProgress.attempt}
+                    <br />
+                    Tempo decorrido: {Math.round(pollingProgress.timeElapsed / 1000)}s
+                  </>
+                ) : (
+                  <>
+                    A análise está em processamento. Consultas complexas podem levar até 5 minutos.
+                    <br />
+                    Tempo decorrido: {Math.round(getElapsedTime() / 1000)}s
+                  </>
+                )}
               </p>
             </div>
           </div>

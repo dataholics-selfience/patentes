@@ -47,32 +47,24 @@ export const isDashboardData = (rawResponse: any): boolean => {
       console.log('📊 Dados de object direto:', parsedData);
     }
     
-    // Verificar se tem estrutura de dashboard
+    // Verificar se tem estrutura COMPLETA de dashboard
     const isDashboard = !!(
-      parsedData?.produto_proposto?.comentario_visualizacao ||
-      parsedData?.produto_proposto?.nome_sugerido ||
-      parsedData?.produto_proposto?.go_to_market ||
-      parsedData?.produto_proposto?.linha_do_tempo ||
-      parsedData?.resumo_oportunidade?.score_oportunidade ||
-      parsedData?.resumo_oportunidade?.comentario_visualizacao ||
-      parsedData?.analise_riscos?.comentario_visualizacao ||
-      parsedData?.recomendacoes?.comentario_visualizacao ||
-      parsedData?.comparativo_tecnico?.comentario_visualizacao ||
-      parsedData?.metadados?.cliente ||
-      parsedData?.consulta?.cliente ||
-      parsedData?.score_oportunidade?.valor !== undefined ||
-      parsedData?.comparativo_similares ||
-      parsedData?.produtos_similares
+      parsedData?.consulta &&
+      parsedData?.resumo_oportunidade &&
+      parsedData?.produtos_similares &&
+      parsedData?.produto_proposto &&
+      parsedData?.analise_riscos &&
+      parsedData?.recomendacoes
     );
     
     console.log(`🎯 É dashboard? ${isDashboard}`, {
-      hasProdutoProposto: !!parsedData?.produto_proposto,
-      hasResumoOportunidade: !!parsedData?.resumo_oportunidade,
-      hasScoreOportunidade: !!parsedData?.score_oportunidade,
       hasConsulta: !!parsedData?.consulta,
-      hasMetadados: !!parsedData?.metadados,
-      hasComparativoSimilares: !!parsedData?.comparativo_similares,
-      hasProdutosSimilares: !!parsedData?.produtos_similares
+      hasResumoOportunidade: !!parsedData?.resumo_oportunidade,
+      hasProdutosSimilares: !!parsedData?.produtos_similares,
+      hasProdutoProposto: !!parsedData?.produto_proposto,
+      hasAnaliseRiscos: !!parsedData?.analise_riscos,
+      hasRecomendacoes: !!parsedData?.recomendacoes,
+      isComplete: isDashboard
     });
     
     return isDashboard;

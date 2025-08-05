@@ -166,7 +166,22 @@ const OpportunityGauge = ({
 
 // Componente para Timeline de Go-to-Market
 const GoToMarketTimeline = ({ timeline }: { timeline: any[] }) => {
-  if (!timeline || !Array.isArray(timeline)) return null;
+  if (!timeline) return null;
+  
+  // Verificar se é um objeto com propriedades de timeline
+  let timelineData: any[] = [];
+  if (Array.isArray(timeline)) {
+    timelineData = timeline;
+  } else if (typeof timeline === 'object') {
+    // Converter objeto timeline em array
+    timelineData = Object.entries(timeline).map(([key, value]) => ({
+      fase: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      descricao: typeof value === 'string' ? value : JSON.stringify(value),
+      duracao: typeof value === 'object' && value ? (value as any).duracao || 'Não especificado' : 'Não especificado'
+    }));
+  }
+  
+  if (timelineData.length === 0) return null;
 
   return (
     <div className="space-y-6">
@@ -180,19 +195,23 @@ const GoToMarketTimeline = ({ timeline }: { timeline: any[] }) => {
         <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500"></div>
         
         <div className="space-y-8">
-          {timeline.map((phase, index) => (
+          {timelineData.map((phase, index) => (
             <div key={index} className="relative flex items-start gap-6">
               <div className="flex items-center justify-center w-12 h-12 rounded-full border-4 border-blue-600 bg-white text-blue-600 font-bold text-lg z-10">
                 {index + 1}
               </div>
               <div className="flex-1 bg-white rounded-lg p-6 shadow-sm border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-lg font-bold text-gray-900">{phase.fase || phase.etapa || `Fase ${index + 1}`}</h4>
+                  <h4 className="text-lg font-bold text-gray-900">
+                    {phase.fase || phase.etapa || phase.phase || `Fase ${index + 1}`}
+                  </h4>
                   <span className="text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
-                    {phase.duracao || phase.tempo || 'Duração não especificada'}
+                    {phase.duracao || phase.tempo || phase.duration || 'Duração não especificada'}
                   </span>
                 </div>
-                <p className="text-gray-700 leading-relaxed">{phase.descricao || phase.atividades || 'Descrição não disponível'}</p>
+                <p className="text-gray-700 leading-relaxed">
+                  {phase.descricao || phase.atividades || phase.description || 'Descrição não disponível'}
+                </p>
                 
                 {phase.marcos && Array.isArray(phase.marcos) && (
                   <div className="mt-4">
@@ -479,7 +498,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
 
   // Dados do cliente e consulta
   const nomeCliente = metadados?.cliente || 'Cliente';
-  const nomeProduto = produtoProposto?.nome_sugerido || metadados?.nome_comercial || 'Produto Analisado';
+  const nomeProduto = produtoProposto?.nome_sugerido || produtoProposto?.nome_provisório || metadados?.nome_comercial || 'Produto Analisado';
   const nomeMolecula = metadados?.nome_molecula || 'Molécula';
 
   const handleSavePDF = async () => {
@@ -641,8 +660,8 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
 
           {/* Go to Market Timeline */}
-          {produtoProposto.go_to_market && (
-            <GoToMarketTimeline timeline={produtoProposto.go_to_market} />
+          {(produtoProposto.go_to_market || produtoProposto.timeline_go_to_market) && (
+            <GoToMarketTimeline timeline={produtoProposto.go_to_market || produtoProposto.timeline_go_to_market} />
           )}
 
           {/* Resumo de Oportunidade */}

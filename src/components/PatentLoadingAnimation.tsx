@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { FlaskConical, Globe, Building2, TestTube, FileText, TrendingUp, Hourglass, CheckCircle, Clock, X } from 'lucide-react';
+import { PollingProgress } from '../utils/webhookPoller';
 
 interface PatentLoadingAnimationProps {
   isVisible: boolean;
   onComplete?: () => void;
   searchTerm?: string;
   onCancel?: () => void;
+  pollingProgress?: PollingProgress | null;
 }
 
 const PatentLoadingAnimation = ({ 
   isVisible, 
   onComplete, 
   searchTerm = "medicamento",
-  onCancel
+  onCancel,
+  pollingProgress
 }: PatentLoadingAnimationProps) => {
   const [currentStage, setCurrentStage] = useState(0); 
   const [progress, setProgress] = useState(0);
@@ -72,6 +75,19 @@ const PatentLoadingAnimation = ({
   useEffect(() => {
     if (!isVisible) return;
 
+    // Se temos progresso do polling, usar esse estágio
+    if (pollingProgress) {
+      const stageFromTime = getStageFromPollingTime(pollingProgress.timeElapsed);
+      setCurrentStage(stageFromTime);
+      
+      // Calcular progresso baseado no tempo decorrido
+      const maxTime = 300000; // 5 minutos
+      const progressPercentage = Math.min((pollingProgress.timeElapsed / maxTime) * 100, 95);
+      setProgress(progressPercentage);
+      
+      setElapsedTime(pollingProgress.timeElapsed);
+      return;
+    }
     // Timer para contar tempo decorrido
     const timeTimer = setInterval(() => {
       setElapsedTime(prev => prev + 1000);
@@ -119,6 +135,14 @@ const PatentLoadingAnimation = ({
     };
   }, [isVisible]);
 
+  const getStageFromPollingTime = (timeElapsed: number): number => {
+    if (timeElapsed < 30000) return 0; // Enviando consulta
+    if (timeElapsed < 60000) return 1; // Consultando bases
+    if (timeElapsed < 120000) return 2; // Analisando propriedade
+    if (timeElapsed < 180000) return 3; // Ensaios clínicos
+    if (timeElapsed < 240000) return 4; // Verificando regulamentações
+    return 5; // Finalizando análise
+  };
 
   const formatTime = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -219,6 +243,24 @@ const PatentLoadingAnimation = ({
           <p className="text-blue-200 text-lg animate-fade-in">
             {currentStageData?.subtitle}
           </p>
+          
+          {/* Informações do polling */}
+          {pollingProgress && (
+            <div className="mt-4 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
+              <div className="text-sm text-blue-200 space-y-1">
+                <div className="flex justify-between">
+                  <span>Tentativa:</span>
+                  <span className="font-medium">{pollingProgress.attempt}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Última verificação:</span>
+                  <span className="font-medium">
+                    {new Date(pollingProgress.lastCheck).toLocaleTimeString('pt-BR')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Search Term */}
@@ -231,7 +273,9 @@ const PatentLoadingAnimation = ({
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-blue-200 text-sm">Progresso</span>
-            <span className="text-blue-200 text-sm">{Math.round(progress)}%</span>
+            <span className="text-blue-200 text-sm">
+              {pollingProgress ? `${Math.round(progress)}%` : `${Math.round(progress)}%`}
+            </span>
           </div>
           <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden shadow-inner">
             <div 
@@ -267,7 +311,7 @@ const PatentLoadingAnimation = ({
                 <div className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
               <span className="text-lg font-medium">
-                Processando análise completa...
+                {pollingProgress ? 'Aguardando resposta do servidor...' : 'Processando análise completa...'}
               </span>
             </div>
             
@@ -275,10 +319,18 @@ const PatentLoadingAnimation = ({
               <div className="text-sm text-blue-200 space-y-1">
                 <div className="flex justify-between">
                   <span>Tempo decorrido:</span>
-                  <span className="font-medium">{formatTime(elapsedTime)}</span>
+                  <span className="font-medium">
+                    {pollingProgress ? formatTime(pollingProgress.timeElapsed) : formatTime(elapsedTime)}
+                  </span>
                 </div>
+                {pollingProgress && (
+                  <div className="flex justify-between">
+                    <span>Verificações:</span>
+                    <span className="font-medium">{pollingProgress.attempt}</span>
+                  </div>
+                )}
                 <div className="text-xs text-blue-300 mt-2 text-center">
-                  ⏱️ Consultas complexas podem levar até 5 minutos. Aguarde...
+                  ⏱️ {pollingProgress ? 'Aguardando processamento completo do servidor...' : 'Consultas complexas podem levar até 5 minutos. Aguarde...'}
                 </div>
               </div>
             </div>
