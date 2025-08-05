@@ -264,6 +264,14 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const webhookResponse = await response.json();
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
+      // IMPORTANTE: Verificar se a resposta está vazia ou incompleta
+      if (!webhookResponse || 
+          (Array.isArray(webhookResponse) && webhookResponse.length === 0) ||
+          (typeof webhookResponse === 'object' && Object.keys(webhookResponse).length === 0)) {
+        console.log('⚠️ Resposta do webhook vazia ou incompleta, aguardando mais tempo...');
+        throw new Error('Webhook retornou resposta vazia. O processamento pode estar demorando mais que o esperado. Tente novamente em alguns minutos.');
+      }
+
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
         availableKey, 
@@ -317,7 +325,19 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
     } catch (error) {
       console.error('❌ Erro na consulta de patente:', error);
-      setError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
+      
+      // Melhorar mensagens de erro para o usuário
+      let errorMessage = 'Erro desconhecido na consulta';
+      if (error instanceof Error) {
+        if (error.message.includes('resposta vazia')) {
+          errorMessage = 'O webhook está processando sua consulta. Isso pode demorar até 15 minutos para análises complexas. Tente novamente em alguns minutos.';
+        } else if (error.message.includes('Timeout')) {
+          errorMessage = 'A análise está demorando mais que o esperado. Webhooks complexos podem levar até 15 minutos. Tente novamente ou aguarde mais alguns minutos.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

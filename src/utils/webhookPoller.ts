@@ -1,4 +1,4 @@
-// Sistema de polling para aguardar resposta completa do webhook - VERSÃO CORRIGIDA
+// Sistema de polling para aguardar resposta completa do webhook - VERSÃO CORRIGIDA PARA WEBHOOKS LENTOS
 import { WebhookStatusStore } from './webhookStatusStore';
 import { parsePatentResponse } from './patentParser';
 
@@ -25,8 +25,8 @@ export class WebhookPoller {
   private onProgress?: (progress: PollingProgress) => void;
   private startTime: number;
   private isPolling: boolean = false;
-  private maxAttempts: number = 300; // 50 minutos máximo (300 * 10s)
-  private forceRenderTimeout: number = 300000; // 5 minutos
+  private maxAttempts: number = 600; // 100 minutos máximo (600 * 10s)
+  private forceRenderTimeout: number = 900000; // 15 minutos (900 segundos)
 
   constructor(
     sessionId: string, 
@@ -44,21 +44,21 @@ export class WebhookPoller {
     let attempt = 0;
     
     console.log(`🔄 Iniciando polling para sessionId: ${this.sessionId}`);
-    console.log(`⏰ Timeout forçado configurado para: ${this.forceRenderTimeout / 1000}s`);
+    console.log(`⏰ Timeout forçado configurado para: ${this.forceRenderTimeout / 1000}s (${this.forceRenderTimeout / 60000} minutos)`);
     
     while (this.isPolling && attempt < this.maxAttempts) {
       attempt++;
       const timeElapsed = Date.now() - this.startTime;
       
-      // TIMEOUT FORÇADO - Se passou de 70 segundos, força renderização
+      // TIMEOUT FORÇADO AUMENTADO - Se passou de 15 minutos, força renderização
       if (timeElapsed >= this.forceRenderTimeout) {
-        console.log(`🚨 TIMEOUT FORÇADO ATIVADO após ${Math.round(timeElapsed / 1000)}s`);
+        console.log(`🚨 TIMEOUT FORÇADO ATIVADO após ${Math.round(timeElapsed / 1000)}s (${Math.round(timeElapsed / 60000)} minutos)`);
         console.log(`🔍 Fazendo última tentativa de buscar dados...`);
         
         try {
           const finalResponse = await this.checkWebhookStatus();
-          if (finalResponse.data) {
-            console.log(`✅ Dados encontrados no timeout forçado, renderizando...`);
+          if (finalResponse.data && this.isValidPatentData(finalResponse.data)) {
+            console.log(`✅ Dados válidos encontrados no timeout forçado, renderizando...`);
             this.isPolling = false;
             
             try {
@@ -70,9 +70,9 @@ export class WebhookPoller {
               throw new Error(`Erro ao processar dados: ${parseError instanceof Error ? parseError.message : 'Erro desconhecido'}`);
             }
           } else {
-            console.log(`❌ Nenhum dado encontrado após timeout forçado`);
+            console.log(`❌ Nenhum dado válido encontrado após timeout forçado de ${Math.round(timeElapsed / 60000)} minutos`);
             this.isPolling = false;
-            throw new Error(`Timeout: Webhook não respondeu completamente após ${Math.round(timeElapsed / 1000)} segundos. Tente novamente.`);
+            throw new Error(`Timeout: Webhook não respondeu completamente após ${Math.round(timeElapsed / 60000)} minutos. O processamento pode estar demorando mais que o esperado. Tente novamente em alguns minutos.`);
           }
         } catch (error) {
           this.isPolling = false;
@@ -97,7 +97,7 @@ export class WebhookPoller {
         // Verificar se o webhook processou
         const response = await this.checkWebhookStatus();
         
-        if (response.status === 'completed' && response.data) {
+        if (response.status === 'completed' && response.data && this.isValidPatentData(response.data)) {
           console.log(`✅ Webhook respondeu completamente após ${attempt} tentativas (${Math.round(timeElapsed / 1000)}s)`);
           this.isPolling = false;
           
@@ -115,7 +115,17 @@ export class WebhookPoller {
           this.isPolling = false;
           throw new Error(response.error || 'Erro no processamento do webhook');
         } else {
-          console.log(`⏳ Webhook ainda processando... (status: ${response.status})`);
+          console.log(`⏳ Webhook ainda processando... (status: ${response.status}, dados válidos: ${this.isValidPatentData(response.data)})`);
+          
+          // Log adicional para debug
+          if (response.data) {
+            console.log(`📊 Dados recebidos mas não válidos ainda:`, {
+              hasData: !!response.data,
+              dataType: typeof response.data,
+              isArray: Array.isArray(response.data),
+              dataKeys: typeof response.data === 'object' ? Object.keys(response.data) : 'N/A'
+            });
+          }
         }
 
       } catch (error) {
@@ -138,7 +148,7 @@ export class WebhookPoller {
 
     // Se chegou aqui, atingiu o máximo de tentativas
     this.isPolling = false;
-    throw new Error(`Timeout: Webhook não respondeu após ${this.maxAttempts} tentativas (${Math.round((Date.now() - this.startTime) / 1000)}s)`);
+    throw new Error(`Timeout: Webhook não respondeu após ${this.maxAttempts} tentativas (${Math.round((Date.now() - this.startTime) / 60000)} minutos). O processamento pode estar demorando mais que o esperado.`);
   }
 
   private async checkWebhookStatus(): Promise<WebhookResponse> {
@@ -175,7 +185,8 @@ export class WebhookPoller {
         console.log('⚠️ Status completed mas sem dados válidos, continuando polling...');
         return {
           status: 'processing',
-          sessionId: this.sessionId
+          sessionId: this.sessionId,
+          data: statusData.data // Manter dados para debug
         };
       } else if (statusData.status === 'error') {
         return {
@@ -187,7 +198,8 @@ export class WebhookPoller {
       
       return {
         status: 'processing',
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
+        data: statusData.data // Incluir dados parciais se existirem
       };
 
     } catch (error) {
@@ -209,8 +221,13 @@ export class WebhookPoller {
     if (Array.isArray(data) && data.length > 0) {
       const firstItem = data[0];
       if (firstItem && typeof firstItem === 'object') {
-        // Verificar se tem estrutura de patente
-        const hasPatentStructure = !!(firstItem.patentes || firstItem.quimica || firstItem.ensaios_clinicos || firstItem.output);
+        // Verificar se tem estrutura de patente OU output válido
+        const hasPatentStructure = !!(
+          firstItem.patentes || 
+          firstItem.quimica || 
+          firstItem.ensaios_clinicos || 
+          (firstItem.output && typeof firstItem.output === 'object')
+        );
         console.log('🔍 Verificando array - tem estrutura de patente:', hasPatentStructure);
         return hasPatentStructure;
       }
@@ -220,29 +237,32 @@ export class WebhookPoller {
     const hasDirectStructure = !!(data.patentes || data.quimica || data.ensaios_clinicos);
     console.log('🔍 Verificando objeto direto - tem estrutura de patente:', hasDirectStructure);
     
-    // RELAXAR VALIDAÇÃO - aceitar qualquer objeto que pareça ter dados de patente
+    // VALIDAÇÃO MAIS RIGOROSA - só aceitar dados realmente completos
     if (!hasDirectStructure) {
-      // Verificar se tem pelo menos algumas propriedades que indicam dados de patente
-      const hasAnyPatentData = !!(
-        data.produto || 
-        data.substancia || 
-        data.patente_vigente !== undefined ||
-        data.data_expiracao_patente_principal ||
-        data.molecular_formula ||
-        data.iupac_name ||
-        Object.keys(data).length > 3 // Se tem mais de 3 propriedades, provavelmente tem dados
+      // Verificar se tem pelo menos estrutura mínima de patente
+      const hasMinimalPatentData = !!(
+        (data.produto || data.substancia) && 
+        (data.patente_vigente !== undefined || data.data_expiracao_patente_principal) &&
+        (data.molecular_formula || data.iupac_name || data.patentes_por_pais)
       );
-      console.log('🔍 Verificação relaxada - tem dados de patente:', hasAnyPatentData);
-      return hasAnyPatentData;
+      console.log('🔍 Verificação mínima - tem dados básicos de patente:', hasMinimalPatentData);
+      
+      // Só aceitar se tem dados realmente substanciais
+      if (!hasMinimalPatentData) {
+        console.log('❌ Dados insuficientes para renderização');
+        return false;
+      }
+      
+      return hasMinimalPatentData;
     }
     
     return hasDirectStructure;
   }
 
   private estimateTimeRemaining(timeElapsed: number): number | undefined {
-    // Estimativa baseada em dados históricos
-    const averageProcessingTime = 90000; // 1.5 minutos em média
-    const maxProcessingTime = 300000; // 5 minutos máximo
+    // Estimativa baseada em dados históricos ATUALIZADOS
+    const averageProcessingTime = 180000; // 3 minutos em média
+    const maxProcessingTime = 900000; // 15 minutos máximo
     
     if (timeElapsed < averageProcessingTime) {
       return averageProcessingTime - timeElapsed;
@@ -250,7 +270,7 @@ export class WebhookPoller {
       return maxProcessingTime - timeElapsed;
     }
     
-    // Após 5 minutos, não dar estimativa
+    // Após 15 minutos, não dar estimativa
     return undefined;
   }
 

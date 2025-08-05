@@ -319,7 +319,7 @@ const PatentLoadingAnimation = ({
                   {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 && (
                     <div className="flex justify-between">
                       <span>Renderização forçada em:</span>
-                      <span className="text-yellow-300 font-bold">{formatTime(pollingProgress.forceRenderIn)}</span>
+                      <span className="text-blue-300 font-medium">{formatTime(pollingProgress.forceRenderIn)}</span>
                     </div>
                   )}
                   {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn <= 0 && (
@@ -336,14 +336,13 @@ const PatentLoadingAnimation = ({
               <div className="text-sm text-blue-300 max-w-md text-center">
                 {pollingProgress.forceRenderIn !== undefined && pollingProgress.forceRenderIn > 0 ? (
                   <>
-                    O sistema verifica automaticamente a cada 10 segundos. 
-                    Se não houver resposta em <strong>{formatTime(pollingProgress.forceRenderIn)}</strong>, 
-                    a renderização será forçada com os dados disponíveis.
+                    ⏱️ <strong>Webhook pode demorar até 15 minutos para processar completamente.</strong><br/>
+                    O sistema verifica a cada 10 segundos. Renderização forçada em <strong>{formatTime(pollingProgress.forceRenderIn)}</strong> se necessário.
                   </>
                 ) : (
                   <>
-                    O sistema verifica automaticamente a cada 10 segundos se o processamento foi concluído. 
-                    Aguardaremos até 50 minutos para a análise estar 100% completa.
+                    ⏱️ <strong>Aguardando processamento completo do webhook...</strong><br/>
+                    O sistema verifica automaticamente a cada 10 segundos. Aguardaremos até 100 minutos para a análise estar 100% completa.
                   </>
                 )}
               </div>
