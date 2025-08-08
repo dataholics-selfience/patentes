@@ -1,279 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Download,
-  TrendingUp,
-  Calendar,
-  MapPin,
-  Building2,
-  Pill,
-  Target,
-  DollarSign,
-  Clock,
-  BarChart3,
-  PieChart,
-  Activity,
-  AlertTriangle,
-  CheckCircle,
-  Globe,
-  Users,
-  Zap,
-  Award,
-  Lightbulb,
-  FileText,
-  ExternalLink,
+  FlaskConical,
   Shield,
+  Beaker,
+  TestTube,
+  FileText,
+  TrendingUp,
+  CheckCircle,
+  XCircle,
+  Globe,
+  Building2,
+  Calendar,
+  ExternalLink,
+  Award,
+  DollarSign,
+  BookOpen,
+  Pill,
+  MapPin,
+  AlertTriangle,
+  Target,
+  Copy,
   Factory,
+  Users,
+  BarChart3,
+  Zap,
+  Clock,
+  Star,
+  Lightbulb,
   Briefcase,
   TrendingDown,
-  Star,
-  Eye,
-  ThumbsUp,
-  ThumbsDown
+  Activity
 } from 'lucide-react';
 import Flag from 'react-world-flags';
 import jsPDF from 'jspdf';
 
-interface DashboardData {
-  consulta: {
-    cliente: string;
-    termo_pesquisado: string;
-    pais_alvo: string[];
-    data_consulta: string;
-    nome_comercial: string;
-    nome_molecula: string;
-    industria: string;
-    setor: string;
-    categoria: string;
-    beneficio: string;
-    doenca_alvo: string;
-  };
-  score_oportunidade: {
-    valor: number;
-    classificacao: string;
-    justificativa_detalhada: string;
-    criterios: {
-      patente: {
-        vigente: boolean;
-        expiracao_proxima: boolean;
-        risco_judicial: string;
-        dados: Array<{
-          pais: string;
-          expiracao: string;
-        }>;
-      };
-      regulacao: {
-        facilidade_registro_generico: string;
-        registro_anvisa_encontrado: boolean;
-      };
-      ensaios_clinicos: {
-        ativos: number;
-        fase_avancada: boolean;
-        tem_no_brasil: boolean;
-        principais_indicacoes_estudadas: string[];
-        exemplo_estudo: {
-          titulo: string;
-          fase: string;
-          pais: string;
-          link: string;
-        };
-      };
-    };
-  };
-  dados_tecnicos: {
-    iupac_name: string;
-    formula_molecular: string;
-    peso_molecular: number;
-    smiles: string;
-    topological_polar_surface_area: number;
-    rotatable_bonds: number;
-    fonte: string;
-  };
-  dados_mercado_latam: {
-    precos: {
-      [country: string]: {
-        preco_medio: number | string;
-        moeda: string;
-        faixa_preco: {
-          min: number | string;
-          max: number | string;
-          moeda: string;
-        };
-        fonte: string;
-      };
-    };
-    volume_buscas_mensais_google: {
-      [country: string]: number;
-    };
-  };
-  registro_regulatorio: {
-    FDA?: {
-      nda_number: string;
-      data_aprovacao: string;
-      genericos_aprovados: boolean;
-    };
-    EMA?: {
-      registro: boolean;
-      data_aprovacao: string;
-    };
-    ANVISA?: {
-      registro_encontrado: boolean;
-      numero_registro: string;
-      data_registro: string;
-    };
-  };
-  comparativo_similares: Array<{
-    nome_comercial: string;
-    nome_molecula: string;
-    status_patente: string;
-    preco_medio: {
-      valor: number;
-      moeda: string;
-    };
-    fabricante: string;
-  }>;
-  produto_proposto: {
-    nome_sugerido: string;
-    tipo: string;
-    beneficio: string;
-    justificativa: string;
-    analise_de_riscos: {
-      comercial: {
-        riscos: string[];
-        mitigacoes: string[];
-      };
-    };
-    linha_do_tempo: {
-      [phase: string]: string;
-    };
-    comparativo_precos: {
-      proposto: {
-        [country: string]: {
-          valor: number;
-          moeda: string;
-        };
-      };
-    };
-    roi_estimado: Array<{
-      ano: number;
-      market_share: number;
-      roi: number;
-    }>;
-    estrategia_go_to_market: string;
-    plano_lancamento: {
-      midia_tradicional: string[];
-      midia_alternativa: string[];
-      budget_marketing_estimado: {
-        valor: number;
-        moeda: string;
-        periodo: string;
-      };
-    };
-    documentacao_patente_inpi: {
-      titulo: string;
-      resumo: string;
-      itens_incluidos: string[];
-    };
-    mercado_alvo: {
-      publico_destinado: string;
-      tamanho_do_publico_estimado: number;
-      TAM: { valor: number; moeda: string; };
-      SAM: { valor: number; moeda: string; };
-      SOM: { valor: number; moeda: string; observacao: string; };
-    };
-    justificativa_formacao_score: string;
-    indicadores_financeiros_adicionais: {
-      payback_estimado_anos: number;
-      margem_bruta_estimada: number;
-      investimento_total_estimado: {
-        valor: number;
-        moeda: string;
-      };
-    };
-  };
-  sugestao_estrategica: {
-    recomendacao: string;
-    campos_recomendados: string[];
-  };
-  analise_swot: {
-    forcas: string[];
-    fraquezas: string[];
-    oportunidades: string[];
-    ameacas: string[];
-  };
-  pipeline_concorrente: Array<{
-    nome_molecula: string;
-    empresa: string;
-    fase_clinica: string;
-    status: string;
-    observacoes: string;
-  }>;
-  complexidade_de_fabricacao: {
-    necessita_api_exclusiva: boolean;
-    grau_dificuldade_formulacao: string;
-    custo_estimado_por_lote: {
-      valor: number;
-      moeda: string;
-    };
-  };
-  indicadores_go_to_market: {
-    taxa_adocao_medica_esperada: number;
-    distribuidores_alvo: string[];
-    indicador_satisfacao_esperado: number;
-  };
-  metadados: {
-    versao_relatorio: string;
-    data_geracao: string;
-    responsavel: string;
-  };
-}
-
 interface PatentDashboardReportProps {
-  data: DashboardData;
+  data: any;
   onBack: () => void;
 }
 
 // Mapeamento de países para códigos de bandeiras
 const countryCodeMap: { [key: string]: string } = {
+  'Estados Unidos': 'US',
+  'United States': 'US',
   'Brasil': 'BR',
   'Brazil': 'BR',
-  'Estados Unidos': 'US',
-  'EUA': 'US',
-  'United States': 'US',
-  'México': 'MX',
-  'Mexico': 'MX',
-  'Chile': 'CL',
-  'Argentina': 'AR',
-  'União Europeia': 'EU',
-  'European Union': 'EU',
   'Japão': 'JP',
   'Japan': 'JP',
+  'Argentina': 'AR',
+  'Chile': 'CL',
+  'México': 'MX',
+  'Mexico': 'MX',
+  'União Europeia': 'EU',
+  'European Union': 'EU',
   'China': 'CN',
-  'Canadá': 'CA',
-  'Canada': 'CA',
   'Alemanha': 'DE',
   'Germany': 'DE',
   'França': 'FR',
   'France': 'FR',
   'Reino Unido': 'GB',
-  'United Kingdom': 'GB'
+  'United Kingdom': 'GB',
+  'Canadá': 'CA',
+  'Canada': 'CA'
 };
 
 const getCountryCode = (countryName: string): string => {
   return countryCodeMap[countryName] || 'UN';
 };
 
-// Componente Gauge para Score de Oportunidade
+// Componente Gauge Animado para Score de Oportunidade
 const OpportunityGauge = ({ 
   score, 
-  classification,
-  size = 'large' 
+  classification 
 }: { 
   score: number; 
-  classification: string;
-  size?: 'normal' | 'large';
+  classification: string; 
 }) => {
-  const radius = size === 'large' ? 120 : 80;
+  const radius = 120;
   const strokeWidth = 12;
   const normalizedRadius = radius - strokeWidth * 2;
   const circumference = normalizedRadius * 2 * Math.PI;
@@ -292,8 +97,8 @@ const OpportunityGauge = ({
     const timer = setInterval(() => {
       currentStep++;
       const currentScore = Math.min(increment * currentStep, score);
-      setAnimatedScore(Math.round(currentScore));
-      setStrokeDashoffset(circumference - (currentScore / 100) * circumference);
+      setAnimatedScore(Math.round(currentScore * 10) / 10); // Uma casa decimal
+      setStrokeDashoffset(circumference - (currentScore / 10) * circumference);
 
       if (currentStep >= steps) {
         clearInterval(timer);
@@ -304,9 +109,9 @@ const OpportunityGauge = ({
   }, [score, circumference]);
 
   const getColor = (score: number) => {
-    if (score >= 80) return '#10B981'; // Verde
-    if (score >= 60) return '#F59E0B'; // Amarelo
-    if (score >= 40) return '#F97316'; // Laranja
+    if (score >= 8) return '#10B981'; // Verde
+    if (score >= 6) return '#F59E0B'; // Amarelo
+    if (score >= 4) return '#F97316'; // Laranja
     return '#EF4444'; // Vermelho
   };
 
@@ -320,7 +125,7 @@ const OpportunityGauge = ({
         >
           {/* Background circle */}
           <circle
-            stroke="#E5E7EB"
+            stroke="rgba(255,255,255,0.2)"
             fill="transparent"
             strokeWidth={strokeWidth}
             r={normalizedRadius}
@@ -342,211 +147,224 @@ const OpportunityGauge = ({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-5xl font-bold text-gray-900">
+          <span className="font-bold text-white text-5xl">
             {animatedScore}
           </span>
-          <span className="text-base text-gray-600">
-            de 100
+          <span className="text-white text-base">
+            de 10
           </span>
         </div>
       </div>
       <div className="mt-4 text-center">
-        <div className="text-2xl font-bold text-gray-900">{classification}</div>
-        <div className="text-sm text-gray-600">Score de Oportunidade</div>
+        <div className="text-2xl font-bold text-white">{classification}</div>
       </div>
     </div>
   );
 };
 
-// Componente para Timeline
-const Timeline = ({ timeline }: { timeline: any }) => {
-  const phases = Object.entries(timeline).map(([key, value]) => ({
-    name: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    duration: value as string
-  }));
+// Componente para critérios do score
+const ScoreCriteria = ({ criterios }: { criterios: any }) => {
+  const getCriteriaIcon = (value: boolean | string) => {
+    if (typeof value === 'boolean') {
+      return value ? <CheckCircle size={16} className="text-green-400" /> : <XCircle size={16} className="text-red-400" />;
+    }
+    
+    if (typeof value === 'string') {
+      const lowerValue = value.toLowerCase();
+      if (lowerValue.includes('alto') || lowerValue.includes('alta')) {
+        return <AlertTriangle size={16} className="text-red-400" />;
+      } else if (lowerValue.includes('moderado') || lowerValue.includes('média')) {
+        return <AlertTriangle size={16} className="text-yellow-400" />;
+      } else if (lowerValue.includes('baixo') || lowerValue.includes('baixa')) {
+        return <CheckCircle size={16} className="text-green-400" />;
+      }
+    }
+    
+    return <AlertTriangle size={16} className="text-gray-400" />;
+  };
+
+  const getCriteriaColor = (value: boolean | string) => {
+    if (typeof value === 'boolean') {
+      return value ? 'text-green-300' : 'text-red-300';
+    }
+    
+    if (typeof value === 'string') {
+      const lowerValue = value.toLowerCase();
+      if (lowerValue.includes('alto') || lowerValue.includes('alta')) {
+        return 'text-red-300';
+      } else if (lowerValue.includes('moderado') || lowerValue.includes('média')) {
+        return 'text-yellow-300';
+      } else if (lowerValue.includes('baixo') || lowerValue.includes('baixa')) {
+        return 'text-green-300';
+      }
+    }
+    
+    return 'text-gray-300';
+  };
 
   return (
     <div className="space-y-4">
-      {phases.map((phase, index) => (
-        <div key={index} className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm">
-            {index + 1}
+      <h4 className="text-lg font-bold text-white mb-4">Critérios de Avaliação</h4>
+      
+      {/* Critérios de Patente */}
+      {criterios.patente && (
+        <div className="bg-blue-800/30 rounded-lg p-4 border border-blue-600/50">
+          <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+            <Shield size={18} className="text-blue-400" />
+            Análise de Patentes
+          </h5>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.patente.vigente)}
+              <span className="text-white text-sm">Patente Vigente:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.patente.vigente)}`}>
+                {criterios.patente.vigente ? 'SIM' : 'NÃO'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.patente.expiracao_proxima)}
+              <span className="text-white text-sm">Expiração Próxima:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.patente.expiracao_proxima)}`}>
+                {criterios.patente.expiracao_proxima ? 'SIM' : 'NÃO'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.patente.risco_judicial)}
+              <span className="text-white text-sm">Risco Judicial:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.patente.risco_judicial)}`}>
+                {criterios.patente.risco_judicial}
+              </span>
+            </div>
           </div>
-          <div className="flex-1">
-            <div className="font-semibold text-gray-900">{phase.name}</div>
-            <div className="text-sm text-gray-600">{phase.duration}</div>
+        </div>
+      )}
+
+      {/* Critérios de Regulação */}
+      {criterios.regulacao && (
+        <div className="bg-purple-800/30 rounded-lg p-4 border border-purple-600/50">
+          <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+            <Building2 size={18} className="text-purple-400" />
+            Análise Regulatória
+          </h5>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.regulacao.facilidade_registro_generico)}
+              <span className="text-white text-sm">Facilidade Registro:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.regulacao.facilidade_registro_generico)}`}>
+                {criterios.regulacao.facilidade_registro_generico}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(!criterios.regulacao.registro_anvisa_encontrado)}
+              <span className="text-white text-sm">ANVISA:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(!criterios.regulacao.registro_anvisa_encontrado)}`}>
+                {criterios.regulacao.registro_anvisa_encontrado ? 'Registrado' : 'Não Registrado'}
+              </span>
+            </div>
           </div>
-          {index < phases.length - 1 && (
-            <div className="w-px h-8 bg-gray-300 ml-4"></div>
+        </div>
+      )}
+
+      {/* Critérios de Ensaios Clínicos */}
+      {criterios.ensaios_clinicos && (
+        <div className="bg-green-800/30 rounded-lg p-4 border border-green-600/50">
+          <h5 className="text-white font-semibold mb-3 flex items-center gap-2">
+            <TestTube size={18} className="text-green-400" />
+            Ensaios Clínicos
+          </h5>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="flex items-center gap-2">
+              <Activity size={16} className="text-green-400" />
+              <span className="text-white text-sm">Estudos Ativos:</span>
+              <span className="text-green-300 text-sm font-medium">
+                {criterios.ensaios_clinicos.ativos?.toLocaleString() || 'N/A'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.ensaios_clinicos.fase_avancada)}
+              <span className="text-white text-sm">Fase Avançada:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.ensaios_clinicos.fase_avancada)}`}>
+                {criterios.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {getCriteriaIcon(criterios.ensaios_clinicos.tem_no_brasil)}
+              <span className="text-white text-sm">No Brasil:</span>
+              <span className={`text-sm font-medium ${getCriteriaColor(criterios.ensaios_clinicos.tem_no_brasil)}`}>
+                {criterios.ensaios_clinicos.tem_no_brasil ? 'SIM' : 'NÃO'}
+              </span>
+            </div>
+          </div>
+          
+          {criterios.ensaios_clinicos.principais_indicacoes_estudadas && (
+            <div className="mt-3">
+              <span className="text-white text-sm block mb-2">Principais Indicações:</span>
+              <div className="flex flex-wrap gap-2">
+                {criterios.ensaios_clinicos.principais_indicacoes_estudadas.map((indicacao: string, idx: number) => (
+                  <span key={idx} className="px-2 py-1 bg-green-600 text-white rounded text-xs">
+                    {indicacao}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-      ))}
+      )}
     </div>
   );
 };
 
-// Componente SWOT Matrix
-const SWOTMatrix = ({ swot }: { swot: DashboardData['analise_swot'] }) => {
+// Componente para copiar texto
+const CopyableText = ({ text, title }: { text: string; title: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Forças */}
-      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-        <h4 className="text-lg font-bold text-green-900 mb-4 flex items-center gap-2">
-          <ThumbsUp size={20} />
-          Forças
-        </h4>
-        <ul className="space-y-2">
-          {swot.forcas.map((item, index) => (
-            <li key={index} className="flex items-start gap-2 text-green-800">
-              <CheckCircle size={16} className="mt-1 flex-shrink-0" />
-              <span className="text-sm">{item}</span>
-            </li>
-          ))}
-        </ul>
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-semibold text-gray-900">{title}</h4>
+        <button
+          onClick={handleCopy}
+          className={`flex items-center gap-2 px-3 py-1 rounded-lg transition-colors ${
+            copied 
+              ? 'bg-green-100 text-green-700' 
+              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          {copied ? <CheckCircle size={16} /> : <Copy size={16} />}
+          {copied ? 'Copiado!' : 'Copiar'}
+        </button>
       </div>
-
-      {/* Fraquezas */}
-      <div className="bg-red-50 p-6 rounded-lg border border-red-200">
-        <h4 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
-          <ThumbsDown size={20} />
-          Fraquezas
-        </h4>
-        <ul className="space-y-2">
-          {swot.fraquezas.map((item, index) => (
-            <li key={index} className="flex items-start gap-2 text-red-800">
-              <AlertTriangle size={16} className="mt-1 flex-shrink-0" />
-              <span className="text-sm">{item}</span>
-            </li>
-          ))}
-        </ul>
+      <div className="bg-white p-3 rounded border border-gray-200 font-mono text-sm text-gray-800 whitespace-pre-wrap">
+        {text}
       </div>
-
-      {/* Oportunidades */}
-      <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-        <h4 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-          <Star size={20} />
-          Oportunidades
-        </h4>
-        <ul className="space-y-2">
-          {swot.oportunidades.map((item, index) => (
-            <li key={index} className="flex items-start gap-2 text-blue-800">
-              <Target size={16} className="mt-1 flex-shrink-0" />
-              <span className="text-sm">{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Ameaças */}
-      <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-        <h4 className="text-lg font-bold text-orange-900 mb-4 flex items-center gap-2">
-          <Shield size={20} />
-          Ameaças
-        </h4>
-        <ul className="space-y-2">
-          {swot.ameacas.map((item, index) => (
-            <li key={index} className="flex items-start gap-2 text-orange-800">
-              <AlertTriangle size={16} className="mt-1 flex-shrink-0" />
-              <span className="text-sm">{item}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-};
-
-// Componente para gráfico de ROI
-const ROIChart = ({ roiData }: { roiData: Array<{ ano: number; market_share: number; roi: number; }> }) => {
-  const maxROI = Math.max(...roiData.map(d => d.roi));
-  
-  return (
-    <div className="space-y-4">
-      {roiData.map((data, index) => (
-        <div key={index} className="flex items-center gap-4">
-          <div className="w-16 text-center">
-            <span className="text-lg font-bold text-gray-900">Ano {data.ano}</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-sm text-gray-600">ROI: {data.roi}x</span>
-              <span className="text-sm text-gray-600">Market Share: {(data.market_share * 100).toFixed(1)}%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4">
-              <div 
-                className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full transition-all duration-1000"
-                style={{ width: `${(data.roi / maxROI) * 100}%` }}
-              />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// Componente para gráfico de preços
-const PriceChart = ({ 
-  originalPrices, 
-  proposedPrices 
-}: { 
-  originalPrices: any; 
-  proposedPrices: any; 
-}) => {
-  const countries = Object.keys(originalPrices);
-  
-  return (
-    <div className="space-y-4">
-      {countries.map((country) => {
-        const original = originalPrices[country];
-        const proposed = proposedPrices[country];
-        
-        if (!original || !proposed || original.preco_medio === 'Indisponível') {
-          return null;
-        }
-
-        const originalPrice = typeof original.preco_medio === 'number' ? original.preco_medio : 0;
-        const proposedPrice = proposed.valor;
-        const savings = ((originalPrice - proposedPrice) / originalPrice * 100).toFixed(1);
-        
-        return (
-          <div key={country} className="bg-white p-4 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Flag 
-                code={getCountryCode(country)} 
-                style={{ width: 24, height: 18 }}
-              />
-              <span className="font-semibold text-gray-900">{country}</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <div className="text-sm text-gray-600">Preço Original</div>
-                <div className="text-lg font-bold text-red-600">
-                  {original.moeda} {originalPrice.toLocaleString()}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-gray-600">Preço Proposto</div>
-                <div className="text-lg font-bold text-green-600">
-                  {proposed.moeda} {proposedPrice.toLocaleString()}
-                </div>
-              </div>
-            </div>
-            
-            <div className="mt-3 text-center">
-              <span className="text-sm text-gray-600">Economia: </span>
-              <span className="font-bold text-blue-600">{savings}%</span>
-            </div>
-          </div>
-        );
-      })}
     </div>
   );
 };
 
 const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  const consulta = data.consulta || {};
+  const scoreOportunidade = data.score_oportunidade || {};
+  const dadosTecnicos = data.dados_tecnicos || {};
+  const dadosMercado = data.dados_mercado_latam || {};
+  const registroRegulatorio = data.registro_regulatorio || {};
+  const comparativoSimilares = data.comparativo_similares || [];
+  const produtoProposto = data.produto_proposto || {};
+  const analiseSwot = data.analise_swot || {};
+  const pipelineConcorrente = data.pipeline_concorrente || [];
+  const complexidadeFabricacao = data.complexidade_de_fabricacao || {};
+  const indicadoresGoToMarket = data.indicadores_go_to_market || {};
 
   const handleSavePDF = async () => {
     setIsGeneratingPDF(true);
@@ -560,27 +378,25 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       // Título
       pdf.setFontSize(16);
       pdf.setFont('helvetica', 'bold');
-      pdf.text('DASHBOARD EXECUTIVO - ANÁLISE DE OPORTUNIDADE', margin, yPosition);
+      pdf.text('RELATÓRIO COMPLETO DE ANÁLISE FARMACÊUTICA', margin, yPosition);
       yPosition += 15;
       
-      // Cliente e Produto
+      // Produto
       pdf.setFontSize(14);
-      pdf.text(`Cliente: ${data.consulta.cliente}`, margin, yPosition);
-      yPosition += 8;
-      pdf.text(`Produto: ${data.consulta.nome_comercial} (${data.consulta.nome_molecula})`, margin, yPosition);
-      yPosition += 8;
+      pdf.text(`Produto: ${consulta.nome_comercial} (${consulta.nome_molecula})`, margin, yPosition);
+      yPosition += 10;
       
       // Score
       pdf.setFontSize(12);
-      pdf.text(`Score de Oportunidade: ${data.score_oportunidade.valor}/100`, margin, yPosition);
+      pdf.text(`Score de Oportunidade: ${scoreOportunidade.valor}/10 (${scoreOportunidade.classificacao})`, margin, yPosition);
       yPosition += 10;
       
       // Data
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Data: ${new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')}`, margin, yPosition);
+      pdf.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, margin, yPosition);
       
-      const fileName = `dashboard-${data.consulta.cliente.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.nome_comercial.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `relatorio-completo-${consulta.nome_comercial?.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
     } catch (error) {
@@ -590,27 +406,6 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       setIsGeneratingPDF(false);
     }
   };
-
-  const formatCurrency = (value: number, currency: string) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: currency === 'BRL' ? 'BRL' : currency === 'USD' ? 'USD' : 'BRL',
-      minimumFractionDigits: 0
-    }).format(value);
-  };
-
-  const formatLargeNumber = (value: number) => {
-    if (value >= 1000000000) {
-      return `${(value / 1000000000).toFixed(1)}B`;
-    } else if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`;
-    } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(1)}K`;
-    }
-    return value.toString();
-  };
-
-  const isRecommended = data.sugestao_estrategica.recomendacao.toLowerCase().includes('sim');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -627,9 +422,12 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                 <span>Voltar</span>
               </button>
               
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard Executivo</h1>
-                <p className="text-gray-600">Análise de Oportunidade de Mercado</p>
+              <div className="flex items-center gap-3">
+                <FlaskConical size={32} className="text-blue-600" />
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Dashboard de Análise Farmacêutica</h1>
+                  <p className="text-gray-600">Relatório completo de oportunidade de mercado</p>
+                </div>
               </div>
             </div>
 
@@ -654,635 +452,953 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 1. Header Executivo */}
-        <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-xl shadow-2xl border border-blue-700 p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Informações do Produto */}
-            <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="space-y-8">
+          {/* Header da Consulta */}
+          <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-xl shadow-2xl border border-blue-700 p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-4xl font-bold text-white mb-2">
+                {consulta.nome_comercial} ({consulta.nome_molecula})
+              </h2>
+              <p className="text-blue-200 text-xl">
+                Cliente: {consulta.cliente} | Categoria: {consulta.categoria}
+              </p>
+              <p className="text-blue-300 text-lg">
+                {consulta.beneficio} para {consulta.doenca_alvo}
+              </p>
+            </div>
+
+            {/* Score de Oportunidade */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="flex flex-col items-center">
+                <h3 className="text-2xl font-bold text-white mb-6">Score de Oportunidade</h3>
+                <OpportunityGauge 
+                  score={scoreOportunidade.valor || 0} 
+                  classification={scoreOportunidade.classificacao || 'N/A'} 
+                />
+              </div>
+              
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <Building2 size={24} className="text-blue-200" />
-                  <span className="text-blue-200 text-lg">Cliente:</span>
+                <ScoreCriteria criterios={scoreOportunidade.criterios || {}} />
+              </div>
+            </div>
+          </div>
+
+          {/* Justificativa do Score */}
+          {scoreOportunidade.justificativa_detalhada && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Lightbulb size={24} className="text-yellow-600" />
+                Justificativa do Score
+              </h3>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-gray-800 leading-relaxed text-lg">
+                  {scoreOportunidade.justificativa_detalhada}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Vencimentos das Patentes por País */}
+          {scoreOportunidade.criterios?.patente?.dados && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Calendar size={24} className="text-blue-600" />
+                Vencimentos das Patentes por País
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {scoreOportunidade.criterios.patente.dados.map((item: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Flag 
+                        code={getCountryCode(item.pais)} 
+                        style={{ width: 24, height: 18 }}
+                      />
+                      <span className="font-medium text-gray-900">{item.pais}</span>
+                    </div>
+                    <div className="text-sm">
+                      <strong>Expiração:</strong> 
+                      <span className="ml-1 font-mono text-blue-600">{item.expiracao}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Status Regulatório */}
+          {registroRegulatorio && Object.keys(registroRegulatorio).length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Building2 size={24} className="text-red-600" />
+                Status Regulatório
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {registroRegulatorio.FDA && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                      <Flag code="US" style={{ width: 20, height: 15 }} />
+                      FDA (Estados Unidos)
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <strong>NDA:</strong> 
+                        <span className="ml-1 font-mono">{registroRegulatorio.FDA.nda_number}</span>
+                      </div>
+                      <div>
+                        <strong>Aprovação:</strong> 
+                        <span className="ml-1">{new Date(registroRegulatorio.FDA.data_aprovacao).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <strong>Genéricos:</strong>
+                        {registroRegulatorio.FDA.genericos_aprovados ? (
+                          <CheckCircle size={16} className="text-green-600" />
+                        ) : (
+                          <XCircle size={16} className="text-red-600" />
+                        )}
+                        <span>{registroRegulatorio.FDA.genericos_aprovados ? 'Aprovados' : 'Não Aprovados'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {registroRegulatorio.EMA && (
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <h4 className="font-bold text-purple-900 mb-3 flex items-center gap-2">
+                      <Flag code="EU" style={{ width: 20, height: 15 }} />
+                      EMA (Europa)
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <strong>Registro:</strong>
+                        {registroRegulatorio.EMA.registro ? (
+                          <CheckCircle size={16} className="text-green-600" />
+                        ) : (
+                          <XCircle size={16} className="text-red-600" />
+                        )}
+                        <span>{registroRegulatorio.EMA.registro ? 'Aprovado' : 'Não Aprovado'}</span>
+                      </div>
+                      <div>
+                        <strong>Aprovação:</strong> 
+                        <span className="ml-1">{new Date(registroRegulatorio.EMA.data_aprovacao).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {registroRegulatorio.ANVISA && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h4 className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                      <Flag code="BR" style={{ width: 20, height: 15 }} />
+                      ANVISA (Brasil)
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <strong>Registro:</strong>
+                        {registroRegulatorio.ANVISA.registro_encontrado ? (
+                          <CheckCircle size={16} className="text-green-600" />
+                        ) : (
+                          <XCircle size={16} className="text-red-600" />
+                        )}
+                        <span>{registroRegulatorio.ANVISA.registro_encontrado ? 'Encontrado' : 'Não Encontrado'}</span>
+                      </div>
+                      <div>
+                        <strong>Número:</strong> 
+                        <span className="ml-1">{registroRegulatorio.ANVISA.numero_registro}</span>
+                      </div>
+                      <div>
+                        <strong>Data:</strong> 
+                        <span className="ml-1">{registroRegulatorio.ANVISA.data_registro}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Dados Técnicos */}
+          {dadosTecnicos && Object.keys(dadosTecnicos).length > 0 && (
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Beaker size={24} className="text-purple-600" />
+                Dados Técnicos
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{dadosTecnicos.formula_molecular}</p>
                 </div>
-                <h2 className="text-4xl font-bold text-white mb-2">{data.consulta.cliente}</h2>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Pill size={16} className="text-blue-300" />
-                    <span className="text-blue-100 text-lg">{data.consulta.nome_comercial}</span>
-                    <span className="text-blue-200">({data.consulta.nome_molecula})</span>
+                
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{dadosTecnicos.peso_molecular} g/mol</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Área Polar Topológica</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{dadosTecnicos.topological_polar_surface_area} Ų</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Ligações Rotacionáveis</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{dadosTecnicos.rotatable_bonds}</p>
+                </div>
+
+                {dadosTecnicos.iupac_name && (
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
+                    <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
+                    <p className="text-sm text-gray-900 mt-1 break-words font-mono">{dadosTecnicos.iupac_name}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Target size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{data.consulta.categoria}</span>
+                )}
+
+                {dadosTecnicos.smiles && (
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
+                    <span className="text-sm font-medium text-gray-600">SMILES</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{dadosTecnicos.smiles}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Activity size={16} className="text-blue-300" />
-                    <span className="text-blue-100">{data.consulta.doenca_alvo}</span>
-                  </div>
+                )}
+              </div>
+              
+              {dadosTecnicos.fonte && (
+                <div className="mt-4">
+                  <span className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full">
+                    📊 {dadosTecnicos.fonte}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ensaios Clínicos */}
+          {scoreOportunidade.criterios?.ensaios_clinicos && (
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <TestTube size={24} className="text-green-600" />
+                Ensaios Clínicos
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg border border-green-100">
+                  <span className="text-sm font-medium text-gray-600">Estudos Ativos</span>
+                  <p className="text-2xl font-bold text-green-600 mt-1">
+                    {scoreOportunidade.criterios.ensaios_clinicos.ativos?.toLocaleString()}
+                  </p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg border border-green-100">
+                  <span className="text-sm font-medium text-gray-600">Fase Avançada</span>
+                  <p className={`text-lg font-bold mt-1 ${scoreOportunidade.criterios.ensaios_clinicos.fase_avancada ? 'text-green-600' : 'text-red-600'}`}>
+                    {scoreOportunidade.criterios.ensaios_clinicos.fase_avancada ? 'SIM' : 'NÃO'}
+                  </p>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-green-100">
+                  <span className="text-sm font-medium text-gray-600">Estudos no Brasil</span>
+                  <p className={`text-lg font-bold mt-1 ${scoreOportunidade.criterios.ensaios_clinicos.tem_no_brasil ? 'text-green-600' : 'text-red-600'}`}>
+                    {scoreOportunidade.criterios.ensaios_clinicos.tem_no_brasil ? 'SIM' : 'NÃO'}
+                  </p>
                 </div>
               </div>
 
-              {/* Países Alvo */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <MapPin size={20} className="text-blue-200" />
-                  <span className="text-blue-200">Mercados Alvo:</span>
+              {scoreOportunidade.criterios.ensaios_clinicos.principais_indicacoes_estudadas && (
+                <div className="mb-6">
+                  <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações</span>
+                  <div className="flex flex-wrap gap-2">
+                    {scoreOportunidade.criterios.ensaios_clinicos.principais_indicacoes_estudadas.map((indicacao: string, i: number) => (
+                      <span key={i} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        {indicacao}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-3">
-                  {data.consulta.pais_alvo.map((country, index) => (
-                    <div key={index} className="flex items-center gap-2 bg-blue-800/50 px-3 py-2 rounded-lg border border-blue-600/50">
-                      <Flag 
-                        code={getCountryCode(country)} 
-                        style={{ width: 20, height: 15 }}
-                      />
-                      <span className="text-white text-sm font-medium">{country}</span>
+              )}
+
+              {/* Exemplo de Estudo */}
+              {scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo && (
+                <div className="bg-white p-4 rounded-lg border border-green-100">
+                  <h4 className="font-bold text-lg text-gray-900 mb-2">Estudo em Destaque</h4>
+                  <div className="space-y-2">
+                    <p className="text-gray-800">{scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.titulo}</p>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Award size={16} className="text-green-600" />
+                        <span><strong>Fase:</strong> {scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.fase}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Flag 
+                          code={getCountryCode(scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.pais)} 
+                          style={{ width: 16, height: 12 }}
+                        />
+                        <span><strong>País:</strong> {scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.pais}</span>
+                      </div>
+                    </div>
+                    {scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.link && (
+                      <a 
+                        href={scoreOportunidade.criterios.ensaios_clinicos.exemplo_estudo.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                      >
+                        Ver estudo completo
+                        <ExternalLink size={14} />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Dados de Mercado LATAM */}
+          {dadosMercado.precos && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <DollarSign size={24} className="text-green-600" />
+                Análise de Mercado LATAM
+              </h3>
+              
+              {/* Preços por País */}
+              <div className="mb-8">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4">Preços por País</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries(dadosMercado.precos).map(([pais, preco]: [string, any]) => (
+                    <div key={pais} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Flag 
+                          code={getCountryCode(pais)} 
+                          style={{ width: 24, height: 18 }}
+                        />
+                        <span className="font-medium text-gray-900">{pais}</span>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <strong>Preço Médio:</strong> 
+                          <span className="ml-1 text-green-600 font-bold">
+                            {preco.preco_medio?.toLocaleString()} {preco.moeda}
+                          </span>
+                        </div>
+                        
+                        {preco.faixa_preco && (
+                          <div>
+                            <strong>Faixa:</strong> 
+                            <span className="ml-1">
+                              {preco.faixa_preco.min?.toLocaleString()} - {preco.faixa_preco.max?.toLocaleString()} {preco.faixa_preco.moeda}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {preco.fonte && (
+                          <div className="mt-2">
+                            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
+                              📊 {preco.fonte}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Data da Consulta */}
-              <div className="flex items-center gap-2">
-                <Calendar size={20} className="text-blue-200" />
-                <span className="text-blue-200">Data da Consulta:</span>
-                <span className="text-white font-medium">
-                  {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')}
-                </span>
+              {/* Volume de Buscas Google */}
+              {dadosMercado.volume_buscas_mensais_google && (
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4">Volume de Buscas Mensais (Google)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(dadosMercado.volume_buscas_mensais_google).map(([pais, volume]: [string, any]) => (
+                      <div key={pais} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Flag 
+                            code={getCountryCode(pais)} 
+                            style={{ width: 20, height: 15 }}
+                          />
+                          <span className="font-medium text-gray-900">{pais}</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {volume?.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-600">buscas/mês</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Comparativo de Similares */}
+          {comparativoSimilares.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <BarChart3 size={24} className="text-orange-600" />
+                Comparativo de Produtos Similares
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {comparativoSimilares.map((produto: any, index: number) => (
+                  <div key={index} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <h4 className="font-bold text-lg text-orange-900 mb-3">{produto.nome_comercial}</h4>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <strong>Molécula:</strong> 
+                        <span className="ml-1">{produto.nome_molecula}</span>
+                      </div>
+                      <div>
+                        <strong>Status Patente:</strong> 
+                        <span className="ml-1">{produto.status_patente}</span>
+                      </div>
+                      <div>
+                        <strong>Preço Médio:</strong> 
+                        <span className="ml-1 text-orange-600 font-bold">
+                          {produto.preco_medio?.valor?.toLocaleString()} {produto.preco_medio?.moeda}
+                        </span>
+                      </div>
+                      <div>
+                        <strong>Fabricante:</strong> 
+                        <span className="ml-1">{produto.fabricante}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
+          )}
 
-            {/* Score de Oportunidade */}
-            <div className="flex flex-col items-center justify-center">
-              <OpportunityGauge 
-                score={data.score_oportunidade.valor} 
-                classification={data.score_oportunidade.classificacao}
-                size="large" 
-              />
-            </div>
-          </div>
-        </div>
+          {/* PRODUTO PROPOSTO - Seção Destacada */}
+          {produtoProposto && Object.keys(produtoProposto).length > 0 && (
+            <div className="bg-gradient-to-br from-emerald-900 via-teal-800 to-cyan-900 rounded-xl shadow-2xl border border-emerald-700 p-8">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-600 rounded-full mb-4">
+                  <Lightbulb size={24} className="text-white" />
+                  <span className="text-white text-xl font-bold">PRODUTO PROPOSTO</span>
+                </div>
+                <h2 className="text-4xl font-bold text-white mb-2">
+                  {produtoProposto.nome_sugerido}
+                </h2>
+                <p className="text-emerald-200 text-xl">
+                  {produtoProposto.tipo} | {produtoProposto.beneficio}
+                </p>
+              </div>
 
-        {/* 2. Recomendação Estratégica */}
-        <div className={`rounded-xl p-6 border-2 ${
-          isRecommended 
-            ? 'bg-gradient-to-r from-green-600 to-emerald-600 border-green-500' 
-            : 'bg-gradient-to-r from-red-600 to-red-700 border-red-500'
-        }`}>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              {isRecommended ? (
-                <CheckCircle size={32} className="text-white" />
-              ) : (
-                <AlertTriangle size={32} className="text-white" />
+              {/* Justificativa */}
+              {produtoProposto.justificativa && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-3">Justificativa Estratégica</h4>
+                  <p className="text-emerald-100 leading-relaxed text-lg">
+                    {produtoProposto.justificativa}
+                  </p>
+                </div>
               )}
-              <h3 className="text-2xl font-bold text-white">
-                Recomendação: {isRecommended ? 'PROSSEGUIR' : 'NÃO PROSSEGUIR'}
-              </h3>
-            </div>
-            <p className="text-white text-lg leading-relaxed max-w-4xl mx-auto">
-              {data.sugestao_estrategica.recomendacao}
-            </p>
-            
-            {data.produto_proposto.indicadores_financeiros_adicionais && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white/20 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">
-                    {data.produto_proposto.indicadores_financeiros_adicionais.payback_estimado_anos} anos
+
+              {/* Linha do Tempo */}
+              {produtoProposto.linha_do_tempo && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Clock size={20} className="text-emerald-400" />
+                    Cronograma de Desenvolvimento
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {Object.entries(produtoProposto.linha_do_tempo).map(([fase, tempo]: [string, any]) => (
+                      <div key={fase} className="text-center">
+                        <div className="bg-emerald-600 text-white px-3 py-2 rounded-lg font-bold">
+                          {tempo}
+                        </div>
+                        <div className="text-emerald-200 text-sm mt-2 capitalize">
+                          {fase.replace('_', ' ')}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-white/80">Payback</div>
                 </div>
-                <div className="bg-white/20 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">
-                    {(data.produto_proposto.indicadores_financeiros_adicionais.margem_bruta_estimada * 100).toFixed(0)}%
+              )}
+
+              {/* ROI Estimado */}
+              {produtoProposto.roi_estimado && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <TrendingUp size={20} className="text-emerald-400" />
+                    ROI Estimado
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {produtoProposto.roi_estimado.map((roi: any, index: number) => (
+                      <div key={index} className="bg-white p-4 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600">Ano {roi.ano}</div>
+                          <div className="text-sm text-gray-600 mb-2">Market Share: {(roi.market_share * 100).toFixed(1)}%</div>
+                          <div className="text-3xl font-bold text-green-600">{roi.roi}x</div>
+                          <div className="text-sm text-gray-600">ROI</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-white/80">Margem Bruta</div>
                 </div>
-                <div className="bg-white/20 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-white">
-                    {formatCurrency(
-                      data.produto_proposto.indicadores_financeiros_adicionais.investimento_total_estimado.valor,
-                      data.produto_proposto.indicadores_financeiros_adicionais.investimento_total_estimado.moeda
+              )}
+
+              {/* Comparativo de Preços Proposto */}
+              {produtoProposto.comparativo_precos?.proposto && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <DollarSign size={20} className="text-emerald-400" />
+                    Preços Propostos
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(produtoProposto.comparativo_precos.proposto).map(([pais, preco]: [string, any]) => (
+                      <div key={pais} className="bg-white p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Flag 
+                            code={getCountryCode(pais)} 
+                            style={{ width: 20, height: 15 }}
+                          />
+                          <span className="font-medium text-gray-900">{pais}</span>
+                        </div>
+                        <div className="text-xl font-bold text-emerald-600">
+                          {preco.valor?.toLocaleString()} {preco.moeda}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Estratégia Go-to-Market */}
+              {produtoProposto.estrategia_go_to_market && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                    <Target size={20} className="text-emerald-400" />
+                    Estratégia Go-to-Market
+                  </h4>
+                  <p className="text-emerald-100 leading-relaxed">
+                    {produtoProposto.estrategia_go_to_market}
+                  </p>
+                </div>
+              )}
+
+              {/* Plano de Lançamento */}
+              {produtoProposto.plano_lancamento && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Rocket size={20} className="text-emerald-400" />
+                    Plano de Lançamento
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {produtoProposto.plano_lancamento.midia_tradicional && (
+                      <div>
+                        <h5 className="text-emerald-200 font-semibold mb-2">Mídia Tradicional</h5>
+                        <ul className="space-y-1">
+                          {produtoProposto.plano_lancamento.midia_tradicional.map((midia: string, idx: number) => (
+                            <li key={idx} className="text-emerald-100 text-sm flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                              {midia}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {produtoProposto.plano_lancamento.midia_alternativa && (
+                      <div>
+                        <h5 className="text-emerald-200 font-semibold mb-2">Mídia Digital</h5>
+                        <ul className="space-y-1">
+                          {produtoProposto.plano_lancamento.midia_alternativa.map((midia: string, idx: number) => (
+                            <li key={idx} className="text-emerald-100 text-sm flex items-center gap-2">
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+                              {midia}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
-                  <div className="text-white/80">Investimento Total</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* 3. Análise de Mercado */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Tamanho do Mercado */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <BarChart3 size={24} className="text-purple-600" />
-              <h3 className="text-xl font-bold text-gray-900">Tamanho do Mercado</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-900">
-                    {formatLargeNumber(data.produto_proposto.mercado_alvo.TAM.valor)}
-                  </div>
-                  <div className="text-purple-700">TAM - Total Addressable Market</div>
-                  <div className="text-sm text-purple-600 mt-1">{data.produto_proposto.mercado_alvo.TAM.moeda}</div>
+                  {produtoProposto.plano_lancamento.budget_marketing_estimado && (
+                    <div className="mt-4 p-4 bg-emerald-700/50 rounded-lg">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-white">
+                          {produtoProposto.plano_lancamento.budget_marketing_estimado.valor?.toLocaleString()} {produtoProposto.plano_lancamento.budget_marketing_estimado.moeda}
+                        </div>
+                        <div className="text-emerald-200">
+                          Budget de Marketing ({produtoProposto.plano_lancamento.budget_marketing_estimado.periodo})
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-900">
-                    {formatLargeNumber(data.produto_proposto.mercado_alvo.SAM.valor)}
-                  </div>
-                  <div className="text-blue-700">SAM - Serviceable Addressable Market</div>
-                  <div className="text-sm text-blue-600 mt-1">{data.produto_proposto.mercado_alvo.SAM.moeda}</div>
-                </div>
-              </div>
-              
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-900">
-                    {formatLargeNumber(data.produto_proposto.mercado_alvo.SOM.valor)}
-                  </div>
-                  <div className="text-green-700">SOM - Serviceable Obtainable Market</div>
-                  <div className="text-sm text-green-600 mt-1">{data.produto_proposto.mercado_alvo.SOM.moeda}</div>
-                </div>
-              </div>
-              
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {data.produto_proposto.mercado_alvo.tamanho_do_publico_estimado.toLocaleString()}
-                  </div>
-                  <div className="text-gray-700">Pacientes Alvo</div>
-                  <div className="text-sm text-gray-600 mt-1">{data.produto_proposto.mercado_alvo.publico_destinado}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+              )}
 
-          {/* Volume de Buscas */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Eye size={24} className="text-green-600" />
-              <h3 className="text-xl font-bold text-gray-900">Volume de Buscas Mensais</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {Object.entries(data.dados_mercado_latam.volume_buscas_mensais_google).map(([country, volume]) => (
-                <div key={country} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Flag 
-                      code={getCountryCode(country)} 
-                      style={{ width: 20, height: 15 }}
-                    />
-                    <span className="font-medium">{country}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-green-600">{volume.toLocaleString()}</div>
-                    <div className="text-xs text-gray-500">buscas/mês</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+              {/* Mercado Alvo */}
+              {produtoProposto.mercado_alvo && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <Users size={20} className="text-emerald-400" />
+                    Mercado Alvo
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-emerald-200 text-sm">Público Destinado:</span>
+                      <p className="text-white font-medium">{produtoProposto.mercado_alvo.publico_destinado}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="text-emerald-200 text-sm">Tamanho do Público:</span>
+                      <p className="text-white font-bold text-xl">
+                        {produtoProposto.mercado_alvo.tamanho_do_publico_estimado?.toLocaleString()} pessoas
+                      </p>
+                    </div>
 
-        {/* 4. Análise de Preços */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <DollarSign size={24} className="text-green-600" />
-            <h3 className="text-xl font-bold text-gray-900">Comparativo de Preços</h3>
-          </div>
-          
-          <PriceChart 
-            originalPrices={data.dados_mercado_latam.precos}
-            proposedPrices={data.produto_proposto.comparativo_precos.proposto}
-          />
-        </div>
-
-        {/* 5. ROI e Projeções */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <TrendingUp size={24} className="text-blue-600" />
-            <h3 className="text-xl font-bold text-gray-900">Projeções de ROI</h3>
-          </div>
-          
-          <ROIChart roiData={data.produto_proposto.roi_estimado} />
-        </div>
-
-        {/* 6. Análise SWOT */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield size={24} className="text-indigo-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise SWOT</h3>
-          </div>
-          
-          <SWOTMatrix swot={data.analise_swot} />
-        </div>
-
-        {/* 7. Pipeline Concorrente */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Users size={24} className="text-orange-600" />
-            <h3 className="text-xl font-bold text-gray-900">Pipeline Concorrente</h3>
-          </div>
-          
-          <div className="space-y-4">
-            {data.pipeline_concorrente.map((competitor, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-600">Molécula</span>
-                    <div className="font-semibold text-gray-900">{competitor.nome_molecula}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Empresa</span>
-                    <div className="font-semibold text-gray-900">{competitor.empresa}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Fase</span>
-                    <div className="font-semibold text-blue-600">{competitor.fase_clinica}</div>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-600">Status</span>
-                    <div className={`font-semibold ${
-                      competitor.status === 'Em andamento' ? 'text-green-600' : 'text-orange-600'
-                    }`}>
-                      {competitor.status}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-3 rounded-lg text-center">
+                        <div className="text-lg font-bold text-blue-600">
+                          ${produtoProposto.mercado_alvo.TAM?.valor?.toLocaleString()} {produtoProposto.mercado_alvo.TAM?.moeda}
+                        </div>
+                        <div className="text-sm text-gray-600">TAM (Total Addressable Market)</div>
+                      </div>
+                      
+                      <div className="bg-white p-3 rounded-lg text-center">
+                        <div className="text-lg font-bold text-purple-600">
+                          ${produtoProposto.mercado_alvo.SAM?.valor?.toLocaleString()} {produtoProposto.mercado_alvo.SAM?.moeda}
+                        </div>
+                        <div className="text-sm text-gray-600">SAM (Serviceable Addressable Market)</div>
+                      </div>
+                      
+                      <div className="bg-white p-3 rounded-lg text-center">
+                        <div className="text-lg font-bold text-green-600">
+                          ${produtoProposto.mercado_alvo.SOM?.valor?.toLocaleString()} {produtoProposto.mercado_alvo.SOM?.moeda}
+                        </div>
+                        <div className="text-sm text-gray-600">SOM (Serviceable Obtainable Market)</div>
+                        {produtoProposto.mercado_alvo.SOM?.observacao && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {produtoProposto.mercado_alvo.SOM.observacao}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 text-sm text-gray-700">
-                  {competitor.observacoes}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+              )}
 
-        {/* 8. Timeline de Desenvolvimento */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Clock size={24} className="text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">Timeline de Desenvolvimento</h3>
-          </div>
-          
-          <Timeline timeline={data.produto_proposto.linha_do_tempo} />
-        </div>
+              {/* Análise de Riscos */}
+              {produtoProposto.analise_de_riscos?.comercial && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <AlertTriangle size={20} className="text-emerald-400" />
+                    Análise de Riscos Comerciais
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h5 className="text-emerald-200 font-semibold mb-3">Riscos Identificados</h5>
+                      <ul className="space-y-2">
+                        {produtoProposto.analise_de_riscos.comercial.riscos?.map((risco: string, idx: number) => (
+                          <li key={idx} className="text-red-200 text-sm flex items-start gap-2">
+                            <AlertTriangle size={14} className="text-red-400 mt-0.5 flex-shrink-0" />
+                            {risco}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h5 className="text-emerald-200 font-semibold mb-3">Estratégias de Mitigação</h5>
+                      <ul className="space-y-2">
+                        {produtoProposto.analise_de_riscos.comercial.mitigacoes?.map((mitigacao: string, idx: number) => (
+                          <li key={idx} className="text-green-200 text-sm flex items-start gap-2">
+                            <CheckCircle size={14} className="text-green-400 mt-0.5 flex-shrink-0" />
+                            {mitigacao}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-        {/* 9. Complexidade de Fabricação */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Factory size={24} className="text-red-600" />
-            <h3 className="text-xl font-bold text-gray-900">Complexidade de Fabricação</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-center">
-              <div className="text-lg font-bold text-red-900">
-                {data.complexidade_de_fabricacao.necessita_api_exclusiva ? 'SIM' : 'NÃO'}
-              </div>
-              <div className="text-red-700 text-sm">API Exclusiva</div>
+              {/* Indicadores Financeiros Adicionais */}
+              {produtoProposto.indicadores_financeiros_adicionais && (
+                <div className="bg-emerald-800/50 rounded-lg p-6 border border-emerald-600/50 mb-8">
+                  <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <BarChart3 size={20} className="text-emerald-400" />
+                    Indicadores Financeiros
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-blue-600">
+                        {produtoProposto.indicadores_financeiros_adicionais.payback_estimado_anos} anos
+                      </div>
+                      <div className="text-sm text-gray-600">Payback Estimado</div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {(produtoProposto.indicadores_financeiros_adicionais.margem_bruta_estimada * 100).toFixed(0)}%
+                      </div>
+                      <div className="text-sm text-gray-600">Margem Bruta Estimada</div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-lg text-center">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {produtoProposto.indicadores_financeiros_adicionais.investimento_total_estimado?.valor?.toLocaleString()} {produtoProposto.indicadores_financeiros_adicionais.investimento_total_estimado?.moeda}
+                      </div>
+                      <div className="text-sm text-gray-600">Investimento Total</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-            
-            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 text-center">
-              <div className="text-lg font-bold text-orange-900">
-                {data.complexidade_de_fabricacao.grau_dificuldade_formulacao}
-              </div>
-              <div className="text-orange-700 text-sm">Dificuldade</div>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
-              <div className="text-lg font-bold text-blue-900">
-                {formatCurrency(
-                  data.complexidade_de_fabricacao.custo_estimado_por_lote.valor,
-                  data.complexidade_de_fabricacao.custo_estimado_por_lote.moeda
-                )}
-              </div>
-              <div className="text-blue-700 text-sm">Custo por Lote</div>
-            </div>
-          </div>
-        </div>
+          )}
 
-        {/* 10. Go-to-Market */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Briefcase size={24} className="text-indigo-600" />
-            <h3 className="text-xl font-bold text-gray-900">Estratégia Go-to-Market</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Estratégia Principal</h4>
-              <p className="text-gray-700 leading-relaxed bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                {data.produto_proposto.estrategia_go_to_market}
-              </p>
-              
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center bg-green-50 p-3 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">
-                    {(data.indicadores_go_to_market.taxa_adocao_medica_esperada * 100).toFixed(0)}%
-                  </div>
-                  <div className="text-green-700 text-sm">Taxa Adoção Médica</div>
-                </div>
-                
-                <div className="text-center bg-blue-50 p-3 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {data.indicadores_go_to_market.indicador_satisfacao_esperado}%
-                  </div>
-                  <div className="text-blue-700 text-sm">Satisfação Esperada</div>
-                </div>
-                
-                <div className="text-center bg-purple-50 p-3 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {formatCurrency(
-                      data.produto_proposto.plano_lancamento.budget_marketing_estimado.valor,
-                      data.produto_proposto.plano_lancamento.budget_marketing_estimado.moeda
-                    )}
-                  </div>
-                  <div className="text-purple-700 text-sm">Budget Marketing</div>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Canais de Marketing</h4>
+          {/* Documentação para INPI */}
+          {produtoProposto.documentacao_patente_inpi && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <FileText size={24} className="text-indigo-600" />
+                Documentação para Registro no INPI
+              </h3>
               
               <div className="space-y-4">
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Mídia Tradicional</span>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {data.produto_proposto.plano_lancamento.midia_tradicional.map((item, index) => (
-                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <CopyableText 
+                  title="Título da Patente"
+                  text={produtoProposto.documentacao_patente_inpi.titulo}
+                />
                 
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Mídia Digital</span>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {data.produto_proposto.plano_lancamento.midia_alternativa.map((item, index) => (
-                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                        {item}
-                      </span>
-                    ))}
+                <CopyableText 
+                  title="Resumo Técnico"
+                  text={produtoProposto.documentacao_patente_inpi.resumo}
+                />
+
+                {produtoProposto.documentacao_patente_inpi.itens_incluidos && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-3">Itens Incluídos na Documentação</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {produtoProposto.documentacao_patente_inpi.itens_incluidos.map((item: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2 p-2 bg-indigo-50 rounded">
+                          <CheckCircle size={16} className="text-indigo-600" />
+                          <span className="text-indigo-800 text-sm">{item}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Análise SWOT */}
+          {analiseSwot && Object.keys(analiseSwot).length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Target size={24} className="text-purple-600" />
+                Análise SWOT
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Forças */}
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <h4 className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                    <TrendingUp size={18} className="text-green-600" />
+                    Forças
+                  </h4>
+                  <ul className="space-y-2">
+                    {analiseSwot.forcas?.map((forca: string, idx: number) => (
+                      <li key={idx} className="text-green-800 text-sm flex items-start gap-2">
+                        <CheckCircle size={14} className="text-green-600 mt-0.5 flex-shrink-0" />
+                        {forca}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Distribuidores Alvo</span>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {data.indicadores_go_to_market.distribuidores_alvo.map((distributor, index) => (
-                      <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                        {distributor}
-                      </span>
+
+                {/* Fraquezas */}
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                  <h4 className="font-bold text-red-900 mb-3 flex items-center gap-2">
+                    <TrendingDown size={18} className="text-red-600" />
+                    Fraquezas
+                  </h4>
+                  <ul className="space-y-2">
+                    {analiseSwot.fraquezas?.map((fraqueza: string, idx: number) => (
+                      <li key={idx} className="text-red-800 text-sm flex items-start gap-2">
+                        <XCircle size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
+                        {fraqueza}
+                      </li>
                     ))}
-                  </div>
+                  </ul>
+                </div>
+
+                {/* Oportunidades */}
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                    <Star size={18} className="text-blue-600" />
+                    Oportunidades
+                  </h4>
+                  <ul className="space-y-2">
+                    {analiseSwot.oportunidades?.map((oportunidade: string, idx: number) => (
+                      <li key={idx} className="text-blue-800 text-sm flex items-start gap-2">
+                        <Star size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                        {oportunidade}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Ameaças */}
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <h4 className="font-bold text-yellow-900 mb-3 flex items-center gap-2">
+                    <AlertTriangle size={18} className="text-yellow-600" />
+                    Ameaças
+                  </h4>
+                  <ul className="space-y-2">
+                    {analiseSwot.ameacas?.map((ameaca: string, idx: number) => (
+                      <li key={idx} className="text-yellow-800 text-sm flex items-start gap-2">
+                        <AlertTriangle size={14} className="text-yellow-600 mt-0.5 flex-shrink-0" />
+                        {ameaca}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* 11. Documentação INPI */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <FileText size={24} className="text-blue-600" />
-            <h3 className="text-xl font-bold text-gray-900">Documentação para INPI</h3>
-          </div>
-          
-          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-            <h4 className="text-lg font-bold text-blue-900 mb-3">
-              {data.produto_proposto.documentacao_patente_inpi.titulo}
-            </h4>
-            <p className="text-blue-800 mb-4 leading-relaxed">
-              {data.produto_proposto.documentacao_patente_inpi.resumo}
-            </p>
-            
-            <div>
-              <span className="text-sm font-medium text-blue-700 mb-2 block">Itens Incluídos:</span>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                {data.produto_proposto.documentacao_patente_inpi.itens_incluidos.map((item, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
-                    <CheckCircle size={16} className="text-blue-600" />
-                    <span className="text-sm text-blue-800">{item}</span>
+          {/* Pipeline Concorrente */}
+          {pipelineConcorrente.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Briefcase size={24} className="text-orange-600" />
+                Pipeline Concorrente
+              </h3>
+              
+              <div className="space-y-4">
+                {pipelineConcorrente.map((concorrente: any, index: number) => (
+                  <div key={index} className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Molécula</span>
+                        <p className="font-bold text-orange-900">{concorrente.nome_molecula}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Empresa</span>
+                        <p className="font-medium text-gray-900">{concorrente.empresa}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Fase Clínica</span>
+                        <p className="font-medium text-gray-900">{concorrente.fase_clinica}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Status</span>
+                        <p className="font-medium text-gray-900">{concorrente.status}</p>
+                      </div>
+                    </div>
+                    {concorrente.observacoes && (
+                      <div className="mt-3 p-3 bg-orange-100 rounded border border-orange-200">
+                        <p className="text-orange-800 text-sm">{concorrente.observacoes}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* 12. Dados Técnicos */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Pill size={24} className="text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">Dados Técnicos - {data.consulta.nome_molecula}</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-              <span className="text-sm font-medium text-purple-700">Fórmula Molecular</span>
-              <div className="text-lg font-bold text-purple-900 font-mono mt-1">
-                {data.dados_tecnicos.formula_molecular}
-              </div>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <span className="text-sm font-medium text-blue-700">Peso Molecular</span>
-              <div className="text-lg font-bold text-blue-900 mt-1">
-                {data.dados_tecnicos.peso_molecular} g/mol
-              </div>
-            </div>
-            
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-              <span className="text-sm font-medium text-green-700">Ligações Rotacionáveis</span>
-              <div className="text-lg font-bold text-green-900 mt-1">
-                {data.dados_tecnicos.rotatable_bonds}
-              </div>
-            </div>
-            
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 md:col-span-2 lg:col-span-3">
-              <span className="text-sm font-medium text-yellow-700">Nome IUPAC</span>
-              <div className="text-sm text-yellow-900 mt-1 font-mono break-words">
-                {data.dados_tecnicos.iupac_name}
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2 lg:col-span-3">
-              <span className="text-sm font-medium text-gray-700">SMILES</span>
-              <div className="text-sm text-gray-900 mt-1 font-mono break-all">
-                {data.dados_tecnicos.smiles}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 13. Registros Regulatórios */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield size={24} className="text-red-600" />
-            <h3 className="text-xl font-bold text-gray-900">Status Regulatório</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {data.registro_regulatorio.FDA && (
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Flag code="US" style={{ width: 24, height: 18 }} />
-                  <span className="font-bold text-blue-900">FDA</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div><strong>NDA:</strong> {data.registro_regulatorio.FDA.nda_number}</div>
-                  <div><strong>Aprovação:</strong> {data.registro_regulatorio.FDA.data_aprovacao}</div>
-                  <div className="flex items-center gap-2">
-                    <strong>Genéricos:</strong>
-                    {data.registro_regulatorio.FDA.genericos_aprovados ? (
+          {/* Complexidade de Fabricação */}
+          {complexidadeFabricacao && Object.keys(complexidadeFabricacao).length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Factory size={24} className="text-gray-600" />
+                Complexidade de Fabricação
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <span className="text-sm font-medium text-gray-600">API Exclusiva Necessária</span>
+                  <div className="mt-2 flex items-center gap-2">
+                    {complexidadeFabricacao.necessita_api_exclusiva ? (
                       <CheckCircle size={16} className="text-green-600" />
                     ) : (
-                      <AlertTriangle size={16} className="text-red-600" />
+                      <XCircle size={16} className="text-red-600" />
                     )}
-                    <span>{data.registro_regulatorio.FDA.genericos_aprovados ? 'Aprovados' : 'Não Aprovados'}</span>
+                    <span className="font-bold">
+                      {complexidadeFabricacao.necessita_api_exclusiva ? 'SIM' : 'NÃO'}
+                    </span>
                   </div>
                 </div>
-              </div>
-            )}
-            
-            {data.registro_regulatorio.ANVISA && (
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Flag code="BR" style={{ width: 24, height: 18 }} />
-                  <span className="font-bold text-green-900">ANVISA</span>
+                
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <span className="text-sm font-medium text-gray-600">Dificuldade de Formulação</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">
+                    {complexidadeFabricacao.grau_dificuldade_formulacao}
+                  </p>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Registro:</strong> {data.registro_regulatorio.ANVISA.numero_registro}</div>
-                  <div><strong>Data:</strong> {data.registro_regulatorio.ANVISA.data_registro}</div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle size={16} className="text-green-600" />
-                    <span>Registrado</span>
-                  </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <span className="text-sm font-medium text-gray-600">Custo por Lote</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">
+                    ${complexidadeFabricacao.custo_estimado_por_lote?.valor?.toLocaleString()} {complexidadeFabricacao.custo_estimado_por_lote?.moeda}
+                  </p>
                 </div>
               </div>
-            )}
-            
-            {data.registro_regulatorio.EMA && (
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Flag code="EU" style={{ width: 24, height: 18 }} />
-                  <span className="font-bold text-purple-900">EMA</span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div><strong>Aprovação:</strong> {data.registro_regulatorio.EMA.data_aprovacao}</div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle size={16} className="text-green-600" />
-                    <span>Registrado</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+            </div>
+          )}
 
-        {/* 14. Análise Competitiva */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Award size={24} className="text-yellow-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Produto</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Molécula</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Fabricante</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Status Patente</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Preço Médio</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.comparativo_similares.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium text-gray-900">{product.nome_comercial}</td>
-                    <td className="py-3 px-4 text-gray-700">{product.nome_molecula}</td>
-                    <td className="py-3 px-4 text-gray-700">{product.fabricante}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        product.status_patente.includes('Ativa')
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {product.status_patente}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-green-600">
-                      {formatCurrency(product.preco_medio.valor, product.preco_medio.moeda)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          {/* Indicadores Go-to-Market */}
+          {indicadoresGoToMarket && Object.keys(indicadoresGoToMarket).length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Zap size={24} className="text-yellow-600" />
+                Indicadores Go-to-Market
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
+                  <div className="text-3xl font-bold text-yellow-600">
+                    {(indicadoresGoToMarket.taxa_adocao_medica_esperada * 100).toFixed(0)}%
+                  </div>
+                  <div className="text-sm text-gray-600">Taxa de Adoção Médica</div>
+                </div>
+                
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
+                  <div className="text-3xl font-bold text-yellow-600">
+                    {indicadoresGoToMarket.indicador_satisfacao_esperado}%
+                  </div>
+                  <div className="text-sm text-gray-600">Satisfação Esperada</div>
+                </div>
+                
+                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <span className="text-sm font-medium text-gray-600 block mb-2">Distribuidores Alvo</span>
+                  <div className="space-y-1">
+                    {indicadoresGoToMarket.distribuidores_alvo?.map((distribuidor: string, idx: number) => (
+                      <div key={idx} className="text-yellow-800 text-sm flex items-center gap-2">
+                        <Building2 size={12} />
+                        {distribuidor}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* 15. Justificativa do Score */}
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
-          <div className="flex items-center gap-3 mb-4">
-            <Lightbulb size={24} className="text-yellow-400" />
-            <h3 className="text-xl font-bold">Justificativa do Score</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-200 mb-3">Análise Detalhada</h4>
-              <p className="text-gray-300 leading-relaxed">
-                {data.score_oportunidade.justificativa_detalhada}
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold text-gray-200 mb-3">Formação do Score</h4>
-              <p className="text-gray-300 leading-relaxed">
-                {data.produto_proposto.justificativa_formacao_score}
-              </p>
-            </div>
-          </div>
-          
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">
-                {data.score_oportunidade.valor}
+          {/* Justificativa de Formação do Score */}
+          {produtoProposto.justificativa_formacao_score && (
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
+              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <Award size={24} className="text-indigo-600" />
+                Justificativa de Formação do Score
+              </h3>
+              <div className="bg-white p-4 rounded-lg border border-indigo-200">
+                <p className="text-gray-800 leading-relaxed text-lg">
+                  {produtoProposto.justificativa_formacao_score}
+                </p>
               </div>
-              <div className="text-gray-300 text-sm">Score Final</div>
             </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400">
-                {data.score_oportunidade.criterios.ensaios_clinicos.ativos}
-              </div>
-              <div className="text-gray-300 text-sm">Ensaios Ativos</div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400">
-                {data.consulta.pais_alvo.length}
-              </div>
-              <div className="text-gray-300 text-sm">Mercados Alvo</div>
-            </div>
-          </div>
-          
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 italic">
-              "Análise gerada em {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')} para {data.consulta.cliente}"
-            </p>
-          </div>
+          )}
+
         </div>
       </div>
     </div>
