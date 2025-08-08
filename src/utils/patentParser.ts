@@ -39,7 +39,7 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData = rawResponse;
     }
     
-    return !!(parsedData?.produto_proposto?.comentario_dashboard_bolt || parsedData?.score_oportunidade?.valor);
+    return !!(parsedData?.produto_proposto || parsedData?.score_oportunidade?.valor || parsedData?.consulta?.cliente);
   } catch {
     return false;
   }

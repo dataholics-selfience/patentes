@@ -21,7 +21,15 @@ import {
   Award,
   Lightbulb,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Shield,
+  Factory,
+  Briefcase,
+  TrendingDown,
+  Star,
+  Eye,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 import Flag from 'react-world-flags';
 import jsPDF from 'jspdf';
@@ -42,28 +50,181 @@ interface DashboardData {
   };
   score_oportunidade: {
     valor: number;
+    classificacao: string;
     justificativa_detalhada: string;
-    fatores_quantitativos: any;
-    fatores_qualitativos: any;
+    criterios: {
+      patente: {
+        vigente: boolean;
+        expiracao_proxima: boolean;
+        risco_judicial: string;
+        dados: Array<{
+          pais: string;
+          expiracao: string;
+        }>;
+      };
+      regulacao: {
+        facilidade_registro_generico: string;
+        registro_anvisa_encontrado: boolean;
+      };
+      ensaios_clinicos: {
+        ativos: number;
+        fase_avancada: boolean;
+        tem_no_brasil: boolean;
+        principais_indicacoes_estudadas: string[];
+        exemplo_estudo: {
+          titulo: string;
+          fase: string;
+          pais: string;
+          link: string;
+        };
+      };
+    };
+  };
+  dados_tecnicos: {
+    iupac_name: string;
+    formula_molecular: string;
+    peso_molecular: number;
+    smiles: string;
+    topological_polar_surface_area: number;
+    rotatable_bonds: number;
+    fonte: string;
+  };
+  dados_mercado_latam: {
+    precos: {
+      [country: string]: {
+        preco_medio: number | string;
+        moeda: string;
+        faixa_preco: {
+          min: number | string;
+          max: number | string;
+          moeda: string;
+        };
+        fonte: string;
+      };
+    };
+    volume_buscas_mensais_google: {
+      [country: string]: number;
+    };
+  };
+  registro_regulatorio: {
+    FDA?: {
+      nda_number: string;
+      data_aprovacao: string;
+      genericos_aprovados: boolean;
+    };
+    EMA?: {
+      registro: boolean;
+      data_aprovacao: string;
+    };
+    ANVISA?: {
+      registro_encontrado: boolean;
+      numero_registro: string;
+      data_registro: string;
+    };
   };
   comparativo_similares: Array<{
     nome_comercial: string;
     nome_molecula: string;
     status_patente: string;
-    preco_medio: string;
+    preco_medio: {
+      valor: number;
+      moeda: string;
+    };
     fabricante: string;
-    registro_fda: boolean;
-    registro_anvisa: boolean;
   }>;
   produto_proposto: {
     nome_sugerido: string;
     tipo: string;
+    beneficio: string;
     justificativa: string;
-    analise_de_riscos: string;
-    go_to_market: any;
-    linha_do_tempo: any;
-    comparativos: any;
-    comentario_dashboard_bolt: any;
+    analise_de_riscos: {
+      comercial: {
+        riscos: string[];
+        mitigacoes: string[];
+      };
+    };
+    linha_do_tempo: {
+      [phase: string]: string;
+    };
+    comparativo_precos: {
+      proposto: {
+        [country: string]: {
+          valor: number;
+          moeda: string;
+        };
+      };
+    };
+    roi_estimado: Array<{
+      ano: number;
+      market_share: number;
+      roi: number;
+    }>;
+    estrategia_go_to_market: string;
+    plano_lancamento: {
+      midia_tradicional: string[];
+      midia_alternativa: string[];
+      budget_marketing_estimado: {
+        valor: number;
+        moeda: string;
+        periodo: string;
+      };
+    };
+    documentacao_patente_inpi: {
+      titulo: string;
+      resumo: string;
+      itens_incluidos: string[];
+    };
+    mercado_alvo: {
+      publico_destinado: string;
+      tamanho_do_publico_estimado: number;
+      TAM: { valor: number; moeda: string; };
+      SAM: { valor: number; moeda: string; };
+      SOM: { valor: number; moeda: string; observacao: string; };
+    };
+    justificativa_formacao_score: string;
+    indicadores_financeiros_adicionais: {
+      payback_estimado_anos: number;
+      margem_bruta_estimada: number;
+      investimento_total_estimado: {
+        valor: number;
+        moeda: string;
+      };
+    };
+  };
+  sugestao_estrategica: {
+    recomendacao: string;
+    campos_recomendados: string[];
+  };
+  analise_swot: {
+    forcas: string[];
+    fraquezas: string[];
+    oportunidades: string[];
+    ameacas: string[];
+  };
+  pipeline_concorrente: Array<{
+    nome_molecula: string;
+    empresa: string;
+    fase_clinica: string;
+    status: string;
+    observacoes: string;
+  }>;
+  complexidade_de_fabricacao: {
+    necessita_api_exclusiva: boolean;
+    grau_dificuldade_formulacao: string;
+    custo_estimado_por_lote: {
+      valor: number;
+      moeda: string;
+    };
+  };
+  indicadores_go_to_market: {
+    taxa_adocao_medica_esperada: number;
+    distribuidores_alvo: string[];
+    indicador_satisfacao_esperado: number;
+  };
+  metadados: {
+    versao_relatorio: string;
+    data_geracao: string;
+    responsavel: string;
   };
 }
 
@@ -75,16 +236,27 @@ interface PatentDashboardReportProps {
 // Mapeamento de países para códigos de bandeiras
 const countryCodeMap: { [key: string]: string } = {
   'Brasil': 'BR',
+  'Brazil': 'BR',
   'Estados Unidos': 'US',
+  'EUA': 'US',
+  'United States': 'US',
+  'México': 'MX',
+  'Mexico': 'MX',
+  'Chile': 'CL',
+  'Argentina': 'AR',
   'União Europeia': 'EU',
+  'European Union': 'EU',
   'Japão': 'JP',
+  'Japan': 'JP',
   'China': 'CN',
   'Canadá': 'CA',
-  'Argentina': 'AR',
-  'México': 'MX',
+  'Canada': 'CA',
   'Alemanha': 'DE',
+  'Germany': 'DE',
   'França': 'FR',
-  'Reino Unido': 'GB'
+  'France': 'FR',
+  'Reino Unido': 'GB',
+  'United Kingdom': 'GB'
 };
 
 const getCountryCode = (countryName: string): string => {
@@ -94,9 +266,11 @@ const getCountryCode = (countryName: string): string => {
 // Componente Gauge para Score de Oportunidade
 const OpportunityGauge = ({ 
   score, 
+  classification,
   size = 'large' 
 }: { 
   score: number; 
+  classification: string;
   size?: 'normal' | 'large';
 }) => {
   const radius = size === 'large' ? 120 : 80;
@@ -118,8 +292,8 @@ const OpportunityGauge = ({
     const timer = setInterval(() => {
       currentStep++;
       const currentScore = Math.min(increment * currentStep, score);
-      setAnimatedScore(Math.round(currentScore * 10) / 10);
-      setStrokeDashoffset(circumference - (currentScore / 10) * circumference);
+      setAnimatedScore(Math.round(currentScore));
+      setStrokeDashoffset(circumference - (currentScore / 100) * circumference);
 
       if (currentStep >= steps) {
         clearInterval(timer);
@@ -130,17 +304,10 @@ const OpportunityGauge = ({
   }, [score, circumference]);
 
   const getColor = (score: number) => {
-    if (score >= 8) return '#10B981'; // Verde
-    if (score >= 6) return '#F59E0B'; // Amarelo
-    if (score >= 4) return '#F97316'; // Laranja
+    if (score >= 80) return '#10B981'; // Verde
+    if (score >= 60) return '#F59E0B'; // Amarelo
+    if (score >= 40) return '#F97316'; // Laranja
     return '#EF4444'; // Vermelho
-  };
-
-  const getClassification = (score: number) => {
-    if (score >= 8) return 'EXCELENTE';
-    if (score >= 6) return 'BOA';
-    if (score >= 4) return 'MODERADA';
-    return 'BAIXA';
   };
 
   return (
@@ -179,12 +346,12 @@ const OpportunityGauge = ({
             {animatedScore}
           </span>
           <span className="text-base text-gray-600">
-            de 10
+            de 100
           </span>
         </div>
       </div>
       <div className="mt-4 text-center">
-        <div className="text-2xl font-bold text-gray-900">{getClassification(animatedScore)}</div>
+        <div className="text-2xl font-bold text-gray-900">{classification}</div>
         <div className="text-sm text-gray-600">Score de Oportunidade</div>
       </div>
     </div>
@@ -202,7 +369,7 @@ const Timeline = ({ timeline }: { timeline: any }) => {
     <div className="space-y-4">
       {phases.map((phase, index) => (
         <div key={index} className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm">
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-sm">
             {index + 1}
           </div>
           <div className="flex-1">
@@ -214,6 +381,166 @@ const Timeline = ({ timeline }: { timeline: any }) => {
           )}
         </div>
       ))}
+    </div>
+  );
+};
+
+// Componente SWOT Matrix
+const SWOTMatrix = ({ swot }: { swot: DashboardData['analise_swot'] }) => {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Forças */}
+      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+        <h4 className="text-lg font-bold text-green-900 mb-4 flex items-center gap-2">
+          <ThumbsUp size={20} />
+          Forças
+        </h4>
+        <ul className="space-y-2">
+          {swot.forcas.map((item, index) => (
+            <li key={index} className="flex items-start gap-2 text-green-800">
+              <CheckCircle size={16} className="mt-1 flex-shrink-0" />
+              <span className="text-sm">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Fraquezas */}
+      <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+        <h4 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+          <ThumbsDown size={20} />
+          Fraquezas
+        </h4>
+        <ul className="space-y-2">
+          {swot.fraquezas.map((item, index) => (
+            <li key={index} className="flex items-start gap-2 text-red-800">
+              <AlertTriangle size={16} className="mt-1 flex-shrink-0" />
+              <span className="text-sm">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Oportunidades */}
+      <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+        <h4 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+          <Star size={20} />
+          Oportunidades
+        </h4>
+        <ul className="space-y-2">
+          {swot.oportunidades.map((item, index) => (
+            <li key={index} className="flex items-start gap-2 text-blue-800">
+              <Target size={16} className="mt-1 flex-shrink-0" />
+              <span className="text-sm">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Ameaças */}
+      <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+        <h4 className="text-lg font-bold text-orange-900 mb-4 flex items-center gap-2">
+          <Shield size={20} />
+          Ameaças
+        </h4>
+        <ul className="space-y-2">
+          {swot.ameacas.map((item, index) => (
+            <li key={index} className="flex items-start gap-2 text-orange-800">
+              <AlertTriangle size={16} className="mt-1 flex-shrink-0" />
+              <span className="text-sm">{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+// Componente para gráfico de ROI
+const ROIChart = ({ roiData }: { roiData: Array<{ ano: number; market_share: number; roi: number; }> }) => {
+  const maxROI = Math.max(...roiData.map(d => d.roi));
+  
+  return (
+    <div className="space-y-4">
+      {roiData.map((data, index) => (
+        <div key={index} className="flex items-center gap-4">
+          <div className="w-16 text-center">
+            <span className="text-lg font-bold text-gray-900">Ano {data.ano}</span>
+          </div>
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm text-gray-600">ROI: {data.roi}x</span>
+              <span className="text-sm text-gray-600">Market Share: {(data.market_share * 100).toFixed(1)}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div 
+                className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full transition-all duration-1000"
+                style={{ width: `${(data.roi / maxROI) * 100}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// Componente para gráfico de preços
+const PriceChart = ({ 
+  originalPrices, 
+  proposedPrices 
+}: { 
+  originalPrices: any; 
+  proposedPrices: any; 
+}) => {
+  const countries = Object.keys(originalPrices);
+  
+  return (
+    <div className="space-y-4">
+      {countries.map((country) => {
+        const original = originalPrices[country];
+        const proposed = proposedPrices[country];
+        
+        if (!original || !proposed || original.preco_medio === 'Indisponível') {
+          return null;
+        }
+
+        const originalPrice = typeof original.preco_medio === 'number' ? original.preco_medio : 0;
+        const proposedPrice = proposed.valor;
+        const savings = ((originalPrice - proposedPrice) / originalPrice * 100).toFixed(1);
+        
+        return (
+          <div key={country} className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Flag 
+                code={getCountryCode(country)} 
+                style={{ width: 24, height: 18 }}
+              />
+              <span className="font-semibold text-gray-900">{country}</span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center">
+                <div className="text-sm text-gray-600">Preço Original</div>
+                <div className="text-lg font-bold text-red-600">
+                  {original.moeda} {originalPrice.toLocaleString()}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-gray-600">Preço Proposto</div>
+                <div className="text-lg font-bold text-green-600">
+                  {proposed.moeda} {proposedPrice.toLocaleString()}
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-3 text-center">
+              <span className="text-sm text-gray-600">Economia: </span>
+              <span className="font-bold text-blue-600">{savings}%</span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -245,7 +572,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       
       // Score
       pdf.setFontSize(12);
-      pdf.text(`Score de Oportunidade: ${data.score_oportunidade.valor}/10`, margin, yPosition);
+      pdf.text(`Score de Oportunidade: ${data.score_oportunidade.valor}/100`, margin, yPosition);
       yPosition += 10;
       
       // Data
@@ -253,7 +580,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       pdf.setFont('helvetica', 'normal');
       pdf.text(`Data: ${new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')}`, margin, yPosition);
       
-      const fileName = `dashboard-${data.consulta.cliente.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.nome_comercial.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.data_consulta}.pdf`;
+      const fileName = `dashboard-${data.consulta.cliente.replace(/\s+/g, '-').toLowerCase()}-${data.consulta.nome_comercial.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       pdf.save(fileName);
       
     } catch (error) {
@@ -264,12 +591,26 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
     }
   };
 
-  const formatCurrency = (value: string, country: string) => {
-    if (country === 'Brasil') {
-      return value.startsWith('R$') ? value : `R$ ${value}`;
-    }
-    return value.startsWith('$') ? value : `$ ${value}`;
+  const formatCurrency = (value: number, currency: string) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: currency === 'BRL' ? 'BRL' : currency === 'USD' ? 'USD' : 'BRL',
+      minimumFractionDigits: 0
+    }).format(value);
   };
+
+  const formatLargeNumber = (value: number) => {
+    if (value >= 1000000000) {
+      return `${(value / 1000000000).toFixed(1)}B`;
+    } else if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`;
+    }
+    return value.toString();
+  };
+
+  const isRecommended = data.sugestao_estrategica.recomendacao.toLowerCase().includes('sim');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -314,10 +655,10 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* 1. Dashboard Summary */}
+        {/* 1. Header Executivo */}
         <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 rounded-xl shadow-2xl border border-blue-700 p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Informações Principais */}
+            {/* Informações do Produto */}
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-3 mb-4">
@@ -346,7 +687,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <MapPin size={20} className="text-blue-200" />
-                  <span className="text-blue-200">Países Alvo:</span>
+                  <span className="text-blue-200">Mercados Alvo:</span>
                 </div>
                 <div className="flex flex-wrap gap-3">
                   {data.consulta.pais_alvo.map((country, index) => (
@@ -373,85 +714,485 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
 
             {/* Score de Oportunidade */}
             <div className="flex flex-col items-center justify-center">
-              <OpportunityGauge score={data.score_oportunidade.valor} size="large" />
+              <OpportunityGauge 
+                score={data.score_oportunidade.valor} 
+                classification={data.score_oportunidade.classificacao}
+                size="large" 
+              />
             </div>
           </div>
         </div>
 
-        {/* 2. Análise da Consulta Atual */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <BarChart3 size={24} className="text-purple-600" />
-            <h3 className="text-xl font-bold text-gray-900">Análise Detalhada da Oportunidade</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Justificativa */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Justificativa do Score</h4>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                <p className="text-gray-700 leading-relaxed">{data.score_oportunidade.justificativa_detalhada}</p>
-              </div>
-            </div>
-
-            {/* Fatores Quantitativos */}
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Dados de Mercado</h4>
-              {data.score_oportunidade.fatores_quantitativos?.volume_shopping && (
-                <div className="space-y-4">
-                  {Object.entries(data.score_oportunidade.fatores_quantitativos.volume_shopping).map(([country, data]: [string, any]) => (
-                    <div key={country} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Flag 
-                          code={getCountryCode(country)} 
-                          style={{ width: 20, height: 15 }}
-                        />
-                        <span className="font-semibold">{country}</span>
-                      </div>
-                      <div className="text-sm space-y-1">
-                        <div><strong>Preço Médio:</strong> {data.preco_medio}</div>
-                        <div><strong>Faixa:</strong> {data.faixa_preco}</div>
-                        <div><strong>Fabricantes:</strong> {data.principais_fabricantes?.join(', ')}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+        {/* 2. Recomendação Estratégica */}
+        <div className={`rounded-xl p-6 border-2 ${
+          isRecommended 
+            ? 'bg-gradient-to-r from-green-600 to-emerald-600 border-green-500' 
+            : 'bg-gradient-to-r from-red-600 to-red-700 border-red-500'
+        }`}>
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              {isRecommended ? (
+                <CheckCircle size={32} className="text-white" />
+              ) : (
+                <AlertTriangle size={32} className="text-white" />
               )}
+              <h3 className="text-2xl font-bold text-white">
+                Recomendação: {isRecommended ? 'PROSSEGUIR' : 'NÃO PROSSEGUIR'}
+              </h3>
             </div>
-          </div>
-
-          {/* Fatores Qualitativos */}
-          {data.score_oportunidade.fatores_qualitativos && (
-            <div className="mt-8">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Análise Qualitativa</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h5 className="font-semibold text-blue-900 mb-2">Tendência Midiática</h5>
-                  <p className="text-blue-800 text-sm">{data.score_oportunidade.fatores_qualitativos.tendencia_midiatica}</p>
+            <p className="text-white text-lg leading-relaxed max-w-4xl mx-auto">
+              {data.sugestao_estrategica.recomendacao}
+            </p>
+            
+            {data.produto_proposto.indicadores_financeiros_adicionais && (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/20 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">
+                    {data.produto_proposto.indicadores_financeiros_adicionais.payback_estimado_anos} anos
+                  </div>
+                  <div className="text-white/80">Payback</div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h5 className="font-semibold text-green-900 mb-2">Receptividade de Mercado</h5>
-                  <p className="text-green-800 text-sm">{data.score_oportunidade.fatores_qualitativos.receptividade_de_mercado}</p>
+                <div className="bg-white/20 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">
+                    {(data.produto_proposto.indicadores_financeiros_adicionais.margem_bruta_estimada * 100).toFixed(0)}%
+                  </div>
+                  <div className="text-white/80">Margem Bruta</div>
+                </div>
+                <div className="bg-white/20 rounded-lg p-4">
+                  <div className="text-2xl font-bold text-white">
+                    {formatCurrency(
+                      data.produto_proposto.indicadores_financeiros_adicionais.investimento_total_estimado.valor,
+                      data.produto_proposto.indicadores_financeiros_adicionais.investimento_total_estimado.moeda
+                    )}
+                  </div>
+                  <div className="text-white/80">Investimento Total</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 3. Análise de Mercado */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Tamanho do Mercado */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <BarChart3 size={24} className="text-purple-600" />
+              <h3 className="text-xl font-bold text-gray-900">Tamanho do Mercado</h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-900">
+                    {formatLargeNumber(data.produto_proposto.mercado_alvo.TAM.valor)}
+                  </div>
+                  <div className="text-purple-700">TAM - Total Addressable Market</div>
+                  <div className="text-sm text-purple-600 mt-1">{data.produto_proposto.mercado_alvo.TAM.moeda}</div>
                 </div>
               </div>
               
-              {data.score_oportunidade.fatores_qualitativos.riscos && (
-                <div className="mt-4 bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <h5 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
-                    <AlertTriangle size={16} />
-                    Riscos Identificados
-                  </h5>
-                  <p className="text-orange-800 text-sm">{data.score_oportunidade.fatores_qualitativos.riscos}</p>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-900">
+                    {formatLargeNumber(data.produto_proposto.mercado_alvo.SAM.valor)}
+                  </div>
+                  <div className="text-blue-700">SAM - Serviceable Addressable Market</div>
+                  <div className="text-sm text-blue-600 mt-1">{data.produto_proposto.mercado_alvo.SAM.moeda}</div>
                 </div>
-              )}
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-900">
+                    {formatLargeNumber(data.produto_proposto.mercado_alvo.SOM.valor)}
+                  </div>
+                  <div className="text-green-700">SOM - Serviceable Obtainable Market</div>
+                  <div className="text-sm text-green-600 mt-1">{data.produto_proposto.mercado_alvo.SOM.moeda}</div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">
+                    {data.produto_proposto.mercado_alvo.tamanho_do_publico_estimado.toLocaleString()}
+                  </div>
+                  <div className="text-gray-700">Pacientes Alvo</div>
+                  <div className="text-sm text-gray-600 mt-1">{data.produto_proposto.mercado_alvo.publico_destinado}</div>
+                </div>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Volume de Buscas */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Eye size={24} className="text-green-600" />
+              <h3 className="text-xl font-bold text-gray-900">Volume de Buscas Mensais</h3>
+            </div>
+            
+            <div className="space-y-4">
+              {Object.entries(data.dados_mercado_latam.volume_buscas_mensais_google).map(([country, volume]) => (
+                <div key={country} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Flag 
+                      code={getCountryCode(country)} 
+                      style={{ width: 20, height: 15 }}
+                    />
+                    <span className="font-medium">{country}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-green-600">{volume.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">buscas/mês</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* 3. Comparativo com Produtos Similares */}
+        {/* 4. Análise de Preços */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center gap-3 mb-6">
-            <PieChart size={24} className="text-green-600" />
+            <DollarSign size={24} className="text-green-600" />
+            <h3 className="text-xl font-bold text-gray-900">Comparativo de Preços</h3>
+          </div>
+          
+          <PriceChart 
+            originalPrices={data.dados_mercado_latam.precos}
+            proposedPrices={data.produto_proposto.comparativo_precos.proposto}
+          />
+        </div>
+
+        {/* 5. ROI e Projeções */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <TrendingUp size={24} className="text-blue-600" />
+            <h3 className="text-xl font-bold text-gray-900">Projeções de ROI</h3>
+          </div>
+          
+          <ROIChart roiData={data.produto_proposto.roi_estimado} />
+        </div>
+
+        {/* 6. Análise SWOT */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Shield size={24} className="text-indigo-600" />
+            <h3 className="text-xl font-bold text-gray-900">Análise SWOT</h3>
+          </div>
+          
+          <SWOTMatrix swot={data.analise_swot} />
+        </div>
+
+        {/* 7. Pipeline Concorrente */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Users size={24} className="text-orange-600" />
+            <h3 className="text-xl font-bold text-gray-900">Pipeline Concorrente</h3>
+          </div>
+          
+          <div className="space-y-4">
+            {data.pipeline_concorrente.map((competitor, index) => (
+              <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-600">Molécula</span>
+                    <div className="font-semibold text-gray-900">{competitor.nome_molecula}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Empresa</span>
+                    <div className="font-semibold text-gray-900">{competitor.empresa}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Fase</span>
+                    <div className="font-semibold text-blue-600">{competitor.fase_clinica}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-600">Status</span>
+                    <div className={`font-semibold ${
+                      competitor.status === 'Em andamento' ? 'text-green-600' : 'text-orange-600'
+                    }`}>
+                      {competitor.status}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-gray-700">
+                  {competitor.observacoes}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 8. Timeline de Desenvolvimento */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Clock size={24} className="text-purple-600" />
+            <h3 className="text-xl font-bold text-gray-900">Timeline de Desenvolvimento</h3>
+          </div>
+          
+          <Timeline timeline={data.produto_proposto.linha_do_tempo} />
+        </div>
+
+        {/* 9. Complexidade de Fabricação */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Factory size={24} className="text-red-600" />
+            <h3 className="text-xl font-bold text-gray-900">Complexidade de Fabricação</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-center">
+              <div className="text-lg font-bold text-red-900">
+                {data.complexidade_de_fabricacao.necessita_api_exclusiva ? 'SIM' : 'NÃO'}
+              </div>
+              <div className="text-red-700 text-sm">API Exclusiva</div>
+            </div>
+            
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 text-center">
+              <div className="text-lg font-bold text-orange-900">
+                {data.complexidade_de_fabricacao.grau_dificuldade_formulacao}
+              </div>
+              <div className="text-orange-700 text-sm">Dificuldade</div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+              <div className="text-lg font-bold text-blue-900">
+                {formatCurrency(
+                  data.complexidade_de_fabricacao.custo_estimado_por_lote.valor,
+                  data.complexidade_de_fabricacao.custo_estimado_por_lote.moeda
+                )}
+              </div>
+              <div className="text-blue-700 text-sm">Custo por Lote</div>
+            </div>
+          </div>
+        </div>
+
+        {/* 10. Go-to-Market */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Briefcase size={24} className="text-indigo-600" />
+            <h3 className="text-xl font-bold text-gray-900">Estratégia Go-to-Market</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Estratégia Principal</h4>
+              <p className="text-gray-700 leading-relaxed bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                {data.produto_proposto.estrategia_go_to_market}
+              </p>
+              
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center bg-green-50 p-3 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">
+                    {(data.indicadores_go_to_market.taxa_adocao_medica_esperada * 100).toFixed(0)}%
+                  </div>
+                  <div className="text-green-700 text-sm">Taxa Adoção Médica</div>
+                </div>
+                
+                <div className="text-center bg-blue-50 p-3 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {data.indicadores_go_to_market.indicador_satisfacao_esperado}%
+                  </div>
+                  <div className="text-blue-700 text-sm">Satisfação Esperada</div>
+                </div>
+                
+                <div className="text-center bg-purple-50 p-3 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {formatCurrency(
+                      data.produto_proposto.plano_lancamento.budget_marketing_estimado.valor,
+                      data.produto_proposto.plano_lancamento.budget_marketing_estimado.moeda
+                    )}
+                  </div>
+                  <div className="text-purple-700 text-sm">Budget Marketing</div>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3">Canais de Marketing</h4>
+              
+              <div className="space-y-4">
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Mídia Tradicional</span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {data.produto_proposto.plano_lancamento.midia_tradicional.map((item, index) => (
+                      <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Mídia Digital</span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {data.produto_proposto.plano_lancamento.midia_alternativa.map((item, index) => (
+                      <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <span className="text-sm font-medium text-gray-600">Distribuidores Alvo</span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {data.indicadores_go_to_market.distribuidores_alvo.map((distributor, index) => (
+                      <span key={index} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                        {distributor}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 11. Documentação INPI */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <FileText size={24} className="text-blue-600" />
+            <h3 className="text-xl font-bold text-gray-900">Documentação para INPI</h3>
+          </div>
+          
+          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h4 className="text-lg font-bold text-blue-900 mb-3">
+              {data.produto_proposto.documentacao_patente_inpi.titulo}
+            </h4>
+            <p className="text-blue-800 mb-4 leading-relaxed">
+              {data.produto_proposto.documentacao_patente_inpi.resumo}
+            </p>
+            
+            <div>
+              <span className="text-sm font-medium text-blue-700 mb-2 block">Itens Incluídos:</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                {data.produto_proposto.documentacao_patente_inpi.itens_incluidos.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border border-blue-200">
+                    <CheckCircle size={16} className="text-blue-600" />
+                    <span className="text-sm text-blue-800">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 12. Dados Técnicos */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Pill size={24} className="text-purple-600" />
+            <h3 className="text-xl font-bold text-gray-900">Dados Técnicos - {data.consulta.nome_molecula}</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <span className="text-sm font-medium text-purple-700">Fórmula Molecular</span>
+              <div className="text-lg font-bold text-purple-900 font-mono mt-1">
+                {data.dados_tecnicos.formula_molecular}
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <span className="text-sm font-medium text-blue-700">Peso Molecular</span>
+              <div className="text-lg font-bold text-blue-900 mt-1">
+                {data.dados_tecnicos.peso_molecular} g/mol
+              </div>
+            </div>
+            
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <span className="text-sm font-medium text-green-700">Ligações Rotacionáveis</span>
+              <div className="text-lg font-bold text-green-900 mt-1">
+                {data.dados_tecnicos.rotatable_bonds}
+              </div>
+            </div>
+            
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 md:col-span-2 lg:col-span-3">
+              <span className="text-sm font-medium text-yellow-700">Nome IUPAC</span>
+              <div className="text-sm text-yellow-900 mt-1 font-mono break-words">
+                {data.dados_tecnicos.iupac_name}
+              </div>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 md:col-span-2 lg:col-span-3">
+              <span className="text-sm font-medium text-gray-700">SMILES</span>
+              <div className="text-sm text-gray-900 mt-1 font-mono break-all">
+                {data.dados_tecnicos.smiles}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 13. Registros Regulatórios */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Shield size={24} className="text-red-600" />
+            <h3 className="text-xl font-bold text-gray-900">Status Regulatório</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {data.registro_regulatorio.FDA && (
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Flag code="US" style={{ width: 24, height: 18 }} />
+                  <span className="font-bold text-blue-900">FDA</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div><strong>NDA:</strong> {data.registro_regulatorio.FDA.nda_number}</div>
+                  <div><strong>Aprovação:</strong> {data.registro_regulatorio.FDA.data_aprovacao}</div>
+                  <div className="flex items-center gap-2">
+                    <strong>Genéricos:</strong>
+                    {data.registro_regulatorio.FDA.genericos_aprovados ? (
+                      <CheckCircle size={16} className="text-green-600" />
+                    ) : (
+                      <AlertTriangle size={16} className="text-red-600" />
+                    )}
+                    <span>{data.registro_regulatorio.FDA.genericos_aprovados ? 'Aprovados' : 'Não Aprovados'}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {data.registro_regulatorio.ANVISA && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Flag code="BR" style={{ width: 24, height: 18 }} />
+                  <span className="font-bold text-green-900">ANVISA</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div><strong>Registro:</strong> {data.registro_regulatorio.ANVISA.numero_registro}</div>
+                  <div><strong>Data:</strong> {data.registro_regulatorio.ANVISA.data_registro}</div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle size={16} className="text-green-600" />
+                    <span>Registrado</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {data.registro_regulatorio.EMA && (
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Flag code="EU" style={{ width: 24, height: 18 }} />
+                  <span className="font-bold text-purple-900">EMA</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div><strong>Aprovação:</strong> {data.registro_regulatorio.EMA.data_aprovacao}</div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle size={16} className="text-green-600" />
+                    <span>Registrado</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 14. Análise Competitiva */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Award size={24} className="text-yellow-600" />
             <h3 className="text-xl font-bold text-gray-900">Análise Competitiva</h3>
           </div>
           
@@ -464,7 +1205,6 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Fabricante</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Status Patente</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Preço Médio</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Registros</th>
                 </tr>
               </thead>
               <tbody>
@@ -475,23 +1215,15 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                     <td className="py-3 px-4 text-gray-700">{product.fabricante}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        product.status_patente.includes('Ativa') || product.status_patente.includes('2026') || product.status_patente.includes('2027')
+                        product.status_patente.includes('Ativa')
                           ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
                         {product.status_patente}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-green-600">{product.preco_medio}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-2">
-                        {product.registro_fda && (
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">FDA</span>
-                        )}
-                        {product.registro_anvisa && (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">ANVISA</span>
-                        )}
-                      </div>
+                    <td className="py-3 px-4 font-semibold text-green-600">
+                      {formatCurrency(product.preco_medio.valor, product.preco_medio.moeda)}
                     </td>
                   </tr>
                 ))}
@@ -500,139 +1232,46 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
         </div>
 
-        {/* 4. Produto Proposto */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <Lightbulb size={24} className="text-yellow-600" />
-            <h3 className="text-xl font-bold text-gray-900">Produto Proposto</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Proposta Técnica */}
-            <div className="space-y-6">
-              <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-                <h4 className="text-lg font-semibold text-yellow-900 mb-3 flex items-center gap-2">
-                  <Award size={20} />
-                  {data.produto_proposto.nome_sugerido}
-                </h4>
-                <div className="space-y-3 text-sm">
-                  <div><strong>Tipo:</strong> {data.produto_proposto.tipo}</div>
-                  <div><strong>Justificativa:</strong></div>
-                  <p className="text-yellow-800 leading-relaxed">{data.produto_proposto.justificativa}</p>
-                </div>
-              </div>
-
-              {/* Go-to-Market */}
-              {data.produto_proposto.go_to_market && (
-                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                  <h4 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                    <Zap size={20} />
-                    Estratégia Go-to-Market
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    <div><strong>Modelo:</strong> {data.produto_proposto.go_to_market.modelo}</div>
-                    <div><strong>Canais:</strong> {data.produto_proposto.go_to_market.canais?.join(', ')}</div>
-                    <div><strong>Parcerias:</strong> {data.produto_proposto.go_to_market.parcerias?.join(', ')}</div>
-                    <div><strong>Posicionamento:</strong> {data.produto_proposto.go_to_market.posicionamento}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Timeline e Comparativos */}
-            <div className="space-y-6">
-              {/* Timeline */}
-              {data.produto_proposto.linha_do_tempo && (
-                <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                  <h4 className="text-lg font-semibold text-green-900 mb-4 flex items-center gap-2">
-                    <Clock size={20} />
-                    Linha do Tempo
-                  </h4>
-                  <Timeline timeline={data.produto_proposto.linha_do_tempo} />
-                </div>
-              )}
-
-              {/* Comparativos Financeiros */}
-              {data.produto_proposto.comparativos && (
-                <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-                  <h4 className="text-lg font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                    <DollarSign size={20} />
-                    Projeções Financeiras
-                  </h4>
-                  <div className="space-y-3 text-sm">
-                    {data.produto_proposto.comparativos.preco_proposto && (
-                      <div>
-                        <strong>Preço Proposto:</strong>
-                        <div className="mt-1 space-y-1">
-                          {Object.entries(data.produto_proposto.comparativos.preco_proposto).map(([country, price]) => (
-                            <div key={country} className="flex items-center gap-2">
-                              <Flag 
-                                code={getCountryCode(country)} 
-                                style={{ width: 16, height: 12 }}
-                              />
-                              <span>{country}: {formatCurrency(price as string, country)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {data.produto_proposto.comparativos.market_share_estimado_ano_1 && (
-                      <div className="grid grid-cols-2 gap-4 mt-4">
-                        <div className="text-center p-3 bg-white rounded border">
-                          <div className="text-2xl font-bold text-purple-600">
-                            {data.produto_proposto.comparativos.market_share_estimado_ano_1}
-                          </div>
-                          <div className="text-xs text-gray-600">Market Share Ano 1</div>
-                        </div>
-                        <div className="text-center p-3 bg-white rounded border">
-                          <div className="text-2xl font-bold text-purple-600">
-                            {data.produto_proposto.comparativos.market_share_estimado_ano_2}
-                          </div>
-                          <div className="text-xs text-gray-600">Market Share Ano 2</div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Análise de Riscos */}
-          <div className="mt-8 bg-red-50 p-6 rounded-lg border border-red-200">
-            <h4 className="text-lg font-semibold text-red-900 mb-3 flex items-center gap-2">
-              <AlertTriangle size={20} />
-              Análise de Riscos
-            </h4>
-            <p className="text-red-800 leading-relaxed">{data.produto_proposto.analise_de_riscos}</p>
-          </div>
-        </div>
-
-        {/* Resumo Executivo */}
+        {/* 15. Justificativa do Score */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white">
           <div className="flex items-center gap-3 mb-4">
-            <FileText size={24} className="text-gray-300" />
-            <h3 className="text-xl font-bold">Resumo Executivo</h3>
+            <Lightbulb size={24} className="text-yellow-400" />
+            <h3 className="text-xl font-bold">Justificativa do Score</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-lg font-semibold text-gray-200 mb-3">Análise Detalhada</h4>
+              <p className="text-gray-300 leading-relaxed">
+                {data.score_oportunidade.justificativa_detalhada}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold text-gray-200 mb-3">Formação do Score</h4>
+              <p className="text-gray-300 leading-relaxed">
+                {data.produto_proposto.justificativa_formacao_score}
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">
-                {data.score_oportunidade.valor}/10
+              <div className="text-3xl font-bold text-green-400">
+                {data.score_oportunidade.valor}
               </div>
-              <div className="text-gray-300 text-sm">Score de Oportunidade</div>
+              <div className="text-gray-300 text-sm">Score Final</div>
             </div>
             
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-2">
-                {data.comparativo_similares.length}
+              <div className="text-3xl font-bold text-blue-400">
+                {data.score_oportunidade.criterios.ensaios_clinicos.ativos}
               </div>
-              <div className="text-gray-300 text-sm">Concorrentes Analisados</div>
+              <div className="text-gray-300 text-sm">Ensaios Ativos</div>
             </div>
             
             <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400 mb-2">
+              <div className="text-3xl font-bold text-purple-400">
                 {data.consulta.pais_alvo.length}
               </div>
               <div className="text-gray-300 text-sm">Mercados Alvo</div>
@@ -640,7 +1279,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
           </div>
           
           <div className="mt-6 text-center">
-            <p className="text-gray-300 italic">
+            <p className="text-gray-400 italic">
               "Análise gerada em {new Date(data.consulta.data_consulta).toLocaleDateString('pt-BR')} para {data.consulta.cliente}"
             </p>
           </div>
