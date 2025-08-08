@@ -574,6 +574,206 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
             </div>
           )}
 
+          {data.dados_mercado_latam && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                  <DollarSign size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Dados de Mercado LATAM</h3>
+                  <p className="text-gray-600">Preços e volume de buscas por país</p>
+                </div>
+              </div>
+              
+              {/* Preços por País */}
+              {data.dados_mercado_latam.precos && (
+                <div className="mb-6">
+                  <h4 className="font-bold text-gray-900 mb-4">Preços por País</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(data.dados_mercado_latam.precos).map(([pais, preco]: [string, any]) => (
+                      <div key={pais} className="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium text-gray-900">{pais}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-2xl font-bold text-green-600">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: preco.moeda === 'BRL' ? 'BRL' : 
+                                       preco.moeda === 'USD' ? 'USD' :
+                                       preco.moeda === 'MXN' ? 'MXN' :
+                                       preco.moeda === 'CLP' ? 'CLP' :
+                                       preco.moeda === 'ARS' ? 'ARS' : 'USD'
+                            }).format(preco.preco_medio)}
+                          </div>
+                          {preco.faixa_preco && (
+                            <div className="text-sm text-gray-600">
+                              Faixa: {preco.faixa_preco.min} - {preco.faixa_preco.max} {preco.moeda}
+                            </div>
+                          )}
+                          {preco.fonte && (
+                            <div className="text-xs text-gray-500">Fonte: {preco.fonte}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Volume de Buscas */}
+              {data.dados_mercado_latam.volume_buscas_mensais_google && (
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-4">Volume de Buscas Mensais (Google)</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {Object.entries(data.dados_mercado_latam.volume_buscas_mensais_google).map(([pais, volume]: [string, any]) => (
+                      <div key={pais} className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-medium text-gray-900">{pais}</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {new Intl.NumberFormat('pt-BR').format(volume)}
+                        </div>
+                        <div className="text-sm text-gray-600">buscas/mês</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Registro Regulatório */}
+          {data.registro_regulatorio && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                  <Shield size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Registro Regulatório</h3>
+                  <p className="text-gray-600">Status de aprovação por agência</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* FDA */}
+                {data.registro_regulatorio.FDA && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h4 className="font-bold text-gray-900 mb-3">FDA (Estados Unidos)</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">NDA Number:</span>
+                        <p className="font-mono text-sm">{data.registro_regulatorio.FDA.nda_number}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Data de Aprovação:</span>
+                        <p className="text-sm">{new Date(data.registro_regulatorio.FDA.data_aprovacao).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Genéricos Aprovados:</span>
+                        <p className={`text-sm font-medium ${data.registro_regulatorio.FDA.genericos_aprovados ? 'text-green-600' : 'text-red-600'}`}>
+                          {data.registro_regulatorio.FDA.genericos_aprovados ? 'SIM' : 'NÃO'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* EMA */}
+                {data.registro_regulatorio.EMA && (
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h4 className="font-bold text-gray-900 mb-3">EMA (Europa)</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Registro:</span>
+                        <p className={`text-sm font-medium ${data.registro_regulatorio.EMA.registro ? 'text-green-600' : 'text-red-600'}`}>
+                          {data.registro_regulatorio.EMA.registro ? 'APROVADO' : 'NÃO APROVADO'}
+                        </p>
+                      </div>
+                      {data.registro_regulatorio.EMA.data_aprovacao && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">Data de Aprovação:</span>
+                          <p className="text-sm">{new Date(data.registro_regulatorio.EMA.data_aprovacao).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* ANVISA */}
+                {data.registro_regulatorio.ANVISA && (
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <h4 className="font-bold text-gray-900 mb-3">ANVISA (Brasil)</h4>
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Registro Encontrado:</span>
+                        <p className={`text-sm font-medium ${data.registro_regulatorio.ANVISA.registro_encontrado ? 'text-green-600' : 'text-red-600'}`}>
+                          {data.registro_regulatorio.ANVISA.registro_encontrado ? 'SIM' : 'NÃO'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Número do Registro:</span>
+                        <p className="text-sm font-mono">{data.registro_regulatorio.ANVISA.numero_registro}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Data do Registro:</span>
+                        <p className="text-sm">{data.registro_regulatorio.ANVISA.data_registro}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Comparativo de Similares */}
+          {data.comparativo_similares && data.comparativo_similares.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center">
+                  <BarChart3 size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Comparativo de Produtos Similares</h3>
+                  <p className="text-gray-600">Análise competitiva do mercado</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {data.comparativo_similares.map((produto: any, index: number) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-lg text-gray-900">{produto.nome_comercial}</h4>
+                      <span className="text-sm text-gray-600">{produto.fabricante}</span>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Molécula:</span>
+                        <p className="text-sm">{produto.nome_molecula}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Status da Patente:</span>
+                        <p className="text-sm">{produto.status_patente}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Preço Médio:</span>
+                        <p className="text-lg font-bold text-orange-600">
+                          {new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: produto.preco_medio.moeda === 'USD' ? 'USD' : 'BRL'
+                          }).format(produto.preco_medio.valor)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Viabilidade Financeira */}
           {data.viabilidade_financeira && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -623,6 +823,241 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Dados Técnicos (Química) */}
+          {data.dados_tecnicos && (
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                  <Beaker size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Dados Técnicos</h3>
+                  <p className="text-gray-600">Propriedades químicas e moleculares</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{data.dados_tecnicos.formula_molecular}</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{data.dados_tecnicos.peso_molecular} g/mol</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Área Polar Topológica</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{data.dados_tecnicos.topological_polar_surface_area} Ų</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-lg border border-purple-100">
+                  <span className="text-sm font-medium text-gray-600">Ligações Rotacionáveis</span>
+                  <p className="text-lg font-bold text-gray-900 mt-1">{data.dados_tecnicos.rotatable_bonds}</p>
+                </div>
+
+                {data.dados_tecnicos.iupac_name && (
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
+                    <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
+                    <p className="text-sm text-gray-900 mt-1 break-words font-mono">{data.dados_tecnicos.iupac_name}</p>
+                  </div>
+                )}
+
+                {data.dados_tecnicos.smiles && (
+                  <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
+                    <span className="text-sm font-medium text-gray-600">SMILES</span>
+                    <p className="text-sm font-mono text-gray-900 mt-1 break-all">{data.dados_tecnicos.smiles}</p>
+                  </div>
+                )}
+              </div>
+              
+              {data.dados_tecnicos.fonte && (
+                <div className="mt-4">
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                    📊 {data.dados_tecnicos.fonte}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sugestão Estratégica */}
+          {data.sugestao_estrategica && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-teal-600 rounded-full flex items-center justify-center">
+                  <Target size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Sugestão Estratégica</h3>
+                  <p className="text-gray-600">Recomendações para próximos passos</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 bg-teal-50 rounded-lg border border-teal-100">
+                  <h4 className="font-bold text-gray-900 mb-2">Recomendação</h4>
+                  <p className="text-gray-700 leading-relaxed">{data.sugestao_estrategica.recomendacao}</p>
+                </div>
+                
+                {data.sugestao_estrategica.campos_recomendados && (
+                  <div>
+                    <h4 className="font-bold text-gray-900 mb-3">Campos Recomendados para Análise</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {data.sugestao_estrategica.campos_recomendados.map((campo: string, index: number) => (
+                        <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                          <CheckCircle size={16} className="text-teal-600" />
+                          <span className="text-sm text-gray-700">{campo}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Pipeline Concorrente */}
+          {data.pipeline_concorrente && data.pipeline_concorrente.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                  <Users size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Pipeline Concorrente</h3>
+                  <p className="text-gray-600">Produtos em desenvolvimento</p>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                {data.pipeline_concorrente.map((produto: any, index: number) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-bold text-lg text-gray-900">{produto.nome_molecula}</h4>
+                      <span className="text-sm text-gray-600">{produto.empresa}</span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Fase Clínica:</span>
+                        <p className="text-sm font-semibold">{produto.fase_clinica}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">Status:</span>
+                        <p className={`text-sm font-semibold ${
+                          produto.status === 'Em andamento' ? 'text-yellow-600' : 'text-gray-600'
+                        }`}>
+                          {produto.status}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {produto.observacoes && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded">
+                        <p className="text-sm text-gray-700">{produto.observacoes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Complexidade de Fabricação */}
+          {data.complexidade_de_fabricacao && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center">
+                  <Factory size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Complexidade de Fabricação</h3>
+                  <p className="text-gray-600">Análise de produção e custos</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                  <span className="text-sm font-medium text-gray-600">API Exclusiva Necessária</span>
+                  <p className={`text-lg font-bold mt-1 ${data.complexidade_de_fabricacao.necessita_api_exclusiva ? 'text-red-600' : 'text-green-600'}`}>
+                    {data.complexidade_de_fabricacao.necessita_api_exclusiva ? 'SIM' : 'NÃO'}
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                  <span className="text-sm font-medium text-gray-600">Grau de Dificuldade</span>
+                  <p className={`text-lg font-bold mt-1 ${
+                    data.complexidade_de_fabricacao.grau_dificuldade_formulacao === 'Alta' ? 'text-red-600' :
+                    data.complexidade_de_fabricacao.grau_dificuldade_formulacao === 'Média' ? 'text-yellow-600' :
+                    'text-green-600'
+                  }`}>
+                    {data.complexidade_de_fabricacao.grau_dificuldade_formulacao}
+                  </p>
+                </div>
+                
+                {data.complexidade_de_fabricacao.custo_estimado_por_lote && (
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <span className="text-sm font-medium text-gray-600">Custo por Lote</span>
+                    <p className="text-lg font-bold text-gray-900 mt-1">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: data.complexidade_de_fabricacao.custo_estimado_por_lote.moeda || 'USD'
+                      }).format(data.complexidade_de_fabricacao.custo_estimado_por_lote.valor)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Indicadores Go-to-Market */}
+          {data.indicadores_go_to_market && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
+                  <Rocket size={24} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Indicadores Go-to-Market</h3>
+                  <p className="text-gray-600">Métricas de lançamento e adoção</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {data.indicadores_go_to_market.taxa_adocao_medica_esperada && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <span className="text-sm font-medium text-gray-600">Taxa de Adoção Médica</span>
+                    <p className="text-2xl font-bold text-green-600 mt-1">
+                      {(data.indicadores_go_to_market.taxa_adocao_medica_esperada * 100).toFixed(0)}%
+                    </p>
+                  </div>
+                )}
+                
+                {data.indicadores_go_to_market.indicador_satisfacao_esperado && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <span className="text-sm font-medium text-gray-600">Satisfação Esperada</span>
+                    <p className="text-2xl font-bold text-green-600 mt-1">
+                      {data.indicadores_go_to_market.indicador_satisfacao_esperado}%
+                    </p>
+                  </div>
+                )}
+                
+                {data.indicadores_go_to_market.distribuidores_alvo && (
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <span className="text-sm font-medium text-gray-600">Distribuidores Alvo</span>
+                    <div className="mt-2 space-y-1">
+                      {data.indicadores_go_to_market.distribuidores_alvo.map((distribuidor: string, idx: number) => (
+                        <div key={idx} className="text-sm text-gray-700">{distribuidor}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

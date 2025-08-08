@@ -39,13 +39,25 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData = rawResponse;
     }
     
-    return !!(parsedData?.produto_proposto || parsedData?.score_oportunidade?.valor || parsedData?.consulta?.cliente);
+    // Verificar se tem estrutura de dashboard (novos campos)
+    return !!(
+      parsedData?.produto_proposto || 
+      parsedData?.score_oportunidade?.valor || 
+      parsedData?.consulta?.cliente ||
+      parsedData?.dados_mercado_latam ||
+      parsedData?.registro_regulatorio ||
+      parsedData?.comparativo_similares ||
+      parsedData?.analise_swot ||
+      parsedData?.pipeline_concorrente ||
+      parsedData?.complexidade_de_fabricacao ||
+      parsedData?.indicadores_go_to_market
+    );
   } catch {
     return false;
   }
 };
 
-// Parse dashboard data
+// Parse dashboard data - FUNÇÃO EXPANDIDA PARA CAPTURAR TODOS OS CAMPOS
 export const parseDashboardData = (rawResponse: any): any => {
   try {
     let parsedData: any = null;
@@ -74,8 +86,64 @@ export const parseDashboardData = (rawResponse: any): any => {
       parsedData = rawResponse;
     }
     
-    return parsedData;
+    console.log('📊 Dashboard data parseado:', parsedData);
+    
+    // Retornar todos os dados sem filtrar - preservar estrutura completa
+    return {
+      // Dados da consulta
+      consulta: parsedData.consulta || {},
+      
+      // Score de oportunidade
+      score_oportunidade: parsedData.score_oportunidade || {},
+      
+      // Dados técnicos (química)
+      dados_tecnicos: parsedData.dados_tecnicos || {},
+      
+      // Dados de mercado LATAM
+      dados_mercado_latam: parsedData.dados_mercado_latam || {},
+      
+      // Registro regulatório
+      registro_regulatorio: parsedData.registro_regulatorio || {},
+      
+      // Comparativo de similares
+      comparativo_similares: parsedData.comparativo_similares || [],
+      
+      // Produto proposto
+      produto_proposto: parsedData.produto_proposto || {},
+      
+      // Sugestão estratégica
+      sugestao_estrategica: parsedData.sugestao_estrategica || {},
+      
+      // Análise SWOT
+      analise_swot: parsedData.analise_swot || {},
+      
+      // Pipeline concorrente
+      pipeline_concorrente: parsedData.pipeline_concorrente || [],
+      
+      // Complexidade de fabricação
+      complexidade_de_fabricacao: parsedData.complexidade_de_fabricacao || {},
+      
+      // Indicadores go-to-market
+      indicadores_go_to_market: parsedData.indicadores_go_to_market || {},
+      
+      // Metadados
+      metadados: parsedData.metadados || {},
+      
+      // Preservar qualquer outro campo que possa existir
+      ...Object.keys(parsedData).reduce((acc, key) => {
+        if (![
+          'consulta', 'score_oportunidade', 'dados_tecnicos', 'dados_mercado_latam',
+          'registro_regulatorio', 'comparativo_similares', 'produto_proposto',
+          'sugestao_estrategica', 'analise_swot', 'pipeline_concorrente',
+          'complexidade_de_fabricacao', 'indicadores_go_to_market', 'metadados'
+        ].includes(key)) {
+          acc[key] = parsedData[key];
+        }
+        return acc;
+      }, {} as any)
+    };
   } catch (error) {
+    console.error('❌ Erro ao processar dados do dashboard:', error);
     throw new Error('Erro ao processar dados do dashboard');
   }
 };
