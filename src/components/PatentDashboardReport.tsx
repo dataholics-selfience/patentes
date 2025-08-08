@@ -21,6 +21,7 @@ import {
   MapPin,
   AlertTriangle,
   Target,
+  Rocket
   Copy,
   Factory,
   Users,
