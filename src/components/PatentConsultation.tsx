@@ -10,23 +10,18 @@ import {
   Settings,
   TestTube,
   Zap,
-  Loader2,
-  Clock
+  Loader2
 } from 'lucide-react';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
-import PatentMonitoring from './PatentMonitoring';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
-import { ConsultationMonitor, ConsultaData } from '../utils/consultationMonitor';
-import { getLanguageTag } from '../utils/i18n.tsx';
-import { useTranslation } from '../utils/i18n';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -70,7 +65,6 @@ const PHARMACEUTICAL_CATEGORIES = [
 ];
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
-  const { language } = useTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -83,7 +77,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
-  const [showMonitoring, setShowMonitoring] = useState(false);
   const [error, setError] = useState('');
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
@@ -163,44 +156,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     fetchUserData();
   }, []);
 
-  // Função para buscar TODOS os produtos propostos anteriormente
-  const getAllProposedProducts = async (): Promise<string[]> => {
-    if (!auth.currentUser) return [];
-    
-    try {
-      console.log('🔍 Buscando todos os produtos propostos anteriormente...');
-      
-      // Usar query simples sem orderBy para evitar erro de índice composto
-      const q = query(
-        collection(db, 'consultas'),
-        where('userId', '==', auth.currentUser.uid)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const produtosPropostos: string[] = [];
-      
-      // Ordenar manualmente por data após buscar os dados
-      const docs = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
-      
-      docs.forEach(docData => {
-        if (docData.produto_proposto) {
-          produtosPropostos.push(docData.produto_proposto);
-        }
-      });
-      
-      // Remover duplicatas mantendo a ordem
-      const uniqueProducts = [...new Set(produtosPropostos)];
-      
-      console.log(`📋 Produtos propostos encontrados (${uniqueProducts.length}):`, uniqueProducts);
-      return uniqueProducts;
-    } catch (error) {
-      console.error('❌ Erro ao buscar produtos propostos:', error);
-      return [];
-    }
-  };
-
   const handleInputChange = (field: string, value: string | string[]) => {
     setSearchData(prev => ({
       ...prev,
@@ -269,9 +224,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         throw new Error('Nenhuma chave SERP API disponível no momento');
       }
 
-      // Buscar todos os produtos propostos anteriormente
-      const produtosPropostos = await getAllProposedProducts();
-
       // Preparar dados para o webhook
       const webhookData = {
         cliente: userCompany,
@@ -284,9 +236,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        serpApiKey: availableKey,
-        produtos_propostos: produtosPropostos, // Enviar TODOS os produtos propostos
-        idioma: getLanguageTag(language) // Adicionar idioma
+        serpApiKey: availableKey
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
@@ -298,7 +248,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição e aguardar resposta diretamente (SEM POLLING)
+      // Enviar requisição e aguardar resposta diretamente
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -314,25 +264,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const webhookResponse = await response.json();
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
-      // Preparar dados da consulta
-      const consultaData: Omit<ConsultaData, 'id'> = {
-        userId: auth.currentUser.uid,
-        userEmail: auth.currentUser.email || '',
-        empresa: userCompany,
-        nome_comercial: searchData.nome_comercial.trim(),
-        nome_molecula: searchData.nome_molecula.trim(),
-        categoria: searchData.categoria || 'Medicamentos',
-        beneficio: searchData.beneficio || 'Tratamento médico',
-        doenca_alvo: searchData.doenca_alvo || 'Condição médica',
-        pais_alvo: searchData.pais_alvo,
-        sessionId: userSessionId,
-        consultaNumero: 1,
-        isReconsulta: false,
-        webhookResponse,
-        consultedAt: new Date().toISOString(),
-        nextReconsultaAt: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutos
-      };
-
       // Registrar uso da chave SERP
       const usageRecorded = manager.recordUsage(
         availableKey, 
@@ -347,50 +278,25 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Verificar se é dashboard ou dados de patente normais
       if (isDashboardData(webhookResponse)) {
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        try {
-          const dashboardInfo = parseDashboardData(webhookResponse);
-          consultaData.produto_proposto = dashboardInfo.produto_proposto;
-          
-          console.log('✅ Dashboard info processado:', dashboardInfo);
-          
-          // RENDERIZAR DASHBOARD IMEDIATAMENTE
-          setDashboardData(dashboardInfo);
-        } catch (dashboardError) {
-          console.error('❌ Erro ao processar dashboard:', dashboardError);
-          // Fallback para dados de patente normais
-          console.log('🔄 Fallback para dados de patente normais...');
-          const patentData = parsePatentResponse(webhookResponse);
-          setResult(patentData);
-        }
+        const dashboardInfo = parseDashboardData(webhookResponse);
+        setDashboardData(dashboardInfo);
       } else {
-        console.log('📋 Usando dados de patente normais (dashboard desabilitado)...');
-        try {
-          const patentData = parsePatentResponse(webhookResponse);
-          setResult(patentData);
-          
-          // Salvar consulta no histórico
-          const consultationData: Omit<PatentConsultationType, 'id'> = {
-            userId: auth.currentUser.uid,
-            userEmail: auth.currentUser.email || '',
-            produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-            sessionId: userSessionId,
-            resultado: patentData,
-            consultedAt: new Date().toISOString()
-          };
+        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
+        const patentData = parsePatentResponse(webhookResponse);
+        setResult(patentData);
+        
+        // Salvar consulta no histórico apenas para dados de patente normais
+        const consultationData: Omit<PatentConsultationType, 'id'> = {
+          userId: auth.currentUser.uid,
+          userEmail: auth.currentUser.email || '',
+          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
+          sessionId: userSessionId,
+          resultado: patentData,
+          consultedAt: new Date().toISOString()
+        };
 
-          const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
-        } catch (patentError) {
-          console.error('❌ Erro ao processar dados de patente:', patentError);
-          throw patentError;
-        }
+        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
       }
-
-      // SEMPRE salvar na collection "consultas" e agendar reconsulta (para ambos os tipos)
-      const consultaId = await ConsultationMonitor.saveConsulta(consultaData);
-      
-      // Agendar reconsulta automática de 10 em 10 minutos
-      console.log('⏰ Agendando reconsulta automática para 10 minutos...');
-      ConsultationMonitor.scheduleReconsulta(consultaId, { ...consultaData, id: consultaId });
 
       // Atualizar tokens do usuário
       if (tokenUsage) {
@@ -410,12 +316,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const handleBackToConsultation = () => {
     setResult(null);
     setDashboardData(null);
-    setShowMonitoring(false);
     setError('');
-  };
-
-  const handleShowMonitoring = () => {
-    setShowMonitoring(true);
   };
 
   // Se há dashboard data, mostrar dashboard
@@ -434,15 +335,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       <PatentResultsPage
         result={result}
         searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
-        onBack={handleBackToConsultation}
-      />
-    );
-  }
-
-  // Se está mostrando monitoramento
-  if (showMonitoring) {
-    return (
-      <PatentMonitoring
         onBack={handleBackToConsultation}
       />
     );
@@ -518,12 +410,13 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             )}
           </div>
 
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600">{error}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600">{error}</p>
-              </div>
-            )}
             {/* Campos principais */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -657,45 +550,34 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               )}
             </div>
 
-            {/* Botões de ação dentro do formulário */}
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
-                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
-              >
-                {isLoading ? (
-                  <Loader2 size={20} className="animate-spin" />
-                ) : (
-                  <Search size={20} />
-                )}
-                {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
-              </button>
+            <button
+              type="submit"
+              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
+            >
+              {isLoading ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Search size={20} />
+              )}
+              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+            </button>
 
-              <button
-                type="button"
-                onClick={handleShowMonitoring}
-                className="flex items-center justify-center gap-2 px-4 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold"
-              >
-                <Clock size={20} />
-                Monitoramento
-              </button>
-            </div>
-
-            {/* Informações sobre tokens */}
-            {tokenUsage && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">
-                    Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
-                  </span>
-                  <span className="text-gray-600">
-                    Plano: <strong>{tokenUsage.plan}</strong>
-                  </span>
-                </div>
-              </div>
-            )}
           </form>
+
+          {/* Informações sobre tokens */}
+          {tokenUsage && (
+            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">
+                  Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
+                </span>
+                <span className="text-gray-600">
+                  Plano: <strong>{tokenUsage.plan}</strong>
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

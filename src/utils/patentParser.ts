@@ -3,13 +3,44 @@ import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeB
 // Check if response is dashboard data
 export const isDashboardData = (rawResponse: any): boolean => {
   try {
-    console.log('🔍 Verificando se é dashboard data (DESABILITADO):', rawResponse);
+    let parsedData: any = null;
     
-    // DESABILITAR DASHBOARD TEMPORARIAMENTE - sempre retornar false
-    console.log('🚫 Dashboard desabilitado - usando parse normal de patentes');
-    return false;
+    if (Array.isArray(rawResponse) && rawResponse.length > 0) {
+      if (rawResponse[0].output) {
+        if (typeof rawResponse[0].output === 'string') {
+          // Clean markdown code blocks before parsing
+          const cleanOutput = rawResponse[0].output
+            .replace(/```json\n?/g, '')
+            .replace(/```\n?/g, '')
+            .trim();
+          
+          try {
+            parsedData = JSON.parse(cleanOutput);
+          } catch {
+            return false;
+          }
+        } else {
+          parsedData = rawResponse[0].output;
+        }
+      }
+    } else if (typeof rawResponse === 'string') {
+      // Clean markdown code blocks from string responses
+      const cleanString = rawResponse
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      
+      try {
+        parsedData = JSON.parse(cleanString);
+      } catch {
+        return false;
+      }
+    } else if (typeof rawResponse === 'object' && rawResponse !== null) {
+      parsedData = rawResponse;
+    }
+    
+    return !!(parsedData?.produto_proposto || parsedData?.score_oportunidade?.valor || parsedData?.consulta?.cliente);
   } catch {
-    console.log('❌ Erro na verificação de dashboard data');
     return false;
   }
 };
@@ -17,8 +48,6 @@ export const isDashboardData = (rawResponse: any): boolean => {
 // Parse dashboard data
 export const parseDashboardData = (rawResponse: any): any => {
   try {
-    console.log('📊 Iniciando parse de dashboard data:', rawResponse);
-    
     let parsedData: any = null;
     
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
@@ -33,9 +62,6 @@ export const parseDashboardData = (rawResponse: any): any => {
         } else {
           parsedData = rawResponse[0].output;
         }
-      } else {
-        // Se não tem output, usar dados diretos
-        parsedData = rawResponse[0];
       }
     } else if (typeof rawResponse === 'string') {
       // Clean markdown code blocks from string responses
@@ -48,10 +74,8 @@ export const parseDashboardData = (rawResponse: any): any => {
       parsedData = rawResponse;
     }
     
-    console.log('✅ Dashboard data parseado:', parsedData);
     return parsedData;
   } catch (error) {
-    console.error('❌ Erro ao processar dados do dashboard:', error);
     throw new Error('Erro ao processar dados do dashboard');
   }
 };
@@ -111,7 +135,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         parsedData = JSON.parse(jsonString);
       } catch (parseError) {
         // Try to extract JSON from text using regex
-        const jsonMatch = jsonString.match(/\{[\s\S]*?\}/);
+        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             parsedData = JSON.parse(jsonMatch[0]);
