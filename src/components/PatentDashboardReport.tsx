@@ -106,6 +106,25 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   console.log('📊 Renderizando Dashboard com dados:', data);
+  
+  // Verificar se os dados são válidos
+  if (!data || typeof data !== 'object') {
+    console.error('❌ Dados do dashboard inválidos:', data);
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Erro nos Dados</h2>
+          <p className="text-gray-600 mb-4">Os dados do dashboard não puderam ser carregados.</p>
+          <button
+            onClick={onBack}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Voltar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Extrair dados do dashboard
   const produtoProposto = data.produto_proposto || 'Produto não identificado';

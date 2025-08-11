@@ -25,7 +25,7 @@ import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { ConsultationMonitor, ConsultaData } from '../utils/consultationMonitor';
-import { getLanguageTag } from '../utils/i18n';
+import { getLanguageTag } from '../utils/i18n.tsx';
 import { useTranslation } from '../utils/i18n';
 
 interface PatentConsultationProps {
@@ -343,27 +343,42 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Verificar se é dashboard ou dados de patente normais
       if (isDashboardData(webhookResponse)) {
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        const dashboardInfo = parseDashboardData(webhookResponse);
-        consultaData.produto_proposto = dashboardInfo.produto_proposto;
-        
-        // RENDERIZAR DASHBOARD IMEDIATAMENTE
-        setDashboardData(dashboardInfo);
+        try {
+          const dashboardInfo = parseDashboardData(webhookResponse);
+          consultaData.produto_proposto = dashboardInfo.produto_proposto;
+          
+          console.log('✅ Dashboard info processado:', dashboardInfo);
+          
+          // RENDERIZAR DASHBOARD IMEDIATAMENTE
+          setDashboardData(dashboardInfo);
+        } catch (dashboardError) {
+          console.error('❌ Erro ao processar dashboard:', dashboardError);
+          // Fallback para dados de patente normais
+          console.log('🔄 Fallback para dados de patente normais...');
+          const patentData = parsePatentResponse(webhookResponse);
+          setResult(patentData);
+        }
       } else {
         console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
-        const patentData = parsePatentResponse(webhookResponse);
-        setResult(patentData);
-        
-        // Salvar consulta no histórico apenas para dados de patente normais
-        const consultationData: Omit<PatentConsultationType, 'id'> = {
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email || '',
-          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId: userSessionId,
-          resultado: patentData,
-          consultedAt: new Date().toISOString()
-        };
+        try {
+          const patentData = parsePatentResponse(webhookResponse);
+          setResult(patentData);
+          
+          // Salvar consulta no histórico apenas para dados de patente normais
+          const consultationData: Omit<PatentConsultationType, 'id'> = {
+            userId: auth.currentUser.uid,
+            userEmail: auth.currentUser.email || '',
+            produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
+            sessionId: userSessionId,
+            resultado: patentData,
+            consultedAt: new Date().toISOString()
+          };
 
-        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+          const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
+        } catch (patentError) {
+          console.error('❌ Erro ao processar dados de patente:', patentError);
+          throw patentError;
+        }
       }
 
       // SEMPRE salvar na collection "consultas" e agendar reconsulta (para ambos os tipos)

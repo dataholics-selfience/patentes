@@ -3,6 +3,8 @@ import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeB
 // Check if response is dashboard data
 export const isDashboardData = (rawResponse: any): boolean => {
   try {
+    console.log('🔍 Verificando se é dashboard data:', rawResponse);
+    
     let parsedData: any = null;
     
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
@@ -17,11 +19,15 @@ export const isDashboardData = (rawResponse: any): boolean => {
           try {
             parsedData = JSON.parse(cleanOutput);
           } catch {
+            console.log('❌ Falha ao fazer parse do output como JSON');
             return false;
           }
         } else {
           parsedData = rawResponse[0].output;
         }
+      } else {
+        // Se não tem output, pode ser dados diretos
+        parsedData = rawResponse[0];
       }
     } else if (typeof rawResponse === 'string') {
       // Clean markdown code blocks from string responses
@@ -33,10 +39,16 @@ export const isDashboardData = (rawResponse: any): boolean => {
       try {
         parsedData = JSON.parse(cleanString);
       } catch {
+        console.log('❌ Falha ao fazer parse da string como JSON');
         return false;
       }
     } else if (typeof rawResponse === 'object' && rawResponse !== null) {
       parsedData = rawResponse;
+    }
+    
+    if (!parsedData) {
+      console.log('❌ Nenhum dado parseado encontrado');
+      return false;
     }
     
     // Verificar se tem estrutura de dashboard
@@ -46,12 +58,18 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData?.consulta?.cliente ||
       parsedData?.analise_comercial ||
       parsedData?.recomendacoes ||
-      parsedData?.proximos_passos
+      parsedData?.proximos_passos ||
+      // Verificações adicionais mais flexíveis
+      parsedData?.score_de_oportunidade ||
+      parsedData?.oportunidade ||
+      parsedData?.dashboard ||
+      (parsedData?.produto && parsedData?.score)
     );
     
     console.log('🔍 Verificando se é dashboard:', hasDashboardStructure, parsedData);
     return hasDashboardStructure;
   } catch {
+    console.log('❌ Erro na verificação de dashboard data');
     return false;
   }
 };
@@ -59,6 +77,8 @@ export const isDashboardData = (rawResponse: any): boolean => {
 // Parse dashboard data
 export const parseDashboardData = (rawResponse: any): any => {
   try {
+    console.log('📊 Iniciando parse de dashboard data:', rawResponse);
+    
     let parsedData: any = null;
     
     if (Array.isArray(rawResponse) && rawResponse.length > 0) {
@@ -73,6 +93,9 @@ export const parseDashboardData = (rawResponse: any): any => {
         } else {
           parsedData = rawResponse[0].output;
         }
+      } else {
+        // Se não tem output, usar dados diretos
+        parsedData = rawResponse[0];
       }
     } else if (typeof rawResponse === 'string') {
       // Clean markdown code blocks from string responses
@@ -85,8 +108,10 @@ export const parseDashboardData = (rawResponse: any): any => {
       parsedData = rawResponse;
     }
     
+    console.log('✅ Dashboard data parseado:', parsedData);
     return parsedData;
   } catch (error) {
+    console.error('❌ Erro ao processar dados do dashboard:', error);
     throw new Error('Erro ao processar dados do dashboard');
   }
 };
