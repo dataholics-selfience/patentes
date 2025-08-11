@@ -41,19 +41,30 @@ export class ConsultationMonitor {
   // Buscar consultas de um produto específico
   static async getConsultasByProduct(userId: string, nomeComercial: string, nomeMolecula: string): Promise<ConsultaData[]> {
     try {
+      // Use simple query with only userId to avoid composite index requirement
       const q = query(
         collection(db, 'consultas'),
-        where('userId', '==', userId),
-        where('nome_comercial', '==', nomeComercial),
-        where('nome_molecula', '==', nomeMolecula),
-        orderBy('consultedAt', 'desc')
+        where('userId', '==', userId)
       );
       
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const allConsultas = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as ConsultaData[];
+      
+      // Filter and sort in memory to avoid composite index
+      return allConsultas
+        .filter(consulta => {
+          // If searching for specific product, filter by name
+          if (nomeComercial && nomeMolecula) {
+            return consulta.nome_comercial === nomeComercial && 
+                   consulta.nome_molecula === nomeMolecula;
+          }
+          // If no specific product, return all user's consultas
+          return true;
+        })
+        .sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
     } catch (error) {
       console.error('❌ Erro ao buscar consultas:', error);
       return [];
