@@ -452,36 +452,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             )}
           </div>
 
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
-            >
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Search size={20} />
-              )}
-              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShowMonitoring}
-              className="flex items-center justify-center gap-2 px-4 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold"
-            >
-              <Clock size={20} />
-              Monitoramento
-            </button>
-          </div>
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600">{error}</p>
+              </div>
+            )}
             {/* Campos principais */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -615,22 +591,45 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               )}
             </div>
 
+            {/* Botões de ação dentro do formulário */}
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+                className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
+              >
+                {isLoading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Search size={20} />
+                )}
+                {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+              </button>
 
-          </form>
-
-          {/* Informações sobre tokens */}
-          {tokenUsage && (
-            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">
-                  Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
-                </span>
-                <span className="text-gray-600">
-                  Plano: <strong>{tokenUsage.plan}</strong>
-                </span>
-              </div>
+              <button
+                type="button"
+                onClick={handleShowMonitoring}
+                className="flex items-center justify-center gap-2 px-4 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-lg font-semibold"
+              >
+                <Clock size={20} />
+                Monitoramento
+              </button>
             </div>
-          )}
+
+            {/* Informações sobre tokens */}
+            {tokenUsage && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">
+                    Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
+                  </span>
+                  <span className="text-gray-600">
+                    Plano: <strong>{tokenUsage.plan}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
+          </form>
         </div>
       </div>
     </div>
