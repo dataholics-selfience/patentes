@@ -3,71 +3,11 @@ import { PatentResultType, PatentData, ChemicalData, ClinicalTrialsData, OrangeB
 // Check if response is dashboard data
 export const isDashboardData = (rawResponse: any): boolean => {
   try {
-    console.log('🔍 Verificando se é dashboard data:', rawResponse);
+    console.log('🔍 Verificando se é dashboard data (DESABILITADO):', rawResponse);
     
-    let parsedData: any = null;
-    
-    if (Array.isArray(rawResponse) && rawResponse.length > 0) {
-      if (rawResponse[0].output) {
-        if (typeof rawResponse[0].output === 'string') {
-          // Clean markdown code blocks before parsing
-          const cleanOutput = rawResponse[0].output
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .trim();
-          
-          try {
-            parsedData = JSON.parse(cleanOutput);
-          } catch {
-            console.log('❌ Falha ao fazer parse do output como JSON');
-            return false;
-          }
-        } else {
-          parsedData = rawResponse[0].output;
-        }
-      } else {
-        // Se não tem output, pode ser dados diretos
-        parsedData = rawResponse[0];
-      }
-    } else if (typeof rawResponse === 'string') {
-      // Clean markdown code blocks from string responses
-      const cleanString = rawResponse
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-      
-      try {
-        parsedData = JSON.parse(cleanString);
-      } catch {
-        console.log('❌ Falha ao fazer parse da string como JSON');
-        return false;
-      }
-    } else if (typeof rawResponse === 'object' && rawResponse !== null) {
-      parsedData = rawResponse;
-    }
-    
-    if (!parsedData) {
-      console.log('❌ Nenhum dado parseado encontrado');
-      return false;
-    }
-    
-    // Verificar se tem estrutura de dashboard
-    const hasDashboardStructure = !!(
-      parsedData?.produto_proposto || 
-      parsedData?.score_oportunidade?.valor || 
-      parsedData?.consulta?.cliente ||
-      parsedData?.analise_comercial ||
-      parsedData?.recomendacoes ||
-      parsedData?.proximos_passos ||
-      // Verificações adicionais mais flexíveis
-      parsedData?.score_de_oportunidade ||
-      parsedData?.oportunidade ||
-      parsedData?.dashboard ||
-      (parsedData?.produto && parsedData?.score)
-    );
-    
-    console.log('🔍 Verificando se é dashboard:', hasDashboardStructure, parsedData);
-    return hasDashboardStructure;
+    // DESABILITAR DASHBOARD TEMPORARIAMENTE - sempre retornar false
+    console.log('🚫 Dashboard desabilitado - usando parse normal de patentes');
+    return false;
   } catch {
     console.log('❌ Erro na verificação de dashboard data');
     return false;
@@ -171,7 +111,7 @@ export const parsePatentResponse = (rawResponse: any): PatentResultType => {
         parsedData = JSON.parse(jsonString);
       } catch (parseError) {
         // Try to extract JSON from text using regex
-        const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+        const jsonMatch = jsonString.match(/\{[\s\S]*?\}/);
         if (jsonMatch) {
           try {
             parsedData = JSON.parse(jsonMatch[0]);

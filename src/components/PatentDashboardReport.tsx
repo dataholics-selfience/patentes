@@ -127,7 +127,9 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
   }
 
   // Extrair dados do dashboard
-  const produtoProposto = data.produto_proposto || 'Produto não identificado';
+  const produtoProposto = typeof data.produto_proposto === 'object' && data.produto_proposto?.nome_sugerido 
+    ? data.produto_proposto.nome_sugerido 
+    : (typeof data.produto_proposto === 'string' ? data.produto_proposto : 'Produto não identificado');
   const scoreOportunidade = data.score_oportunidade || {};
   const consulta = data.consulta || {};
   const analiseComercial = data.analise_comercial || {};

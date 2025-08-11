@@ -170,19 +170,23 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     try {
       console.log('🔍 Buscando todos os produtos propostos anteriormente...');
       
+      // Usar query simples sem orderBy para evitar erro de índice composto
       const q = query(
         collection(db, 'consultas'),
-        where('userId', '==', auth.currentUser.uid),
-        orderBy('consultedAt', 'desc')
+        where('userId', '==', auth.currentUser.uid)
       );
       
       const querySnapshot = await getDocs(q);
       const produtosPropostos: string[] = [];
       
-      querySnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        if (data.produto_proposto) {
-          produtosPropostos.push(data.produto_proposto);
+      // Ordenar manualmente por data após buscar os dados
+      const docs = querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
+      
+      docs.forEach(docData => {
+        if (docData.produto_proposto) {
+          produtosPropostos.push(docData.produto_proposto);
         }
       });
       
@@ -359,12 +363,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           setResult(patentData);
         }
       } else {
-        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
+        console.log('📋 Usando dados de patente normais (dashboard desabilitado)...');
         try {
           const patentData = parsePatentResponse(webhookResponse);
           setResult(patentData);
           
-          // Salvar consulta no histórico apenas para dados de patente normais
+          // Salvar consulta no histórico
           const consultationData: Omit<PatentConsultationType, 'id'> = {
             userId: auth.currentUser.uid,
             userEmail: auth.currentUser.email || '',
