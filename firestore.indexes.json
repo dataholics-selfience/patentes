@@ -99,11 +99,26 @@
           "order": "ASCENDING"
         }
       ]
-    }
-  ],
-  "fieldOverrides": []
-}
     },
+    {
+      "collectionGroup": "consultas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "consultedAt",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+    ,
     {
       "collectionGroup": "consultas",
       "queryScope": "COLLECTION",

@@ -47,33 +47,39 @@ export class ConsultationMonitor {
     nomeMolecula: string
   ): Promise<ConsultaData[]> {
     try {
-      let q;
-      
       if (nomeComercial && nomeMolecula) {
-        // Buscar produto específico
-        q = query(
+        // Buscar produto específico sem orderBy para evitar índice composto
+        const q = query(
           collection(db, 'consultas'),
           where('userId', '==', userId),
           where('nome_comercial', '==', nomeComercial),
-          where('nome_molecula', '==', nomeMolecula),
-          orderBy('consultedAt', 'desc')
+          where('nome_molecula', '==', nomeMolecula)
         );
+        
+        const querySnapshot = await getDocs(q);
+        const consultas = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as ConsultaData[];
+        
+        // Ordenar manualmente no cliente
+        return consultas.sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
       } else {
         // Buscar todas as consultas do usuário
-        q = query(
+        const q = query(
           collection(db, 'consultas'),
-          where('userId', '==', userId),
-          orderBy('consultedAt', 'desc')
+          where('userId', '==', userId)
         );
+        
+        const querySnapshot = await getDocs(q);
+        const consultas = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as ConsultaData[];
+        
+        // Ordenar manualmente no cliente
+        return consultas.sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
       }
-      
-      const querySnapshot = await getDocs(q);
-      const consultas = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ConsultaData[];
-      
-      return consultas;
     } catch (error) {
       console.error('Erro ao buscar consultas:', error);
       return [];
