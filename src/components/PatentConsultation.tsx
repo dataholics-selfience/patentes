@@ -13,7 +13,7 @@ import {
   Loader2,
   Clock
 } from 'lucide-react';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
@@ -25,6 +25,8 @@ import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { ConsultationMonitor, ConsultaData } from '../utils/consultationMonitor';
+import { getLanguageTag } from '../utils/i18n';
+import { useTranslation } from '../utils/i18n';
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -68,6 +70,7 @@ const PHARMACEUTICAL_CATEGORIES = [
 ];
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
+  const { language } = useTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -160,6 +163,40 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     fetchUserData();
   }, []);
 
+  // Função para buscar TODOS os produtos propostos anteriormente
+  const getAllProposedProducts = async (): Promise<string[]> => {
+    if (!auth.currentUser) return [];
+    
+    try {
+      console.log('🔍 Buscando todos os produtos propostos anteriormente...');
+      
+      const q = query(
+        collection(db, 'consultas'),
+        where('userId', '==', auth.currentUser.uid),
+        orderBy('consultedAt', 'desc')
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const produtosPropostos: string[] = [];
+      
+      querySnapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.produto_proposto) {
+          produtosPropostos.push(data.produto_proposto);
+        }
+      });
+      
+      // Remover duplicatas mantendo a ordem
+      const uniqueProducts = [...new Set(produtosPropostos)];
+      
+      console.log(`📋 Produtos propostos encontrados (${uniqueProducts.length}):`, uniqueProducts);
+      return uniqueProducts;
+    } catch (error) {
+      console.error('❌ Erro ao buscar produtos propostos:', error);
+      return [];
+    }
+  };
+
   const handleInputChange = (field: string, value: string | string[]) => {
     setSearchData(prev => ({
       ...prev,
@@ -228,6 +265,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         throw new Error('Nenhuma chave SERP API disponível no momento');
       }
 
+      // Buscar todos os produtos propostos anteriormente
+      const produtosPropostos = await getAllProposedProducts();
+
       // Preparar dados para o webhook
       const webhookData = {
         cliente: userCompany,
@@ -240,7 +280,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        serpApiKey: availableKey
+        serpApiKey: availableKey,
+        produtos_propostos: produtosPropostos, // Enviar TODOS os produtos propostos
+        idioma: getLanguageTag(language) // Adicionar idioma
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
@@ -252,7 +294,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
       console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
 
-      // Enviar requisição e aguardar resposta diretamente
+      // Enviar requisição e aguardar resposta diretamente (SEM POLLING)
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
@@ -268,7 +310,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       const webhookResponse = await response.json();
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
-      // Salvar consulta na collection "consultas"
+      // Preparar dados da consulta
       const consultaData: Omit<ConsultaData, 'id'> = {
         userId: auth.currentUser.uid,
         userEmail: auth.currentUser.email || '',
@@ -284,7 +326,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         isReconsulta: false,
         webhookResponse,
         consultedAt: new Date().toISOString(),
-        nextReconsultaAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        nextReconsultaAt: new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 minutos
       };
 
       // Registrar uso da chave SERP
@@ -303,6 +345,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
         const dashboardInfo = parseDashboardData(webhookResponse);
         consultaData.produto_proposto = dashboardInfo.produto_proposto;
+        
+        // RENDERIZAR DASHBOARD IMEDIATAMENTE
         setDashboardData(dashboardInfo);
       } else {
         console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
@@ -322,8 +366,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
       }
 
-      // Salvar na collection "consultas" e agendar reconsulta
+      // SEMPRE salvar na collection "consultas" e agendar reconsulta (para ambos os tipos)
       const consultaId = await ConsultationMonitor.saveConsulta(consultaData);
+      
+      // Agendar reconsulta automática de 10 em 10 minutos
+      console.log('⏰ Agendando reconsulta automática para 10 minutos...');
       ConsultationMonitor.scheduleReconsulta(consultaId, { ...consultaData, id: consultaId });
 
       // Atualizar tokens do usuário

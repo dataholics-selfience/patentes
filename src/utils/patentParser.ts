@@ -39,7 +39,18 @@ export const isDashboardData = (rawResponse: any): boolean => {
       parsedData = rawResponse;
     }
     
-    return !!(parsedData?.produto_proposto || parsedData?.score_oportunidade?.valor || parsedData?.consulta?.cliente);
+    // Verificar se tem estrutura de dashboard
+    const hasDashboardStructure = !!(
+      parsedData?.produto_proposto || 
+      parsedData?.score_oportunidade?.valor || 
+      parsedData?.consulta?.cliente ||
+      parsedData?.analise_comercial ||
+      parsedData?.recomendacoes ||
+      parsedData?.proximos_passos
+    );
+    
+    console.log('🔍 Verificando se é dashboard:', hasDashboardStructure, parsedData);
+    return hasDashboardStructure;
   } catch {
     return false;
   }
