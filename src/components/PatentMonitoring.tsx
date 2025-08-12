@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
+import { isDashboardData, parseDashboardData, parsePatentResponse } from '../utils/patentParser';
 
 const PatentMonitoring = () => {
   const [consultas, setConsultas] = useState<ConsultaCompleta[]>([]);
@@ -108,17 +109,44 @@ const PatentMonitoring = () => {
 
   // Se uma consulta está selecionada, mostrar os resultados
   if (selectedConsulta) {
-    if (selectedConsulta.isDashboard) {
+    // Parse the data properly based on its structure
+    let parsedData = selectedConsulta.resultado;
+    
+    // If the data is stored as string, parse it
+    if (typeof parsedData === 'string') {
+      try {
+        parsedData = JSON.parse(parsedData);
+      } catch (error) {
+        console.error('Error parsing stored data:', error);
+      }
+    }
+    
+    // Check if it's dashboard data by examining the structure
+    const isCurrentlyDashboard = isDashboardData(parsedData);
+    
+    if (isCurrentlyDashboard || selectedConsulta.isDashboard) {
+      // Parse dashboard data
+      const dashboardData = parseDashboardData(parsedData);
       return (
         <PatentDashboardReport
-          data={selectedConsulta.resultado}
+          data={dashboardData}
           onBack={handleBackToMonitoring}
         />
       );
     } else {
+      // Parse patent data
+      let patentData;
+      try {
+        patentData = parsePatentResponse(parsedData);
+      } catch (error) {
+        console.error('Error parsing patent data:', error);
+        // Fallback to raw data if parsing fails
+        patentData = parsedData;
+      }
+      
       return (
         <PatentResultsPage
-          result={selectedConsulta.resultado}
+          result={patentData}
           searchTerm={`${selectedConsulta.nome_comercial} (${selectedConsulta.nome_molecula})`}
           onBack={handleBackToMonitoring}
         />

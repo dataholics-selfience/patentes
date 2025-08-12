@@ -164,7 +164,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
   // Parse do JSON result
   const data = typeof result === 'string' ? JSON.parse(result) : result;
   
-  const produto = data.produto || searchTerm;
+  const produto = data.substancia || searchTerm;
   const nomeComercial = data.nome_comercial || '';
   const patentes = data.patentes || [];
   const primeiraPatente = patentes[0]; // Patente principal
