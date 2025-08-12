@@ -23,10 +23,10 @@ const PatentMonitoring = () => {
       if (!auth.currentUser) return;
 
       try {
+        // Use simple query without orderBy to avoid composite index requirement
         const q = query(
           collection(db, 'consultas'),
-          where('userId', '==', auth.currentUser.uid),
-          orderBy('consultedAt', 'desc')
+          where('userId', '==', auth.currentUser.uid)
         );
         
         const querySnapshot = await getDocs(q);
@@ -34,6 +34,9 @@ const PatentMonitoring = () => {
           id: doc.id,
           ...doc.data()
         })) as ConsultaCompleta[];
+        
+        // Sort in client code instead of using Firestore orderBy
+        consultasList.sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
         
         setConsultas(consultasList);
       } catch (error) {
