@@ -14,6 +14,7 @@ import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
 import PatentMonitoring from './PatentMonitoring';
+import { MonitoringManager } from '../utils/monitoringManager';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -115,6 +116,9 @@ const Layout = () => {
         if (tokenDoc.exists()) {
           setTokenUsage(tokenDoc.data() as TokenUsageType);
         }
+        
+        // Inicializar monitoramentos automáticos
+        MonitoringManager.initializeScheduledMonitorings(auth.currentUser!.uid);
       } catch (error) {
         console.error('Error fetching token usage:', error);
       }

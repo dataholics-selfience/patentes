@@ -217,3 +217,26 @@ export interface PlanType {
   highlight: boolean;
   stripeLink: string;
 }
+
+export interface MonitoringConfig {
+  id: string;
+  consultaId: string;
+  userId: string;
+  intervalHours: number;
+  isActive: boolean;
+  createdAt: string;
+  lastRunAt?: string;
+  nextRunAt: string;
+  runCount: number;
+  originalConsulta: {
+    nome_comercial: string;
+    nome_molecula: string;
+    categoria: string;
+    beneficio: string;
+    doenca_alvo: string;
+    pais_alvo: string[];
+    userCompany: string;
+    sessionId: string;
+    environment: 'production' | 'test';
+  };
+}

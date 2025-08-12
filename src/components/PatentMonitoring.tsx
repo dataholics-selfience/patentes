@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown, Play, Pause, Settings, RotateCcw, Timer } from 'lucide-react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { ConsultaCompleta } from '../types';
@@ -9,6 +9,8 @@ import { CountryFlagsFromText } from '../utils/countryFlags';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
 import { isDashboardData, parseDashboardData, parsePatentResponse } from '../utils/patentParser';
+import MonitoringScheduler from './MonitoringScheduler';
+import { MonitoringManager } from '../utils/monitoringManager';
 
 const PatentMonitoring = () => {
   const [consultas, setConsultas] = useState<ConsultaCompleta[]>([]);
@@ -18,6 +20,9 @@ const PatentMonitoring = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterEnvironment, setFilterEnvironment] = useState<'all' | 'production' | 'test'>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeMonitorings, setActiveMonitorings] = useState<Map<string, any>>(new Map());
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [selectedConsultaForMonitoring, setSelectedConsultaForMonitoring] = useState<ConsultaCompleta | null>(null);
 
   useEffect(() => {
     const fetchConsultas = async () => {
@@ -48,6 +53,27 @@ const PatentMonitoring = () => {
     };
 
     fetchConsultas();
+    
+    // Inicializar monitoramentos ativos
+    const initializeMonitorings = async () => {
+      if (!auth.currentUser) return;
+      
+      try {
+        const monitorings = await MonitoringManager.getActiveMonitorings(auth.currentUser.uid);
+        const monitoringMap = new Map();
+        monitorings.forEach(monitoring => {
+          monitoringMap.set(monitoring.consultaId, monitoring);
+        });
+        setActiveMonitorings(monitoringMap);
+        
+        // Inicializar agendamentos
+        MonitoringManager.initializeScheduledMonitorings(auth.currentUser.uid);
+      } catch (error) {
+        console.error('Error initializing monitorings:', error);
+      }
+    };
+    
+    initializeMonitorings();
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -107,6 +133,48 @@ const PatentMonitoring = () => {
     setSelectedConsulta(null);
   };
 
+  const handleStartMonitoring = (consulta: ConsultaCompleta) => {
+    setSelectedConsultaForMonitoring(consulta);
+    setShowScheduler(true);
+  };
+
+  const handleStopMonitoring = async (consultaId: string) => {
+    if (!auth.currentUser) return;
+    
+    try {
+      await MonitoringManager.stopMonitoring(consultaId);
+      setActiveMonitorings(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(consultaId);
+        return newMap;
+      });
+    } catch (error) {
+      console.error('Error stopping monitoring:', error);
+    }
+  };
+
+  const handleSchedulerClose = () => {
+    setShowScheduler(false);
+    setSelectedConsultaForMonitoring(null);
+  };
+
+  const handleMonitoringScheduled = async (consultaId: string, intervalHours: number) => {
+    if (!auth.currentUser) return;
+    
+    try {
+      const monitoring = await MonitoringManager.getMonitoring(consultaId);
+      if (monitoring) {
+        setActiveMonitorings(prev => {
+          const newMap = new Map(prev);
+          newMap.set(consultaId, monitoring);
+          return newMap;
+        });
+      }
+    } catch (error) {
+      console.error('Error updating monitoring state:', error);
+    }
+  };
+
   // Se uma consulta está selecionada, mostrar os resultados
   if (selectedConsulta) {
     // Parse the data properly based on its structure
@@ -152,6 +220,17 @@ const PatentMonitoring = () => {
         />
       );
     }
+  }
+
+  // Se o scheduler está aberto, mostrar o componente
+  if (showScheduler && selectedConsultaForMonitoring) {
+    return (
+      <MonitoringScheduler
+        consulta={selectedConsultaForMonitoring}
+        onClose={handleSchedulerClose}
+        onScheduled={handleMonitoringScheduled}
+      />
+    );
   }
 
   if (loading) {
@@ -287,10 +366,9 @@ const PatentMonitoring = () => {
             {filteredConsultas.map((consulta) => (
               <div
                 key={consulta.id}
-                onClick={() => handleConsultaClick(consulta)}
-                className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border border-gray-200 cursor-pointer transition-colors"
+                className="bg-gray-50 hover:bg-gray-100 rounded-lg p-4 border border-gray-200 transition-colors"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="flex items-center gap-2">
@@ -368,10 +446,61 @@ const PatentMonitoring = () => {
                     )}
                   </div>
                   
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                    {/* Botões de ação */}
+                    <div className="flex items-center gap-2">
+                      {activeMonitorings.has(consulta.id) ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            Monitorando
+                          </div>
+                          <button
+                            onClick={() => handleStopMonitoring(consulta.id)}
+                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Parar monitoramento"
+                          >
+                            <Pause size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleStartMonitoring(consulta)}
+                          className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                          title="Iniciar monitoramento automático"
+                        >
+                          <Timer size={14} />
+                          Monitorar
+                        </button>
+                      )}
+                      
+                      <button
+                        onClick={() => handleConsultaClick(consulta)}
+                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Ver detalhes"
+                      >
                     <Eye size={20} className="text-gray-400" />
+                      </button>
+                    </div>
                   </div>
                 </div>
+                
+                {/* Informações de monitoramento se ativo */}
+                {activeMonitorings.has(consulta.id) && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <RotateCcw size={14} className="text-green-600" />
+                        <span className="text-green-800 font-medium">
+                          Reconsulta a cada {activeMonitorings.get(consulta.id)?.intervalHours}h
+                        </span>
+                      </div>
+                      <div className="text-green-700">
+                        Próxima: {new Date(activeMonitorings.get(consulta.id)?.nextRunAt).toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -382,9 +511,11 @@ const PatentMonitoring = () => {
           <h4 className="font-bold text-blue-900 mb-2">ℹ️ Sobre o Monitoramento</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Todas as consultas são automaticamente salvas com data, hora e metadados completos</li>
+            <li>• Configure monitoramento automático para receber atualizações periódicas sobre mudanças nas patentes</li>
             <li>• Clique em qualquer consulta para revisar os resultados completos</li>
             <li>• Use os filtros para encontrar consultas específicas</li>
             <li>• O tempo de resposta mostra a performance do webhook</li>
+            <li>• O monitoramento automático detecta mudanças no status das patentes e envia notificações</li>
           </ul>
         </div>
       </div>
