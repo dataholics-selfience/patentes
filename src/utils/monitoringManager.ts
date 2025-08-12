@@ -38,21 +38,6 @@ export interface MonitoringConfig {
   };
 }
 
-export interface ReconsultaData {
-  cliente: string;
-  sessionId: string;
-  nome_comercial: string;
-  nome_molecula: string;
-  industria: string;
-  setor: string;
-  categoria: string;
-  beneficio: string;
-  doenca_alvo: string;
-  pais_alvo: string[];
-  reconsulta: number;
-  produtos_propostos: string[];
-  serpApiKey: string;
-}
 
 export class MonitoringManager {
   private static activeTimers: Map<string, NodeJS.Timeout> = new Map();
@@ -149,87 +134,11 @@ export class MonitoringManager {
     }
   }
 
-  // Buscar produtos já propostos para uma consulta específica
-  static async getProposedProducts(
-    userId: string, 
-    nomeComercial: string, 
-    nomeMolecula: string
-  ): Promise<string[]> {
-    try {
-      console.log('🔍 Buscando produtos propostos para reconsulta...');
-      
-      const q = query(
-        collection(db, 'consultas'),
-        where('userId', '==', userId),
-        where('nome_comercial', '==', nomeComercial),
-        where('nome_molecula', '==', nomeMolecula),
-        orderBy('consultedAt', 'desc')
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const produtosPropostos: string[] = [];
-      
-      querySnapshot.docs.forEach(doc => {
-        const data = doc.data();
-        
-        // Extrair produto_proposto do resultado
-        if (data.resultado) {
-          let resultado = data.resultado;
-          
-          // Se for string, fazer parse
-          if (typeof resultado === 'string') {
-            try {
-              resultado = JSON.parse(resultado);
-            } catch (e) {
-              console.warn('Erro ao fazer parse do resultado:', e);
-              return;
-            }
-          }
-          
-          // Se for array, pegar o primeiro item
-          if (Array.isArray(resultado) && resultado.length > 0) {
-            resultado = resultado[0].output || resultado[0];
-          }
-          
-          // Se for string novamente, fazer parse
-          if (typeof resultado === 'string') {
-            try {
-              resultado = JSON.parse(resultado);
-            } catch (e) {
-              console.warn('Erro ao fazer parse do output:', e);
-              return;
-            }
-          }
-          
-          // Extrair produto_proposto
-          if (resultado && resultado.produto_proposto) {
-            produtosPropostos.push(resultado.produto_proposto);
-          }
-        }
-      });
-      
-      // Remover duplicatas mantendo a ordem (mais recentes primeiro)
-      const uniqueProducts = [...new Set(produtosPropostos)];
-      
-      console.log(`📋 Produtos propostos encontrados: ${uniqueProducts.length}`, uniqueProducts);
-      return uniqueProducts;
-    } catch (error) {
-      console.error('❌ Erro ao buscar produtos propostos:', error);
-      return [];
-    }
-  }
 
   // Executar reconsulta
   static async executeReconsulta(monitoringConfig: MonitoringConfig): Promise<void> {
     try {
       console.log(`🔄 Executando reconsulta para ${monitoringConfig.consultaId}`);
-
-      // Buscar produtos já propostos
-      const produtosPropostos = await this.getProposedProducts(
-        monitoringConfig.userId,
-        monitoringConfig.originalConsulta.nome_comercial,
-        monitoringConfig.originalConsulta.nome_molecula
-      );
 
       // Obter chave SERP disponível
       const manager = getSerpKeyManager();
@@ -244,58 +153,90 @@ export class MonitoringManager {
         return;
       }
 
-      // Preparar dados da reconsulta
-      const reconsultaData: ReconsultaData = {
+      // Buscar dados completos da consulta original
+      const originalConsultaDoc = await getDoc(doc(db, 'consultas', monitoringConfig.consultaId));
+      if (!originalConsultaDoc.exists()) {
+        console.error('❌ Consulta original não encontrada');
+        return;
+      }
+
+      const originalConsultaData = originalConsultaDoc.data();
+      
+      // Preparar dados completos da consulta original para o webhook de monitoramento
+      const monitoringData = {
+        // Dados originais da consulta
         cliente: monitoringConfig.originalConsulta.userCompany,
         sessionId: monitoringConfig.originalConsulta.sessionId,
         nome_comercial: monitoringConfig.originalConsulta.nome_comercial,
         nome_molecula: monitoringConfig.originalConsulta.nome_molecula,
-        industria: 'Farmacêutica',
-        setor: 'Medicamentos',
         categoria: monitoringConfig.originalConsulta.categoria,
         beneficio: monitoringConfig.originalConsulta.beneficio,
         doenca_alvo: monitoringConfig.originalConsulta.doenca_alvo,
         pais_alvo: monitoringConfig.originalConsulta.pais_alvo,
-        reconsulta: monitoringConfig.runCount + 1,
-        produtos_propostos: produtosPropostos,
+        
+        // Dados completos da consulta original
+        consulta_original: {
+          id: monitoringConfig.consultaId,
+          userId: originalConsultaData.userId,
+          userEmail: originalConsultaData.userEmail,
+          userName: originalConsultaData.userName,
+          userCompany: originalConsultaData.userCompany,
+          resultado: originalConsultaData.resultado,
+          isDashboard: originalConsultaData.isDashboard,
+          consultedAt: originalConsultaData.consultedAt,
+          environment: originalConsultaData.environment,
+          webhookResponseTime: originalConsultaData.webhookResponseTime
+        },
+        
+        // Metadados do monitoramento
+        monitoramento: {
+          runCount: monitoringConfig.runCount + 1,
+          intervalHours: monitoringConfig.intervalHours,
+          lastRunAt: monitoringConfig.lastRunAt,
+          createdAt: monitoringConfig.createdAt
+        },
+        
+        // Chave SERP para a nova consulta
         serpApiKey: availableKey
       };
 
-      console.log('🚀 Enviando reconsulta automática:', reconsultaData);
+      console.log('🚀 Enviando dados completos para webhook de monitoramento:', monitoringData);
 
-      // URL do webhook baseada no ambiente
+      // URL do webhook de monitoramento baseada no ambiente da consulta original
       const webhookUrl = monitoringConfig.originalConsulta.environment === 'production' 
-        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'
-        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
+        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev-monitor'
+        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev-monitor';
 
-      // Enviar reconsulta
+      console.log(`🌐 Usando webhook de monitoramento: ${webhookUrl}`);
+
+      // Enviar dados para webhook de monitoramento
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(reconsultaData)
+        body: JSON.stringify(monitoringData)
       });
 
       if (!response.ok) {
-        throw new Error(`Erro na reconsulta: ${response.status} ${response.statusText}`);
+        throw new Error(`Erro no webhook de monitoramento: ${response.status} ${response.statusText}`);
       }
 
       const webhookResponse = await response.json();
-      console.log('✅ Resposta da reconsulta recebida:', webhookResponse);
+      console.log('✅ Resposta do webhook de monitoramento recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
       manager.recordUsage(
         availableKey,
         monitoringConfig.userId,
-        `${monitoringConfig.originalConsulta.nome_comercial} (reconsulta automática)`
+        `${monitoringConfig.originalConsulta.nome_comercial} (monitoramento automático)`
       );
 
-      // Salvar nova consulta
+      // Salvar nova consulta de monitoramento
       const novaConsultaData: Omit<ConsultaCompleta, 'id'> = {
         userId: monitoringConfig.userId,
-        userEmail: '', // Será preenchido pelo sistema
-        userName: '',
+        userEmail: originalConsultaData.userEmail || '',
+        userName: originalConsultaData.userName || '',
         userCompany: monitoringConfig.originalConsulta.userCompany,
         
         // Dados de input
@@ -335,13 +276,13 @@ export class MonitoringManager {
       // Agendar próxima execução
       this.scheduleNextRun(monitoringConfig.consultaId, monitoringConfig.intervalHours);
 
-      console.log(`✅ Reconsulta ${monitoringConfig.runCount + 1} executada e próxima agendada`);
+      console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado`);
 
     } catch (error) {
-      console.error('❌ Erro na execução da reconsulta:', error);
+      console.error('❌ Erro na execução do monitoramento:', error);
       
-      // Reagendar para tentar novamente em 1 hora
-      console.log('🔄 Reagendando reconsulta devido ao erro...');
+      // Reagendar para tentar novamente em 1 hora  
+      console.log('🔄 Reagendando monitoramento devido ao erro...');
       this.scheduleNextRun(monitoringConfig.consultaId, 1);
     }
   }
