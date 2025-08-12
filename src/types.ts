@@ -42,6 +42,35 @@ export interface PatentConsultationType {
   consultedAt: string;
 }
 
+export interface ConsultaCompleta {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  userCompany: string;
+  
+  // Dados de input da consulta
+  nome_comercial: string;
+  nome_molecula: string;
+  categoria: string;
+  beneficio: string;
+  doenca_alvo: string;
+  pais_alvo: string[];
+  
+  // Metadados da consulta
+  sessionId: string;
+  environment: 'production' | 'test';
+  serpApiKey: string; // Chave usada (truncada para segurança)
+  
+  // Resultado da consulta
+  resultado: PatentResultType | any; // Pode ser dashboard ou patent data
+  isDashboard: boolean;
+  
+  // Timestamps
+  consultedAt: string;
+  webhookResponseTime?: number; // Tempo de resposta em ms
+}
+
 export interface PatentByCountry {
   pais: string;
   numero?: string;

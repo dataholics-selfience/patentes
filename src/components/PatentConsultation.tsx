@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { PatentResultType, TokenUsageType } from '../types';
+import { PatentResultType, TokenUsageType, ConsultaCompleta } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
@@ -217,12 +217,17 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
     setResult(null);
     setDashboardData(null);
 
+    const startTime = Date.now();
     try {
       // Obter chave SERP disponível
       const availableKey = manager.getAvailableKey();
       if (!availableKey) {
         throw new Error('Nenhuma chave SERP API disponível no momento');
       }
+
+      // Buscar dados do usuário para metadados
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const userData = userDoc.data();
 
       // Preparar dados para o webhook
       const webhookData = {
@@ -262,6 +267,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       }
 
       const webhookResponse = await response.json();
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
@@ -275,15 +283,52 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         console.warn('⚠️ Falha ao registrar uso da chave SERP');
       }
 
+      // Preparar dados completos da consulta para salvar
+      const consultaCompleta: Omit<ConsultaCompleta, 'id'> = {
+        userId: auth.currentUser.uid,
+        userEmail: auth.currentUser.email || '',
+        userName: userData?.name || '',
+        userCompany: userData?.company || '',
+        
+        // Dados de input
+        nome_comercial: searchData.nome_comercial.trim(),
+        nome_molecula: searchData.nome_molecula.trim(),
+        categoria: searchData.categoria || 'Medicamentos',
+        beneficio: searchData.beneficio || 'Tratamento médico',
+        doenca_alvo: searchData.doenca_alvo || 'Condição médica',
+        pais_alvo: searchData.pais_alvo,
+        
+        // Metadados
+        sessionId: userSessionId,
+        environment,
+        serpApiKey: availableKey.substring(0, 12) + '...', // Truncar para segurança
+        
+        // Resultado
+        resultado: webhookResponse,
+        isDashboard: isDashboardData(webhookResponse),
+        
+        // Timestamps
+        consultedAt: new Date().toISOString(),
+        webhookResponseTime: responseTime
+      };
       // Verificar se é dashboard ou dados de patente normais
       if (isDashboardData(webhookResponse)) {
         console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
         const dashboardInfo = parseDashboardData(webhookResponse);
         setDashboardData(dashboardInfo);
+        
+        // Salvar consulta completa
+        await addDoc(collection(db, 'consultas'), consultaCompleta);
       } else {
         console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
         const patentData = parsePatentResponse(webhookResponse);
         setResult(patentData);
+        
+        // Atualizar resultado parseado na consulta
+        consultaCompleta.resultado = patentData;
+        
+        // Salvar consulta completa
+        await addDoc(collection(db, 'consultas'), consultaCompleta);
         
         // Salvar consulta no histórico apenas para dados de patente normais
         const consultationData: Omit<PatentConsultationType, 'id'> = {
