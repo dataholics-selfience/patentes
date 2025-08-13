@@ -51,7 +51,10 @@ export class MonitoringManager {
   ): Promise<void> {
     try {
       const now = new Date();
-      const nextRun = new Date(now.getTime() + intervalHours * 60 * 60 * 1000);
+      // Converter horas para milissegundos com precisão
+      const intervalMs = Math.round(intervalHours * 60 * 60 * 1000);
+      const finalIntervalMs = Math.max(intervalMs, 60000); // Mínimo 1 minuto
+      const nextRun = new Date(now.getTime() + finalIntervalMs);
 
       const monitoringConfig: Omit<MonitoringConfig, 'id'> = {
         consultaId,
@@ -68,9 +71,9 @@ export class MonitoringManager {
       await setDoc(doc(db, 'monitoringConfigs', consultaId), monitoringConfig);
 
       // Agendar primeira execução
-      this.scheduleNextRun(consultaId, intervalHours);
+      this.scheduleNextRun(consultaId, Math.max(intervalHours, 0.0167)); // Mínimo 1 minuto
 
-      console.log(`✅ Monitoramento agendado para consulta ${consultaId} a cada ${intervalHours}h`);
+      console.log(`✅ Monitoramento agendado para consulta ${consultaId} a cada ${intervalHours}h (${finalIntervalMs}ms)`);
     } catch (error) {
       console.error('Erro ao agendar monitoramento:', error);
       throw error;
@@ -265,7 +268,10 @@ export class MonitoringManager {
 
       // Atualizar configuração de monitoramento
       const now = new Date();
-      const nextRun = new Date(now.getTime() + monitoringConfig.intervalHours * 60 * 60 * 1000);
+      // Converter horas para milissegundos com precisão
+      const intervalMs = Math.round(monitoringConfig.intervalHours * 60 * 60 * 1000);
+      const finalIntervalMs = Math.max(intervalMs, 60000); // Mínimo 1 minuto
+      const nextRun = new Date(now.getTime() + finalIntervalMs);
       
       await updateDoc(doc(db, 'monitoringConfigs', monitoringConfig.consultaId), {
         lastRunAt: now.toISOString(),
@@ -274,9 +280,9 @@ export class MonitoringManager {
       });
 
       // Agendar próxima execução
-      this.scheduleNextRun(monitoringConfig.consultaId, monitoringConfig.intervalHours);
+      this.scheduleNextRun(monitoringConfig.consultaId, Math.max(monitoringConfig.intervalHours, 0.0167));
 
-      console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado`);
+      console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado (${finalIntervalMs}ms)`);
 
     } catch (error) {
       console.error('❌ Erro na execução do monitoramento:', error);
@@ -295,6 +301,12 @@ export class MonitoringManager {
       clearTimeout(existingTimer);
     }
 
+    // Converter horas para milissegundos com precisão
+    const intervalMs = Math.round(intervalHours * 60 * 60 * 1000);
+    
+    // Para intervalos muito pequenos (menos de 1 hora), usar pelo menos 1 minuto
+    const finalIntervalMs = Math.max(intervalMs, 60000); // Mínimo 1 minuto
+
     // Agendar nova execução
     const timer = setTimeout(async () => {
       try {
@@ -305,10 +317,10 @@ export class MonitoringManager {
       } catch (error) {
         console.error('Erro na execução agendada:', error);
       }
-    }, intervalHours * 60 * 60 * 1000);
+    }, finalIntervalMs);
 
     this.activeTimers.set(consultaId, timer);
-    console.log(`⏰ Próxima execução agendada para ${consultaId} em ${intervalHours}h`);
+    console.log(`⏰ Próxima execução agendada para ${consultaId} em ${intervalHours}h (${finalIntervalMs}ms)`);
   }
 
   // Inicializar monitoramentos agendados (chamado na inicialização da app)
@@ -329,9 +341,9 @@ export class MonitoringManager {
         } else {
           // Agendar para o horário correto
           const timeUntilNext = nextRunTime.getTime() - now.getTime();
-          const hoursUntilNext = Math.ceil(timeUntilNext / (60 * 60 * 1000));
+          const hoursUntilNext = Math.max(timeUntilNext / (60 * 60 * 1000), 0.0167); // Mínimo 1 minuto
           
-          console.log(`⏰ Reagendando monitoramento ${monitoring.consultaId} para ${hoursUntilNext}h`);
+          console.log(`⏰ Reagendando monitoramento ${monitoring.consultaId} para ${hoursUntilNext.toFixed(4)}h`);
           this.scheduleNextRun(monitoring.consultaId, hoursUntilNext);
         }
       }
