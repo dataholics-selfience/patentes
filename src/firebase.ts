@@ -3,13 +3,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAHq5Tvn3qZvbj1D2GJdUW-BhPWiAURBJI",
-  authDomain: "patentes-51d85.firebaseapp.com",
-  projectId: "patentes-51d85",
-  storageBucket: "patentes-51d85.firebasestorage.app",
-  messagingSenderId: "278792677855",
-  appId: "1:278792677855:web:1e1583b1a3b8cdd140e6a5",
-  measurementId: "G-GPH8EYLKFP"
+  apiKey: "AIzaSyBpWG5w5ENIP0qPLTpcFSJj0bTsWcHrWzo",
+  authDomain: "crm-generico-857f1.firebaseapp.com",
+  projectId: "crm-generico-857f1",
+  storageBucket: "crm-generico-857f1.firebasestorage.app",
+  messagingSenderId: "825440015706",
+  appId: "1:825440015706:web:4f964e45a793f418804f63"
 };
 
 // Initialize Firebase

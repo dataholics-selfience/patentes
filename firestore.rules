@@ -2,16 +2,6 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Webhook status collection - allow read/write for authenticated users
-    match /webhookStatus/{sessionId} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Consultas collection - allow read/write for authenticated users
-    match /consultas/{consultaId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
     match /{document=**} {
       allow read, write: if true;
     }

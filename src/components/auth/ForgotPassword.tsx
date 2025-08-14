@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { FlaskConical } from 'lucide-react';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -35,25 +34,22 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <FlaskConical size={48} className="text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Recuperar Senha</h2>
+          <img src="https://genoi.net/wp-content/uploads/2024/12/Logo-gen.OI-Novo-1-2048x1035.png" alt="Genie Logo" className="mx-auto h-24" />
+          <h2 className="mt-6 text-3xl font-bold text-white">Recuperar Senha</h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && <div className="text-red-600 text-center bg-red-50 p-3 rounded-md border border-red-200">{error}</div>}
-          {message && <div className="text-green-600 text-center bg-green-50 p-3 rounded-md border border-green-200">{message}</div>}
+          {error && <div className="text-red-500 text-center bg-red-900/20 p-3 rounded-md">{error}</div>}
+          {message && <div className="text-green-500 text-center bg-green-900/20 p-3 rounded-md">{message}</div>}
           <div>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Email"
             />
           </div>
@@ -61,14 +57,14 @@ const ForgotPassword = () => {
           <div>
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-md text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Enviar email de recuperação
             </button>
           </div>
 
           <div className="text-center">
-            <Link to="/login" className="text-sm text-blue-600 hover:text-blue-700">
+            <Link to="/login" className="text-sm text-blue-400 hover:text-blue-500">
               Voltar para o login
             </Link>
           </div>
