@@ -3,17 +3,18 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
-import UserManagement from './components/UserProfile/UserManagement';
-import NewSegment from './components/NewSegment';
 import EmailVerification from './components/auth/EmailVerification';
 import AccountDeleted from './components/AccountDeleted';
-import StartupList from './components/StartupList';
-import SavedStartups from './components/SavedStartups';
+import Plans from './components/Plans';
+import UserManagement from './components/UserProfile/UserManagement';
+import LandingPage from './components/LandingPage';
+import Terms from './components/Terms';
+import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
+import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -43,42 +44,92 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  const canAccessDashboard = (user: any): boolean => {
+    if (!user) return false;
+    
+    if (hasUnrestrictedAccess(user.email)) {
+      console.log(`✅ Acesso irrestrito concedido para: ${user.email}`);
+      return true;
+    }
+    
+    return user.emailVerified;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">Carregando...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-900">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
-          <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
-          <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" replace />} />
-          <Route path="/verify-email" element={<EmailVerification />} />
-          <Route path="/profile" element={user?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
-          <Route path="/new-segment" element={user?.emailVerified ? <NewSegment /> : <Navigate to="/verify-email" replace />} />
-          <Route path="/startups" element={user?.emailVerified ? <StartupList /> : <Navigate to="/verify-email" replace />} />
-          <Route path="/saved-startups" element={user?.emailVerified ? <SavedStartups /> : <Navigate to="/verify-email" replace />} />
-          <Route path="/account-deleted" element={<AccountDeleted />} />
-          <Route path="/" element={
-            user ? (
-              user.emailVerified ? (
-                <Layout />
-              ) : (
-                <Navigate to="/verify-email" replace />
-              )
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/home" element={<LandingPage />} />
+        <Route path="/terms" element={<Terms />} />
+        
+        {/* Auth routes */}
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
+        <Route path="/verify-email" element={<EmailVerification />} />
+        <Route path="/account-deleted" element={<AccountDeleted />} />
+        
+        {/* Protected routes */}
+        <Route path="/profile" element={
+          user && canAccessDashboard(user) ? (
+            <UserManagement />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        <Route path="/admin/serp-keys" element={
+          user && canAccessDashboard(user) ? (
+            <SerpKeyAdmin />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        <Route path="/plans" element={
+          user && hasUnrestrictedAccess(user.email) ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <Plans />
+          )
+        } />
+        <Route path="/dashboard" element={
+          user ? (
+            canAccessDashboard(user) ? (
+              <Layout />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/verify-email" replace />
             )
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        
+        {/* Default routes */}
+        <Route path="/" element={
+          user ? (
+            canAccessDashboard(user) ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <Navigate to="/verify-email" replace />
+            )
+          ) : (
+            <LandingPage />
+          )
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
