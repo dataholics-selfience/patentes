@@ -52,6 +52,7 @@ function App() {
       return true;
     }
     
+    // Verificar se o usuário tem tokens disponíveis além da verificação de email
     return user.emailVerified;
   };
 
@@ -106,7 +107,7 @@ function App() {
         <Route path="/dashboard" element={
           user ? (
             canAccessDashboard(user) ? (
-              <Layout />
+              <Navigate to="/plans" replace />
             ) : (
               <Navigate to="/verify-email" replace />
             )
@@ -119,7 +120,7 @@ function App() {
         <Route path="/" element={
           user ? (
             canAccessDashboard(user) ? (
-              <Navigate to="/dashboard" replace />
+              <Navigate to="/plans" replace />
             ) : (
               <Navigate to="/verify-email" replace />
             )

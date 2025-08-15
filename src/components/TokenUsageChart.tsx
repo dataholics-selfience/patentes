@@ -132,7 +132,7 @@ const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: 
           to="/plans" 
           className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
         >
-          {remainingTokens === 0 ? 'Adquirir novo plano' : 'Ver outros planos'}
+          {remainingTokens === 0 ? 'Adquirir plano para consultar' : 'Ver outros planos'}
         </Link>
       ) : (
         <div className="mt-3 text-center text-sm text-green-600 font-medium">

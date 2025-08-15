@@ -16,6 +16,67 @@ import { isAdminUser } from '../utils/serpKeyData';
 import PatentMonitoring from './PatentMonitoring';
 import { MonitoringManager } from '../utils/monitoringManager';
 
+// Componente para verificar se usuário tem acesso ao dashboard
+const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!auth.currentUser) {
+        navigate('/login');
+        return;
+      }
+
+      // Verificar se tem acesso irrestrito
+      if (hasUnrestrictedAccess(auth.currentUser.email)) {
+        setHasAccess(true);
+        return;
+      }
+
+      // Verificar se tem tokens disponíveis
+      try {
+        const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
+        if (tokenDoc.exists()) {
+          const tokenData = tokenDoc.data();
+          const remainingTokens = tokenData.totalTokens - tokenData.usedTokens;
+          
+          if (remainingTokens > 0) {
+            setHasAccess(true);
+          } else {
+            // Sem tokens - redirecionar para planos
+            navigate('/plans');
+            return;
+          }
+        } else {
+          // Sem dados de token - redirecionar para planos
+          navigate('/plans');
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking token access:', error);
+        navigate('/plans');
+        return;
+      }
+    };
+
+    checkAccess();
+  }, [navigate]);
+
+  if (hasAccess === null) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse text-blue-600 text-lg">Verificando acesso...</div>
+      </div>
+    );
+  }
+
+  if (!hasAccess) {
+    return null; // Será redirecionado
+  }
+
+  return <>{children}</>;
+};
 const Layout = () => {
   const navigate = useNavigate();
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
@@ -155,7 +216,8 @@ const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <DashboardAccessChecker>
+      <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -380,7 +442,8 @@ const Layout = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </DashboardAccessChecker>
   );
 };
 

@@ -19,24 +19,24 @@ const Plans = () => {
 
   const plans: PlanType[] = [
     {
-      id: 'analista',
-      name: 'Analista',
-      icon: Pill,
-      description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
-      tokens: 5,
-      price: 7500,
-      highlight: true,
-      stripeLink: 'https://buy.stripe.com/eVq14ng1hevefbx8eTfYY0y'
-    },
-    {
       id: 'especialista',
       name: 'Especialista',
       icon: Dna,
       description: 'Plano para especialistas em propriedade intelectual farmacêutica',
       tokens: 10,
       price: 13000,
-      highlight: false,
+      highlight: true,
       stripeLink: 'https://buy.stripe.com/4gMaEXg1h2Mw8N9fHlfYY0z'
+    },
+    {
+      id: 'analista',
+      name: 'Analista',
+      icon: Pill,
+      description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
+      tokens: 5,
+      price: 7500,
+      highlight: false,
+      stripeLink: 'https://buy.stripe.com/eVq14ng1hevefbx8eTfYY0y'
     },
     {
       id: 'diretor',

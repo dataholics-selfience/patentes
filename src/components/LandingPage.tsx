@@ -178,7 +178,7 @@ const LandingPage = () => {
               )}
               
               <p className="text-sm text-gray-500">
-                ✅ 10 consultas gratuitas • ✅ Sem cartão de crédito • ✅ Acesso imediato
+                ✅ Planos profissionais • ✅ Análise especializada • ✅ Acesso imediato
               </p>
             </div>
             

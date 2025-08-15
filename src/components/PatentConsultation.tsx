@@ -22,6 +22,40 @@ import { getSerpKeyManager } from '../utils/serpKeyManager';
 import { initializeSerpKeyManager } from '../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
+import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
+import { useNavigate } from 'react-router-dom';
+
+// Componente para redirecionar usuários sem tokens
+const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; hasTokens: boolean }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hasTokens && !hasUnrestrictedAccess(auth.currentUser?.email)) {
+      navigate('/plans');
+    }
+  }, [hasTokens, navigate]);
+
+  if (!hasTokens && !hasUnrestrictedAccess(auth.currentUser?.email)) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-orange-900 mb-4">Acesso Restrito</h2>
+          <p className="text-orange-700 mb-6">
+            Você precisa de um plano ativo para realizar consultas de patentes.
+          </p>
+          <button
+            onClick={() => navigate('/plans')}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+          >
+            Ver Planos Disponíveis
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -65,6 +99,7 @@ const PHARMACEUTICAL_CATEGORIES = [
 ];
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
+  const navigate = useNavigate();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -84,7 +119,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [userSessionId, setUserSessionId] = useState<string>('');
 
   // Verificar se o usuário tem tokens disponíveis
-  const hasAvailableTokens = tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0;
+  const hasAvailableTokens = (tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0) || 
+                            (auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email));
 
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
@@ -160,12 +196,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   }, []);
 
   const handleInputChange = (field: string, value: string | string[]) => {
-    // Se o usuário não tem tokens, redirecionar para planos
-    if (!hasAvailableTokens) {
-      navigate('/plans');
-      return;
-    }
-    
     setSearchData(prev => ({
       ...prev,
       [field]: value
@@ -173,12 +203,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   };
 
   const handleCountryToggle = (country: string) => {
-    // Se o usuário não tem tokens, redirecionar para planos
-    if (!hasAvailableTokens) {
-      navigate('/plans');
-      return;
-    }
-    
     setSearchData(prev => ({
       ...prev,
       pais_alvo: prev.pais_alvo.includes(country)
@@ -205,12 +229,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Se o usuário não tem tokens, redirecionar para planos
-    if (!hasAvailableTokens) {
-      navigate('/plans');
-      return;
-    }
     
     if (!auth.currentUser) {
       setError('Usuário não autenticado');
@@ -407,7 +425,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <TokenAccessGuard hasTokens={hasAvailableTokens}>
+      <div className="max-w-4xl mx-auto">
       {/* Formulário Principal */}
       <div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -671,7 +690,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </TokenAccessGuard>
   );
 };
 

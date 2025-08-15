@@ -1028,8 +1028,8 @@ const translations: Record<Language, Translations> = {
     // Landing page
     landingTitle: 'Análisis Inteligente de Patentes Farmacéuticas',
     landingDescription: 'Verifica el estado de patentes, identifica riesgos regulatorios y descubre oportunidades de mercado con nuestra IA especializada.',
-    freeConsultations: '100 consultas gratuitas',
-    noCreditCard: 'Sin tarjeta de crédito',
+    freeConsultations: 'Planes profesionales',
+    noCreditCard: 'Análisis especializado',
     immediateAccess: 'Acceso inmediato',
     instantVerification: 'Verificación Instantánea',
     accelerateRD: 'Acelerar I+D',

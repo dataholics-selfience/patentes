@@ -203,12 +203,12 @@ Precisa de ajuda? Responda esta mensagem.
 
       await setDoc(doc(db, 'users', user.uid), userData);
 
-      // CORREÇÃO: Plano gratuito agora tem 10 consultas em vez de 100
+      // NOVO: Plano Pesquisador não existe mais - 0 consultas
       await setDoc(doc(db, 'tokenUsage', user.uid), {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
         plan: 'Pesquisador',
-        totalTokens: 0, // ALTERADO PARA 0 - SEM CONSULTAS GRATUITAS
+        totalTokens: 0, // SEM CONSULTAS GRATUITAS - REDIRECIONAR PARA PLANOS
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),
         expirationDate: expirationDate.toISOString()
@@ -231,8 +231,8 @@ Precisa de ajuda? Responda esta mensagem.
         transactionId: crypto.randomUUID()
       });
 
-      // Send email verification first
-      await sendEmailVerification(user);
+      // Redirecionar diretamente para planos - não há mais plano gratuito
+      navigate('/plans');
 
       // Wait a moment for the email verification link to be generated
       await new Promise(resolve => setTimeout(resolve, 2000));

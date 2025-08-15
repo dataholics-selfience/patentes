@@ -64,7 +64,12 @@ const UserProfile = ({ hideText = false }: UserProfileProps) => {
           {tokenUsage && (
             <div className="text-xs">
               <span className="text-blue-600">{tokenUsage.totalTokens - tokenUsage.usedTokens}</span>
-              <span className="text-gray-600"> de {tokenUsage.totalTokens} consultas{tokenUsage.autoRenewal ? ' (mensal)' : ''}</span>
+              <span className="text-gray-600">
+                {tokenUsage.totalTokens > 0 
+                  ? ` de ${tokenUsage.totalTokens} consultas${tokenUsage.autoRenewal ? ' (mensal)' : ''}` 
+                  : ' - Sem plano ativo'
+                }
+              </span>
             </div>
           )}
         </div>

@@ -5,6 +5,7 @@ import { doc, setDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { FlaskConical } from 'lucide-react';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
+import { getDoc } from 'firebase/firestore';
 
 const EmailVerification = () => {
   const [error, setError] = useState('');
@@ -113,7 +114,22 @@ const EmailVerification = () => {
             transactionId: crypto.randomUUID()
           });
 
-          navigate('/');
+          // Verificar se o usuário tem tokens disponíveis
+          const tokenDoc = await getDoc(doc(db, 'tokenUsage', user.uid));
+          if (tokenDoc.exists()) {
+            const tokenData = tokenDoc.data();
+            const remainingTokens = tokenData.totalTokens - tokenData.usedTokens;
+            
+            if (remainingTokens > 0) {
+              navigate('/');
+            } else {
+              // Sem tokens - redirecionar para planos
+              navigate('/plans');
+            }
+          } else {
+            // Sem dados de token - redirecionar para planos
+            navigate('/plans');
+          }
         } catch (error) {
           console.error('Error updating user activation:', error);
           setError('Erro ao ativar conta. Por favor, tente novamente.');
