@@ -83,6 +83,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [userCompany, setUserCompany] = useState('');
   const [userSessionId, setUserSessionId] = useState<string>('');
 
+  // Verificar se o usuário tem tokens disponíveis
+  const hasAvailableTokens = tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0;
+
   // Verificar se o usuário é o admin que pode ver o seletor
   const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
 
@@ -157,6 +160,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   }, []);
 
   const handleInputChange = (field: string, value: string | string[]) => {
+    // Se o usuário não tem tokens, redirecionar para planos
+    if (!hasAvailableTokens) {
+      navigate('/plans');
+      return;
+    }
+    
     setSearchData(prev => ({
       ...prev,
       [field]: value
@@ -164,6 +173,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   };
 
   const handleCountryToggle = (country: string) => {
+    // Se o usuário não tem tokens, redirecionar para planos
+    if (!hasAvailableTokens) {
+      navigate('/plans');
+      return;
+    }
+    
     setSearchData(prev => ({
       ...prev,
       pais_alvo: prev.pais_alvo.includes(country)
@@ -190,6 +205,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Se o usuário não tem tokens, redirecionar para planos
+    if (!hasAvailableTokens) {
+      navigate('/plans');
+      return;
+    }
     
     if (!auth.currentUser) {
       setError('Usuário não autenticado');
@@ -473,6 +494,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   type="text"
                   value={searchData.nome_comercial}
                   onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
+                  onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Ozempic, Trulicity, Victoza"
                   required
@@ -489,6 +511,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   type="text"
                   value={searchData.nome_molecula}
                   onChange={(e) => handleInputChange('nome_molecula', e.target.value)}
+                  onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Semaglutida, Dulaglutida, Liraglutida"
                   required
@@ -506,6 +529,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               <select
                 value={searchData.categoria}
                 onChange={(e) => handleInputChange('categoria', e.target.value)}
+                onClick={() => !hasAvailableTokens && navigate('/plans')}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
               >
@@ -527,6 +551,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   type="text"
                   value={searchData.beneficio}
                   onChange={(e) => handleInputChange('beneficio', e.target.value)}
+                  onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Controle glicêmico e perda de peso"
                   disabled={isLoading}
@@ -542,6 +567,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   type="text"
                   value={searchData.doenca_alvo}
                   onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
+                  onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Diabetes tipo 2 e obesidade"
                   disabled={isLoading}
@@ -569,6 +595,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                       type="checkbox"
                       checked={searchData.pais_alvo.includes(country)}
                       onChange={() => !isLoading && handleCountryToggle(country)}
+                      onClick={() => !hasAvailableTokens && navigate('/plans')}
                       className="rounded text-blue-600 focus:ring-blue-500"
                       disabled={isLoading}
                     />
@@ -597,30 +624,49 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
             <button
               type="submit"
-              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-lg font-semibold"
+              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0 || !hasAvailableTokens}
+              onClick={() => !hasAvailableTokens && navigate('/plans')}
+              className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg transition-colors text-lg font-semibold ${
+                !hasAvailableTokens 
+                  ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer' 
+                  : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
             >
               {isLoading ? (
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <Search size={20} />
               )}
-              {isLoading ? 'Analisando Patente...' : 'Consultar Patente'}
+              {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
             </button>
 
           </form>
 
           {/* Informações sobre tokens */}
           {tokenUsage && (
-            <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className={`mt-6 p-4 border rounded-lg ${
+              hasAvailableTokens 
+                ? 'bg-gray-50 border-gray-200' 
+                : 'bg-orange-50 border-orange-200'
+            }`}>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">
+                <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
                   Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
                 </span>
-                <span className="text-gray-600">
+                <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
                   Plano: <strong>{tokenUsage.plan}</strong>
                 </span>
               </div>
+              {!hasAvailableTokens && (
+                <div className="mt-2 text-center">
+                  <button
+                    onClick={() => navigate('/plans')}
+                    className="text-orange-600 hover:text-orange-700 font-medium underline"
+                  >
+                    Adquirir plano para realizar consultas
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

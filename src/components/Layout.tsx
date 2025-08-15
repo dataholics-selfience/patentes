@@ -304,19 +304,21 @@ const Layout = () => {
                   Nova Consulta
                 </div>
               </button>
-              <button
-                onClick={() => setActiveTab('monitoring')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'monitoring'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Clock size={16} />
-                  Monitoramento
-                </div>
-              </button>
+              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
+                <button
+                  onClick={() => setActiveTab('monitoring')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'monitoring'
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} />
+                    Monitoramento
+                  </div>
+                </button>
+              )}
             </nav>
           </div>
         </div>
@@ -328,9 +330,9 @@ const Layout = () => {
                 checkTokenUsage={() => checkTokenUsage(tokenUsage)}
                 tokenUsage={tokenUsage}
               />
-            ) : (
+            ) : (auth.currentUser && isAdminUser(auth.currentUser.email) && (
               <PatentMonitoring />
-            )}
+            ))}
             
             {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
             {activeTab === 'consultation' && auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (

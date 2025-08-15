@@ -208,7 +208,7 @@ Precisa de ajuda? Responda esta mensagem.
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
         plan: 'Pesquisador',
-        totalTokens: 10, // ALTERADO DE 100 PARA 10
+        totalTokens: 0, // ALTERADO PARA 0 - SEM CONSULTAS GRATUITAS
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),
         expirationDate: expirationDate.toISOString()

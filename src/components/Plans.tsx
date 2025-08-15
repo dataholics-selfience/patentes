@@ -117,11 +117,7 @@ const Plans = () => {
           <div className="text-center flex-1">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">Escolha seu Plano</h1>
             <p className="text-gray-600 text-lg">Desbloqueie o poder da análise de patentes com nossos planos especializados</p>
-            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800 font-medium">
-                ⚠️ <strong>Nova Política:</strong> Consultas mensais sem renovação automática. Quando suas consultas acabarem, será necessário adquirir um novo plano.
-              </p>
-            </div>
+           
           </div>
           <div className="w-8" />
         </div>

@@ -206,9 +206,7 @@ export class MonitoringManager {
       console.log('🚀 Enviando dados completos para webhook de monitoramento:', monitoringData);
 
       // URL do webhook de monitoramento baseada no ambiente da consulta original
-      const webhookUrl = monitoringConfig.originalConsulta.environment === 'production' 
-        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev-monitor'
-        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev-monitor';
+      const webhookUrl = 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev-monitor';
 
       console.log(`🌐 Usando webhook de monitoramento: ${webhookUrl}`);
 
@@ -225,7 +223,20 @@ export class MonitoringManager {
         throw new Error(`Erro no webhook de monitoramento: ${response.status} ${response.statusText}`);
       }
 
-      const webhookResponse = await response.json();
+      // Ler resposta como texto primeiro para verificar se está vazia
+      const responseText = await response.text();
+      
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Webhook retornou resposta vazia');
+      }
+      
+      let webhookResponse: any;
+      try {
+        webhookResponse = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error(`Webhook retornou JSON inválido: ${parseError instanceof Error ? parseError.message : 'Erro desconhecido'}`);
+      }
+      
       console.log('✅ Resposta do webhook de monitoramento recebida:', webhookResponse);
 
       // Registrar uso da chave SERP
