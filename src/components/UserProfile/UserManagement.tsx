@@ -257,7 +257,7 @@ const UserManagement = () => {
         {/* Só mostrar botão de planos se NÃO for usuário corporativo */}
         {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) ? (
           <div className="text-lg font-bold bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg">
-            Acesso Corporativo
+            Conta Corporativa
           </div>
         ) : (
           <Link

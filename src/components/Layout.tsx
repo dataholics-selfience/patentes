@@ -238,7 +238,7 @@ const Layout = () => {
             {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Acesso Corporativo
+                Conta Corporativa
               </div>
             )}
             {auth.currentUser && isAdminUser(auth.currentUser.email) && (
@@ -304,7 +304,7 @@ const Layout = () => {
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800 text-sm font-medium mb-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    Acesso Corporativo
+                    Conta Corporativa
                   </div>
                   <div className="text-xs text-green-600">
                     {UNRESTRICTED_USER_CONFIG.company}

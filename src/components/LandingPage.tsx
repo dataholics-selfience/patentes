@@ -131,7 +131,7 @@ const LandingPage = () => {
                 to="/register" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Começar Grátis
+                Começar Agora
               </Link>
             </div>
           </div>
@@ -168,7 +168,7 @@ const LandingPage = () => {
                   disabled={isSubmitting}
                   className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Processando...' : 'Começar Grátis'}
+                  {isSubmitting ? 'Processando...' : 'Começar Agora'}
                   <ArrowRight size={20} />
                 </button>
               </form>
@@ -326,7 +326,7 @@ const LandingPage = () => {
                   to="/register" 
                   className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center gap-2"
                 >
-                  Começar Análise Gratuita
+                  Começar Análise Agora
                   <ChevronRight size={20} />
                 </Link>
               </div>
@@ -365,7 +365,7 @@ const LandingPage = () => {
               to="/register" 
               className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors font-semibold inline-flex items-center gap-2"
             >
-              Começar Grátis Agora
+              Começar Agora
               <ArrowRight size={20} />
             </Link>
             <a 
@@ -410,7 +410,7 @@ const LandingPage = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Produto</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/register" className="hover:text-white transition-colors">Começar Grátis</Link></li>
+                <li><Link to="/register" className="hover:text-white transition-colors">Começar Agora</Link></li>
                 <li><Link to="/plans" className="hover:text-white transition-colors">Planos</Link></li>
                 <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Suporte</a></li>
               </ul>

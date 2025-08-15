@@ -136,7 +136,7 @@ const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: 
         </Link>
       ) : (
         <div className="mt-3 text-center text-sm text-green-600 font-medium">
-          Acesso Corporativo - Renovação Automática
+          Conta Corporativa - Renovação Automática
         </div>
       )}
     </div>
