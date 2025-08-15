@@ -56,6 +56,18 @@ function App() {
     return user.emailVerified;
   };
 
+  const shouldRedirectToPlans = (user: any): boolean => {
+    if (!user) return false;
+    
+    // Usuários com acesso irrestrito nunca vão para planos
+    if (hasUnrestrictedAccess(user.email)) {
+      return false;
+    }
+    
+    // Outros usuários verificados vão para planos
+    return user.emailVerified;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -106,7 +118,9 @@ function App() {
         } />
         <Route path="/dashboard" element={
           user ? (
-            canAccessDashboard(user) ? (
+            hasUnrestrictedAccess(user.email) ? (
+              <Layout />
+            ) : canAccessDashboard(user) ? (
               <Navigate to="/plans" replace />
             ) : (
               <Navigate to="/verify-email" replace />
@@ -119,7 +133,9 @@ function App() {
         {/* Default routes */}
         <Route path="/" element={
           user ? (
-            canAccessDashboard(user) ? (
+            hasUnrestrictedAccess(user.email) ? (
+              <Layout />
+            ) : shouldRedirectToPlans(user) ? (
               <Navigate to="/plans" replace />
             ) : (
               <Navigate to="/verify-email" replace />

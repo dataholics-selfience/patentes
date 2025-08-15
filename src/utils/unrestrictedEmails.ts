@@ -5,7 +5,8 @@ export const UNRESTRICTED_EMAILS = [
   'robert.filho@hypofarma.com.br',
   'innovagenoi@gmail.com',
   'thays.perpetua@hotmail.com',
-  'innovagenoi12@gmail.com'
+  'innovagenoi12@gmail.com',
+  'innovagenoi@gmail.com' // Admin principal - acesso sempre liberado
 ];
 
 // Função para verificar se um e-mail tem acesso irrestrito

@@ -130,7 +130,7 @@ const Login = () => {
         
         if (setupSuccess) {
           setError('');
-          navigate('/dashboard', { replace: true });
+          navigate('/', { replace: true });
           return;
         } else {
           setError('Erro ao configurar conta com acesso irrestrito. Tente novamente.');
@@ -147,7 +147,7 @@ const Login = () => {
       }
 
       setError('');
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true });
       
     } catch (error: any) {
       console.error('Login error:', error);

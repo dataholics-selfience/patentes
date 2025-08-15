@@ -30,6 +30,7 @@ const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => 
 
       // Verificar se tem acesso irrestrito
       if (hasUnrestrictedAccess(auth.currentUser.email)) {
+        console.log(`✅ Acesso irrestrito confirmado para: ${auth.currentUser.email}`);
         setHasAccess(true);
         return;
       }
