@@ -19,22 +19,12 @@ const Plans = () => {
 
   const plans: PlanType[] = [
     {
-      id: 'pesquisador',
-      name: 'Pesquisador',
-      icon: Microscope,
-      description: 'Plano gratuito para pesquisadores iniciantes com consultas mensais limitadas',
-      tokens: 10, // ALTERADO DE 100 PARA 10
-      price: 0,
-      highlight: false,
-      stripeLink: ''
-    },
-    {
       id: 'analista',
       name: 'Analista',
       icon: Pill,
       description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
-      tokens: 150,
-      price: 5000,
+      tokens: 5,
+      price: 7500,
       highlight: true,
       stripeLink: 'https://buy.stripe.com/eVq14ng1hevefbx8eTfYY0y'
     },
@@ -43,7 +33,7 @@ const Plans = () => {
       name: 'Especialista',
       icon: Dna,
       description: 'Plano para especialistas em propriedade intelectual farmacêutica',
-      tokens: 300,
+      tokens: 10,
       price: 13000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/4gMaEXg1h2Mw8N9fHlfYY0z'
@@ -53,7 +43,7 @@ const Plans = () => {
       name: 'Diretor',
       icon: Sparkles,
       description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
-      tokens: 700,
+      tokens: 20,
       price: 25000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/8x26oH3ev0Eofbx8eTfYY0A'
@@ -80,11 +70,6 @@ const Plans = () => {
   const handlePlanClick = async (plan: PlanType) => {
     if (!auth.currentUser) {
       navigate('/login');
-      return;
-    }
-
-    if (plan.id === 'pesquisador') {
-      setError('O plano Pesquisador é o plano gratuito inicial e não pode ser contratado. Por favor, escolha outro plano.');
       return;
     }
 
@@ -150,7 +135,6 @@ const Plans = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {plans.map((plan) => {
             const Icon = plan.icon;
-            const isPesquisador = plan.id === 'pesquisador';
             const isDisabled = isPlanDisabled(plan.id);
             
             return (
@@ -177,31 +161,24 @@ const Plans = () => {
                 
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-gray-900 mb-2">
-                    {plan.price === 0 ? 'Gratuito' : formatPrice(plan.price)}
+                    {formatPrice(plan.price)}
                   </div>
                   <div className="text-blue-600">{plan.tokens} consultas/mês</div>
-                  {!isPesquisador && (
-                    <div className="text-xs text-gray-500 mt-1">
-                      Sem renovação automática
-                    </div>
-                  )}
+                  <div className="text-xs text-gray-500 mt-1">
+                    Sem renovação automática
+                  </div>
                 </div>
 
                 <button
-                  onClick={() => !isPesquisador && !isDisabled && handlePlanClick(plan)}
-                  disabled={isPesquisador || isDisabled}
+                  onClick={() => !isDisabled && handlePlanClick(plan)}
+                  disabled={isDisabled}
                   className={`block w-full py-3 px-4 rounded-lg text-white text-center font-bold transition-colors ${
-                    isPesquisador || isDisabled
+                    isDisabled
                       ? 'bg-gray-400 cursor-not-allowed opacity-50'
                       : 'bg-blue-600 hover:bg-blue-700'
                   }`}
                 >
-                  {isPesquisador 
-                    ? 'Plano Gratuito' 
-                    : isDisabled 
-                      ? 'Plano Atual' 
-                      : 'Começar Agora'
-                  }
+                  {isDisabled ? 'Plano Atual' : 'Começar Agora'}
                 </button>
               </div>
             );
