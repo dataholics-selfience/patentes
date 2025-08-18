@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown, Play, Pause, Settings, RotateCcw, Timer } from 'lucide-react';
+import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown, Play, Pause, Settings, RotateCcw, Timer, Package, TrendingUp, AlertTriangle, Shield } from 'lucide-react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { ConsultaCompleta } from '../types';
@@ -23,6 +23,8 @@ const PatentMonitoring = () => {
   const [activeMonitorings, setActiveMonitorings] = useState<Map<string, any>>(new Map());
   const [showScheduler, setShowScheduler] = useState(false);
   const [selectedConsultaForMonitoring, setSelectedConsultaForMonitoring] = useState<ConsultaCompleta | null>(null);
+  const [selectedProductProposal, setSelectedProductProposal] = useState<any>(null);
+  const [monitoringConsultas, setMonitoringConsultas] = useState<Map<string, ConsultaCompleta[]>>(new Map());
 
   useEffect(() => {
     const fetchConsultas = async () => {
@@ -45,6 +47,23 @@ const PatentMonitoring = () => {
         consultasList.sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
         
         setConsultas(consultasList);
+        
+        // Agrupar consultas por produto para monitoramento
+        const groupedConsultas = new Map<string, ConsultaCompleta[]>();
+        consultasList.forEach(consulta => {
+          const productKey = `${consulta.nome_comercial}-${consulta.nome_molecula}`;
+          if (!groupedConsultas.has(productKey)) {
+            groupedConsultas.set(productKey, []);
+          }
+          groupedConsultas.get(productKey)!.push(consulta);
+        });
+        
+        // Ordenar consultas dentro de cada grupo por data
+        groupedConsultas.forEach((consultas, key) => {
+          consultas.sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime());
+        });
+        
+        setMonitoringConsultas(groupedConsultas);
       } catch (error) {
         console.error('Error fetching consultas:', error);
       } finally {
@@ -175,6 +194,217 @@ const PatentMonitoring = () => {
     }
   };
 
+  const extractProductProposal = (consultaData: any): any => {
+    try {
+      let parsedData = consultaData;
+      
+      // Se for array, pegar o primeiro item
+      if (Array.isArray(consultaData) && consultaData.length > 0) {
+        if (consultaData[0].output) {
+          if (typeof consultaData[0].output === 'string') {
+            const cleanOutput = consultaData[0].output
+              .replace(/```json\n?/g, '')
+              .replace(/```\n?/g, '')
+              .trim();
+            try {
+              parsedData = JSON.parse(cleanOutput);
+            } catch {
+              return null;
+            }
+          } else {
+            parsedData = consultaData[0].output;
+          }
+        }
+      } else if (typeof consultaData === 'string') {
+        const cleanString = consultaData
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim();
+        try {
+          parsedData = JSON.parse(cleanString);
+        } catch {
+          return null;
+        }
+      }
+      
+      return parsedData?.produto_proposto || null;
+    } catch (error) {
+      console.error('Error extracting product proposal:', error);
+      return null;
+    }
+  };
+
+  const renderProductProposalCard = (consulta: ConsultaCompleta, productProposal: any) => {
+    if (!productProposal) return null;
+    
+    return (
+      <div
+        key={consulta.id}
+        onClick={() => setSelectedProductProposal({ consulta, productProposal })}
+        className="bg-blue-600 hover:bg-blue-700 rounded-lg p-4 cursor-pointer transition-colors border border-blue-500 shadow-lg hover:shadow-xl"
+      >
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Package size={20} className="text-blue-200" />
+            <h4 className="font-bold text-white text-lg">{productProposal.nome_sugerido}</h4>
+          </div>
+          <span className="text-xs text-blue-200 bg-blue-800 px-2 py-1 rounded-full">
+            {productProposal.tipo}
+          </span>
+        </div>
+        
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp size={14} className="text-blue-300" />
+            <span className="text-blue-100 text-sm">{productProposal.beneficio}</span>
+          </div>
+          
+          <div className="text-blue-200 text-sm leading-relaxed">
+            {productProposal.justificativa}
+          </div>
+        </div>
+        
+        {productProposal.analise_de_riscos?.comercial && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-yellow-300" />
+              <span className="text-blue-200 text-xs font-medium">Riscos Comerciais:</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {productProposal.analise_de_riscos.comercial.riscos?.map((risco: string, idx: number) => (
+                <span key={idx} className="text-xs bg-red-800 text-red-200 px-2 py-1 rounded">
+                  {risco}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="mt-3 pt-3 border-t border-blue-500">
+          <div className="flex items-center gap-2 text-blue-200 text-xs">
+            <Calendar size={12} />
+            <span>Monitoramento: {formatDate(consulta.consultedAt)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderMonitoringSection = () => {
+    return (
+      <div className="space-y-8">
+        {Array.from(monitoringConsultas.entries()).map(([productKey, consultas]) => {
+          const firstConsulta = consultas[0];
+          const isMonitored = activeMonitorings.has(firstConsulta.id);
+          
+          // Filtrar apenas consultas que têm produto_proposto
+          const consultasWithProposals = consultas.filter(consulta => {
+            const proposal = extractProductProposal(consulta.resultado);
+            return proposal !== null;
+          });
+          
+          if (consultasWithProposals.length === 0) return null;
+          
+          return (
+            <div key={productKey} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              {/* Header do produto */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Pill size={24} className="text-blue-600" />
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      {firstConsulta.nome_comercial} ({firstConsulta.nome_molecula})
+                    </h3>
+                    <p className="text-gray-600">
+                      {consultasWithProposals.length} produto{consultasWithProposals.length !== 1 ? 's' : ''} proposto{consultasWithProposals.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {isMonitored ? (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        Monitorando
+                      </div>
+                      <button
+                        onClick={() => handleStopMonitoring(firstConsulta.id)}
+                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Parar monitoramento"
+                      >
+                        <Pause size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleStartMonitoring(firstConsulta)}
+                      className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                      title="Iniciar monitoramento automático"
+                    >
+                      <Timer size={14} />
+                      Monitorar
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Informações básicas do produto */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <TestTube size={14} className="text-purple-600" />
+                  <span>Categoria: <strong>{firstConsulta.categoria}</strong></span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Building2 size={14} className="text-green-600" />
+                  <span>Empresa: <strong>{firstConsulta.userCompany}</strong></span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Globe size={14} className="text-indigo-600" />
+                  <span>Países: <strong>{firstConsulta.pais_alvo.length}</strong></span>
+                </div>
+              </div>
+              
+              {/* Cards dos produtos propostos */}
+              <div>
+                <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Package size={20} className="text-blue-600" />
+                  Produtos Propostos pelo Monitoramento
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {consultasWithProposals.map((consulta) => {
+                    const productProposal = extractProductProposal(consulta.resultado);
+                    return renderProductProposalCard(consulta, productProposal);
+                  })}
+                </div>
+              </div>
+              
+              {/* Informações de monitoramento se ativo */}
+              {isMonitored && (
+                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <RotateCcw size={14} className="text-green-600" />
+                      <span className="text-green-800 font-medium">
+                        Reconsulta a cada {activeMonitorings.get(firstConsulta.id)?.intervalHours}h
+                      </span>
+                    </div>
+                    <div className="text-green-700">
+                      Próxima: {new Date(activeMonitorings.get(firstConsulta.id)?.nextRunAt).toLocaleString('pt-BR')}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Se uma consulta está selecionada, mostrar os resultados
   if (selectedConsulta) {
     // Parse the data properly based on its structure
@@ -220,6 +450,17 @@ const PatentMonitoring = () => {
         />
       );
     }
+  }
+
+  // Se um produto proposto está selecionado, mostrar o dashboard
+  if (selectedProductProposal) {
+    const dashboardData = parseDashboardData(selectedProductProposal.consulta.resultado);
+    return (
+      <PatentDashboardReport
+        data={dashboardData}
+        onBack={() => setSelectedProductProposal(null)}
+      />
+    );
   }
 
   // Se o scheduler está aberto, mostrar o componente
@@ -347,8 +588,25 @@ const PatentMonitoring = () => {
           </div>
         </div>
 
-        {/* Lista de Consultas */}
-        {filteredConsultas.length === 0 ? (
+        {/* Seção de Monitoramento */}
+        {monitoringConsultas.size > 0 && (
+          <div className="mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <Timer size={24} className="text-purple-600" />
+              Produtos Monitorados
+            </h3>
+            {renderMonitoringSection()}
+          </div>
+        )}
+
+        {/* Lista de Todas as Consultas */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Search size={24} className="text-gray-600" />
+            Histórico Completo de Consultas
+          </h3>
+          
+          {filteredConsultas.length === 0 ? (
           <div className="text-center py-12">
             <Clock size={64} className="text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -361,7 +619,7 @@ const PatentMonitoring = () => {
               }
             </p>
           </div>
-        ) : (
+          ) : (
           <div className="space-y-4">
             {filteredConsultas.map((consulta) => (
               <div
@@ -504,7 +762,8 @@ const PatentMonitoring = () => {
               </div>
             ))}
           </div>
-        )}
+          )}
+        </div>
 
         {/* Informações sobre o sistema */}
         <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
