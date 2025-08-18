@@ -9,7 +9,8 @@ import {
   updateDoc, 
   deleteDoc,
   addDoc,
-  orderBy 
+  orderBy,
+  limit
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ConsultaCompleta } from '../types';
@@ -138,6 +139,7 @@ export interface MonitoringConfig {
 
 export class MonitoringManager {
   private static activeTimers: Map<string, NodeJS.Timeout> = new Map();
+  private static lastExecutionTimes: Map<string, number> = new Map();
 
   // Agendar monitoramento para uma consulta
   static async scheduleMonitoring(
@@ -238,6 +240,19 @@ export class MonitoringManager {
   // Executar reconsulta
   static async executeReconsulta(monitoringConfig: MonitoringConfig): Promise<void> {
     try {
+      // Verificar se já foi executado recentemente (evitar spam)
+      const lastExecution = this.lastExecutionTimes.get(monitoringConfig.consultaId);
+      const now = Date.now();
+      const minInterval = 60000; // Mínimo 1 minuto entre execuções
+      
+      if (lastExecution && (now - lastExecution) < minInterval) {
+        console.log(`⏳ Execução muito recente para ${monitoringConfig.consultaId}, aguardando...`);
+        return;
+      }
+      
+      // Registrar tempo de execução
+      this.lastExecutionTimes.set(monitoringConfig.consultaId, now);
+      
       console.log(`🔄 Executando reconsulta para ${monitoringConfig.consultaId}`);
 
       // Obter chave SERP disponível
@@ -262,6 +277,20 @@ export class MonitoringManager {
 
       const originalConsultaData = originalConsultaDoc.data();
       
+      // Buscar as últimas 5 consultas do usuário
+      const lastConsultasQuery = query(
+        collection(db, 'consultas'),
+        where('userId', '==', monitoringConfig.userId),
+        orderBy('consultedAt', 'desc'),
+        limit(5)
+      );
+      
+      const lastConsultasSnapshot = await getDocs(lastConsultasQuery);
+      const lastConsultas = lastConsultasSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      
       // Preparar dados completos da consulta original para o webhook de monitoramento
       const monitoringData = {
         // Dados originais da consulta
@@ -273,6 +302,17 @@ export class MonitoringManager {
         beneficio: monitoringConfig.originalConsulta.beneficio,
         doenca_alvo: monitoringConfig.originalConsulta.doenca_alvo,
         pais_alvo: monitoringConfig.originalConsulta.pais_alvo,
+        
+        // SessionId do usuário
+        userSessionId: monitoringConfig.originalConsulta.sessionId,
+        
+        // Últimas 5 consultas na íntegra
+        ultimas_consultas: lastConsultas.map(consulta => ({
+          id: consulta.id,
+          consultedAt: consulta.consultedAt,
+          resultado: consulta.resultado,
+          isDashboard: consulta.isDashboard
+        })),
         
         // Dados completos da consulta original
         consulta_original: {
@@ -303,7 +343,9 @@ export class MonitoringManager {
       console.log('🚀 Enviando dados completos para webhook de monitoramento:', monitoringData);
 
       // URL do webhook de monitoramento baseada no ambiente da consulta original
-      const webhookUrl = 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev-monitor';
+      const webhookUrl = monitoringConfig.originalConsulta.environment === 'test' 
+        ? 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev-monitor'
+        : 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev-monitor';
 
       console.log(`🌐 Usando webhook de monitoramento: ${webhookUrl}`);
 
@@ -411,9 +453,15 @@ export class MonitoringManager {
 
       // Atualizar configuração de monitoramento
       const now = new Date();
-      // Converter horas para milissegundos com precisão
-      const intervalMs = Math.round(monitoringConfig.intervalHours * 60 * 60 * 1000);
-      const finalIntervalMs = Math.max(intervalMs, 60000); // Mínimo 1 minuto
+      // Converter horas para milissegundos com precisão e respeitar intervalos específicos
+      let intervalMs = Math.round(monitoringConfig.intervalHours * 60 * 60 * 1000);
+      
+      // Para intervalos de 10 minutos, garantir exatamente 10 minutos
+      if (monitoringConfig.intervalHours === 0.1667) {
+        intervalMs = 10 * 60 * 1000; // Exatamente 10 minutos
+      }
+      
+      const finalIntervalMs = Math.max(intervalMs, 60000);
       const nextRun = new Date(now.getTime() + finalIntervalMs);
       
       await updateDoc(doc(db, 'monitoringConfigs', monitoringConfig.consultaId), {
@@ -423,9 +471,9 @@ export class MonitoringManager {
       });
 
       // Agendar próxima execução
-      this.scheduleNextRun(monitoringConfig.consultaId, Math.max(monitoringConfig.intervalHours, 0.0167));
+      this.scheduleNextRun(monitoringConfig.consultaId, monitoringConfig.intervalHours);
 
-      console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado (${finalIntervalMs}ms)`);
+      console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado em ${Math.round(finalIntervalMs/60000)} minutos`);
 
     } catch (error) {
       console.error('❌ Erro na execução do monitoramento:', error);
@@ -444,11 +492,16 @@ export class MonitoringManager {
       clearTimeout(existingTimer);
     }
 
-    // Converter horas para milissegundos com precisão
-    const intervalMs = Math.round(intervalHours * 60 * 60 * 1000);
+    // Converter horas para milissegundos com precisão e garantir mínimo
+    let intervalMs = Math.round(intervalHours * 60 * 60 * 1000);
     
-    // Para intervalos muito pequenos (menos de 1 hora), usar pelo menos 1 minuto
-    const finalIntervalMs = Math.max(intervalMs, 60000); // Mínimo 1 minuto
+    // Para intervalos de 10 minutos, garantir exatamente 10 minutos
+    if (intervalHours === 0.1667) { // 10 minutos
+      intervalMs = 10 * 60 * 1000; // Exatamente 10 minutos
+    }
+    
+    // Garantir mínimo de 1 minuto para outros intervalos
+    const finalIntervalMs = Math.max(intervalMs, 60000);
 
     // Agendar nova execução
     const timer = setTimeout(async () => {
@@ -463,7 +516,7 @@ export class MonitoringManager {
     }, finalIntervalMs);
 
     this.activeTimers.set(consultaId, timer);
-    console.log(`⏰ Próxima execução agendada para ${consultaId} em ${intervalHours}h (${finalIntervalMs}ms)`);
+    console.log(`⏰ Próxima execução agendada para ${consultaId} em ${intervalHours}h (${finalIntervalMs}ms = ${Math.round(finalIntervalMs/60000)} minutos)`);
   }
 
   // Inicializar monitoramentos agendados (chamado na inicialização da app)
@@ -480,11 +533,12 @@ export class MonitoringManager {
         if (nextRunTime <= now) {
           // Execução em atraso - executar imediatamente
           console.log(`⚡ Executando monitoramento em atraso: ${monitoring.consultaId}`);
-          await this.executeReconsulta(monitoring);
+          // Aguardar um pouco para evitar execuções simultâneas
+          setTimeout(() => this.executeReconsulta(monitoring), Math.random() * 5000);
         } else {
           // Agendar para o horário correto
           const timeUntilNext = nextRunTime.getTime() - now.getTime();
-          const hoursUntilNext = Math.max(timeUntilNext / (60 * 60 * 1000), 0.0167); // Mínimo 1 minuto
+          const hoursUntilNext = Math.max(timeUntilNext / (60 * 60 * 1000), 0.0167);
           
           console.log(`⏰ Reagendando monitoramento ${monitoring.consultaId} para ${hoursUntilNext.toFixed(4)}h`);
           this.scheduleNextRun(monitoring.consultaId, hoursUntilNext);
@@ -494,6 +548,40 @@ export class MonitoringManager {
       console.log(`✅ ${activeMonitorings.length} monitoramentos inicializados`);
     } catch (error) {
       console.error('❌ Erro ao inicializar monitoramentos:', error);
+    }
+  }
+  
+  // Obter configuração de monitoramento
+  static async getMonitoring(consultaId: string): Promise<MonitoringConfig | null> {
+    try {
+      const monitoringDoc = await getDoc(doc(db, 'monitoringConfigs', consultaId));
+      if (monitoringDoc.exists()) {
+        return { id: monitoringDoc.id, ...monitoringDoc.data() } as MonitoringConfig;
+      }
+      return null;
+    } catch (error) {
+      console.error('Erro ao buscar configuração de monitoramento:', error);
+      return null;
+    }
+  }
+
+  // Obter todos os monitoramentos ativos de um usuário
+  static async getActiveMonitorings(userId: string): Promise<MonitoringConfig[]> {
+    try {
+      const q = query(
+        collection(db, 'monitoringConfigs'),
+        where('userId', '==', userId),
+        where('isActive', '==', true)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as MonitoringConfig[];
+    } catch (error) {
+      console.error('Erro ao buscar monitoramentos ativos:', error);
+      return [];
     }
   }
 

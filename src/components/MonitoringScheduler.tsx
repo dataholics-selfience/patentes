@@ -11,7 +11,7 @@ interface MonitoringSchedulerProps {
 }
 
 const INTERVAL_OPTIONS = [
-  { hours: 0.1667, label: '10 minutos', description: 'Monitoramento ultra-intensivo' },
+  { hours: 0.1667, label: '10 minutos', description: 'Monitoramento ultra-intensivo (apenas para testes)' },
   { hours: 1, label: '1 hora', description: 'Monitoramento intensivo' },
   { hours: 6, label: '6 horas', description: 'Monitoramento frequente' },
   { hours: 12, label: '12 horas', description: 'Duas vezes por dia' },
@@ -23,6 +23,7 @@ const INTERVAL_OPTIONS = [
 
 const MonitoringScheduler = ({ consulta, onClose, onScheduled }: MonitoringSchedulerProps) => {
   const [selectedInterval, setSelectedInterval] = useState(24); // 24 horas por padrão
+  const [isTestMode, setIsTestMode] = useState(false);
   const [isScheduling, setIsScheduling] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -51,7 +52,7 @@ const MonitoringScheduler = ({ consulta, onClose, onScheduled }: MonitoringSched
           pais_alvo: consulta.pais_alvo,
           userCompany: consulta.userCompany,
           sessionId: consulta.sessionId,
-          environment: consulta.environment
+          environment: isTestMode ? 'test' : consulta.environment
         }
       );
 
@@ -167,6 +168,35 @@ const MonitoringScheduler = ({ consulta, onClose, onScheduled }: MonitoringSched
           </div>
         </div>
 
+        {/* Modo de Teste */}
+        <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-bold text-yellow-900 mb-1">Modo de Teste</h4>
+              <p className="text-sm text-yellow-800">
+                Ativar para usar webhook de testes durante o monitoramento
+              </p>
+            </div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isTestMode}
+                onChange={(e) => setIsTestMode(e.target.checked)}
+                className="rounded text-yellow-600 focus:ring-yellow-500"
+              />
+              <span className="text-sm font-medium text-yellow-900">
+                {isTestMode ? 'Modo Teste Ativo' : 'Modo Produção'}
+              </span>
+            </label>
+          </div>
+          {isTestMode && (
+            <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded text-sm text-yellow-800">
+              <strong>⚠️ Atenção:</strong> O monitoramento usará o webhook de testes: 
+              <code className="ml-1 font-mono">webhook-test/patentesdev-monitor</code>
+            </div>
+          )}
+        </div>
+
         {/* Informações do Agendamento */}
         <div className="mb-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
           <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -185,6 +215,12 @@ const MonitoringScheduler = ({ consulta, onClose, onScheduled }: MonitoringSched
             <div className="flex justify-between">
               <span className="text-gray-600">Tipo:</span>
               <span className="font-medium">Reconsulta automática</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Ambiente:</span>
+              <span className={`font-medium ${isTestMode ? 'text-yellow-600' : 'text-green-600'}`}>
+                {isTestMode ? 'Teste' : 'Produção'}
+              </span>
             </div>
           </div>
         </div>
@@ -239,10 +275,12 @@ const MonitoringScheduler = ({ consulta, onClose, onScheduled }: MonitoringSched
           <h4 className="font-bold text-yellow-900 mb-2">ℹ️ Como funciona o monitoramento automático:</h4>
           <ul className="text-sm text-yellow-800 space-y-1">
             <li>• A consulta será repetida automaticamente no intervalo selecionado</li>
-            <li>• Cada reconsulta incluirá o histórico de produtos já propostos</li>
+            <li>• Cada reconsulta incluirá as últimas 5 consultas realizadas na íntegra</li>
+            <li>• O sessionId do usuário será enviado para manter contexto</li>
             <li>• Você será notificado sobre mudanças significativas no status das patentes</li>
             <li>• O monitoramento pode ser pausado ou cancelado a qualquer momento</li>
             <li>• Cada reconsulta consome 1 token do seu plano</li>
+            <li>• Há um intervalo mínimo de 1 minuto entre execuções para evitar spam</li>
           </ul>
         </div>
       </div>
