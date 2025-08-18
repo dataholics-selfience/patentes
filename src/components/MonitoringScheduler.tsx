@@ -11,7 +11,7 @@ interface MonitoringSchedulerProps {
 }
 
 const INTERVAL_OPTIONS = [
-  { hours: 0.1667, label: '10 minutos', description: 'Monitoramento ultra-intensivo (apenas para testes)' },
+  { hours: 0.1667, label: '10 minutos', description: 'Monitoramento ultra-intensivo' },
   { hours: 1, label: '1 hora', description: 'Monitoramento intensivo' },
   { hours: 6, label: '6 horas', description: 'Monitoramento frequente' },
   { hours: 12, label: '12 horas', description: 'Duas vezes por dia' },

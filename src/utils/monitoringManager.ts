@@ -452,7 +452,7 @@ export class MonitoringManager {
       }
 
       // Atualizar configuração de monitoramento
-      const now = new Date();
+      const currentTime = new Date();
       // Converter horas para milissegundos com precisão e respeitar intervalos específicos
       let intervalMs = Math.round(monitoringConfig.intervalHours * 60 * 60 * 1000);
       
@@ -462,10 +462,10 @@ export class MonitoringManager {
       }
       
       const finalIntervalMs = Math.max(intervalMs, 60000);
-      const nextRun = new Date(now.getTime() + finalIntervalMs);
+      const nextRun = new Date(currentTime.getTime() + finalIntervalMs);
       
       await updateDoc(doc(db, 'monitoringConfigs', monitoringConfig.consultaId), {
-        lastRunAt: now.toISOString(),
+        lastRunAt: currentTime.toISOString(),
         nextRunAt: nextRun.toISOString(),
         runCount: monitoringConfig.runCount + 1
       });
