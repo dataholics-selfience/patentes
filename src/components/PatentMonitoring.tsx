@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown, Play, Pause, Settings, RotateCcw, Timer, Package, TrendingUp, AlertTriangle, Shield } from 'lucide-react';
+import { ArrowLeft, Clock, Search, Eye, Calendar, Building2, Pill, TestTube, Globe, Filter, ChevronDown, Play, Pause, Settings, RotateCcw, Timer, Package, TrendingUp, AlertTriangle, Shield, Target } from 'lucide-react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { ConsultaCompleta } from '../types';
@@ -264,16 +264,16 @@ const PatentMonitoring = () => {
           </div>
         </div>
         
-        {productProposal.analise_de_riscos?.comercial && (
+        {productProposal.mercado_alvo && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={14} className="text-yellow-300" />
-              <span className="text-blue-200 text-xs font-medium">Riscos Comerciais:</span>
+              <Target size={14} className="text-green-300" />
+              <span className="text-blue-200 text-xs font-medium">Mercado Alvo:</span>
             </div>
             <div className="flex flex-wrap gap-1">
-              {productProposal.analise_de_riscos.comercial.riscos?.map((risco: string, idx: number) => (
-                <span key={idx} className="text-xs bg-red-800 text-red-200 px-2 py-1 rounded">
-                  {risco}
+              {productProposal.mercado_alvo.segmentos?.map((segmento: string, idx: number) => (
+                <span key={idx} className="text-xs bg-green-800 text-green-200 px-2 py-1 rounded">
+                  {segmento}
                 </span>
               ))}
             </div>

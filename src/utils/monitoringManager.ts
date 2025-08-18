@@ -15,6 +15,103 @@ import { db } from '../firebase';
 import { ConsultaCompleta } from '../types';
 import { getSerpKeyManager } from './serpKeyManager';
 
+// Configuração da Evolution API para WhatsApp
+const EVOLUTION_API_CONFIG = {
+  baseUrl: 'https://evolution-api-production-f719.up.railway.app',
+  instanceKey: '215D70C6CC83-4EE4-B55A-DE7D4146CBF1'
+};
+
+// Função para formatar telefone para Evolution API
+const formatPhoneForEvolution = (phone: string): string => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  
+  if (cleanPhone.startsWith('55')) {
+    return cleanPhone;
+  } else if (cleanPhone.length === 11) {
+    return '55' + cleanPhone;
+  } else if (cleanPhone.length === 10) {
+    return '55' + cleanPhone;
+  }
+  
+  return cleanPhone;
+};
+
+// Função para enviar WhatsApp via Evolution API
+const sendWhatsAppNotification = async (
+  phone: string, 
+  productName: string, 
+  productProposal: any,
+  consultaId: string
+): Promise<boolean> => {
+  try {
+    const formattedPhone = formatPhoneForEvolution(phone);
+    
+    if (!formattedPhone || formattedPhone.length < 10) {
+      console.error('Número de telefone inválido:', phone);
+      return false;
+    }
+
+    // Extrair dados do mercado_alvo
+    const mercadoAlvo = productProposal.mercado_alvo?.segmentos?.join(', ') || 'Não especificado';
+    const beneficio = productProposal.beneficio || 'Não especificado';
+    const tipo = productProposal.tipo || 'Produto';
+    
+    const message = `🔬 *Consulta de Patentes - Atualização de Monitoramento*
+
+Olá! Detectamos uma atualização no monitoramento do produto *${productName}*.
+
+📋 *Novo Produto Proposto:*
+• Nome: ${productProposal.nome_sugerido || 'Não especificado'}
+• Tipo: ${tipo}
+• Benefício: ${beneficio}
+• Mercado Alvo: ${mercadoAlvo}
+
+🔗 *Ver análise completa:*
+${window.location.origin}/dashboard
+
+⚡ Esta é uma notificação automática do seu monitoramento de patentes.
+
+---
+*Consulta de Patentes - Monitoramento Inteligente*`;
+
+    const evolutionPayload = {
+      number: formattedPhone,
+      text: message
+    };
+
+    console.log('📱 Enviando notificação WhatsApp:', {
+      phone: formattedPhone,
+      productName,
+      consultaId
+    });
+
+    const response = await fetch(
+      `${EVOLUTION_API_CONFIG.baseUrl}/message/sendText/${EVOLUTION_API_CONFIG.instanceKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': EVOLUTION_API_CONFIG.instanceKey
+        },
+        body: JSON.stringify(evolutionPayload)
+      }
+    );
+
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log('✅ WhatsApp enviado com sucesso:', responseData);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error('❌ Erro na Evolution API:', errorText);
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Erro ao enviar WhatsApp:', error);
+    return false;
+  }
+};
+
 export interface MonitoringConfig {
   id: string;
   consultaId: string;
@@ -277,6 +374,41 @@ export class MonitoringManager {
 
       await addDoc(collection(db, 'consultas'), novaConsultaData);
 
+      // Enviar notificação WhatsApp se há produto proposto
+      try {
+        const productProposal = this.extractProductProposal(webhookResponse);
+        if (productProposal) {
+          // Buscar telefone do usuário
+          const userDoc = await getDoc(doc(db, 'users', monitoringConfig.userId));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            const userPhone = userData.phone;
+            
+            if (userPhone) {
+              const productName = `${monitoringConfig.originalConsulta.nome_comercial} (${monitoringConfig.originalConsulta.nome_molecula})`;
+              
+              const whatsappSent = await sendWhatsAppNotification(
+                userPhone,
+                productName,
+                productProposal,
+                monitoringConfig.consultaId
+              );
+              
+              if (whatsappSent) {
+                console.log('✅ Notificação WhatsApp enviada com sucesso');
+              } else {
+                console.warn('⚠️ Falha ao enviar notificação WhatsApp');
+              }
+            } else {
+              console.warn('⚠️ Usuário não possui telefone cadastrado para notificação');
+            }
+          }
+        }
+      } catch (whatsappError) {
+        console.error('❌ Erro ao enviar notificação WhatsApp:', whatsappError);
+        // Não interromper o fluxo principal por erro no WhatsApp
+      }
+
       // Atualizar configuração de monitoramento
       const now = new Date();
       // Converter horas para milissegundos com precisão
@@ -362,6 +494,49 @@ export class MonitoringManager {
       console.log(`✅ ${activeMonitorings.length} monitoramentos inicializados`);
     } catch (error) {
       console.error('❌ Erro ao inicializar monitoramentos:', error);
+    }
+  }
+
+  // Extrair produto proposto da resposta
+  private static extractProductProposal(webhookResponse: any): any {
+    try {
+      let parsedData = webhookResponse;
+      
+      // Se for array, pegar o primeiro item
+      if (Array.isArray(webhookResponse) && webhookResponse.length > 0) {
+        if (webhookResponse[0].output) {
+          if (typeof webhookResponse[0].output === 'string') {
+            const cleanOutput = webhookResponse[0].output
+              .replace(/```json\n?/g, '')
+              .replace(/```\n?/g, '')
+              .trim();
+            try {
+              parsedData = JSON.parse(cleanOutput);
+            } catch {
+              return null;
+            }
+          } else {
+            parsedData = webhookResponse[0].output;
+          }
+        }
+      } else if (typeof webhookResponse === 'string') {
+        const cleanString = webhookResponse
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim();
+        try {
+          parsedData = JSON.parse(cleanString);
+        } catch {
+          return null;
+        }
+      } else if (typeof webhookResponse === 'object' && webhookResponse !== null) {
+        parsedData = webhookResponse;
+      }
+      
+      return parsedData?.produto_proposto || null;
+    } catch (error) {
+      console.error('Erro ao extrair produto proposto:', error);
+      return null;
     }
   }
 
