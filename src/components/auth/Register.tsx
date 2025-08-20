@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { FlaskConical } from 'lucide-react';
+import { Pill } from 'lucide-react';
 
 const EVOLUTION_API_CONFIG = {
   instances: [

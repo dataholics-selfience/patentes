@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { onAuthStateChanged, sendEmailVerification, signOut } from 'firebase/auth';
 import { doc, setDoc, collection } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { FlaskConical } from 'lucide-react';
+import { Pill } from 'lucide-react';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
 import { getDoc } from 'firebase/firestore';
 

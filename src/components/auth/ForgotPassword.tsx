@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { FlaskConical } from 'lucide-react';
+import { Pill } from 'lucide-react';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

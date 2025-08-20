@@ -88,22 +88,22 @@ const Layout = () => {
   const patentAgencies = [
     {
       name: "INPI Brasil",
-      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/inpi-logo-1.jpeg",
       alt: "INPI Brasil"
     },
     {
       name: "USPTO",
-      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/uspto-logo-2.png",
       alt: "USPTO"
     },
     {
       name: "EPO",
-      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/epto-logo-3.png",
       alt: "EPO"
     },
     {
       name: "WIPO",
-      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/Wipo-logo-4.png",
       alt: "WIPO"
     }
   ];
@@ -366,38 +366,19 @@ const Layout = () => {
                   Histórico
                 </div>
               </button>
-              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-                <button
-                  onClick={() => setActiveTab('monitoring')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'monitoring'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} />
-                    Pipeline
-                  </div>
-                </button>
-              )}
             </nav>
           </div>
         </div>
 
         <div className="grid grid-cols-1">
           <div className="w-full">
-            {activeTab === 'consultation' ? (
-              <DrugPipelineCreator 
-                checkTokenUsage={() => checkTokenUsage(tokenUsage)}
-                tokenUsage={tokenUsage}
-              />
-            ) : (auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <DrugPipelineMonitoring />
-            ))}
+            <DrugPipelineCreator 
+              checkTokenUsage={() => checkTokenUsage(tokenUsage)}
+              tokenUsage={tokenUsage}
+            />
             
             {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
-            {activeTab === 'consultation' && auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
+            {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="mt-8">
                 <SerpKeyStats />
               </div>
