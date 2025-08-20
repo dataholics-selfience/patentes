@@ -26,8 +26,6 @@ import { DrugPipelineResult, TokenUsageType, PipelineCompleta } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import DrugPipelineReport from './DrugPipelineReport';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
-import { initializeSerpKeyManager } from '../utils/serpKeyManager';
-import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
@@ -418,7 +416,11 @@ const DrugPipelineCreator = ({ checkTokenUsage, tokenUsage }: DrugPipelineCreato
         {/* Header com seletor de ambiente para admin */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <FlaskConical size={32} className="text-blue-600" />
+            <img 
+              src="/logo-pharmyrus.jpg" 
+              alt="Pharmyrus" 
+              className="h-8 w-auto"
+            />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Criador de Pipeline de Medicamentos</h2>
               <p className="text-gray-600">IA completa para desenvolvimento de novos fármacos</p>

@@ -174,7 +174,11 @@ const SerpKeyAdmin = () => {
               </button>
               
               <div className="flex items-center gap-3">
-                <Shield size={32} className="text-red-600" />
+                <img 
+                  src="/logo-pharmyrus.jpg" 
+                  alt="Pharmyrus" 
+                  className="h-8 w-auto"
+                />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Admin SUDO - Chaves SERP API</h1>
                   <p className="text-gray-600">Gerenciamento de chaves da SerpAPI</p>

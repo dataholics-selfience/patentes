@@ -118,7 +118,11 @@ const DrugPipelineMonitoring = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <FlaskConical size={32} className="text-blue-600" />
+            <img 
+              src="/logo-pharmyrus.jpg" 
+              alt="Pharmyrus" 
+              className="h-8 w-auto"
+            />
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Pipeline de Medicamentos</h2>
               <p className="text-gray-600">Histórico completo de pipelines criados</p>

@@ -1,41 +1,43 @@
 import { useState, useEffect } from 'react';
-import { Brain, Users, Search, BarChart3, ListChecks, Target } from 'lucide-react';
+import { Brain, Rocket, Search, Code, ListChecks, Target } from 'lucide-react';
+import { useTranslation } from '../utils/i18n';
 
-const loadingStates = [
-  {
-    icon: Brain,
-    text: 'Processando segmento e analisando dados de clientes...',
-    color: 'text-blue-400'
-  },
-  {
-    icon: ListChecks,
-    text: 'Criando estratégias para o segmento de clientes',
-    color: 'text-purple-400'
-  },
-  {
-    icon: Search,
-    text: 'Realizando análise de mercado e comportamento',
-    color: 'text-green-400'
-  },
-  {
-    icon: Target,
-    text: 'Definindo personas e targets específicos',
-    color: 'text-yellow-400'
-  },
-  {
-    icon: BarChart3,
-    text: 'Gerando métricas e KPIs de relacionamento',
-    color: 'text-pink-400'
-  },
-  {
-    icon: Users,
-    text: 'Finalizando estratégias de CRM para seu segmento!',
-    color: 'text-emerald-400'
-  }
-];
-
-export const LoadingStates = () => {
+const LoadingStates = () => {
+  const { t } = useTranslation();
   const [currentState, setCurrentState] = useState(0);
+
+  const loadingStates = [
+    {
+      icon: Brain,
+      text: t.searchingStartups,
+      color: 'text-blue-400'
+    },
+    {
+      icon: ListChecks,
+      text: t.qualifyingStartups,
+      color: 'text-purple-400'
+    },
+    {
+      icon: Search,
+      text: t.researchingMarket,
+      color: 'text-green-400'
+    },
+    {
+      icon: Target,
+      text: t.selectingFinalStartups,
+      color: 'text-yellow-400'
+    },
+    {
+      icon: Code,
+      text: t.creatingPOCsForChallenge,
+      color: 'text-pink-400'
+    },
+    {
+      icon: Rocket,
+      text: t.finalizingStartupList,
+      color: 'text-emerald-400'
+    }
+  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,7 +45,7 @@ export const LoadingStates = () => {
     }, 6000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [loadingStates.length]);
 
   const CurrentIcon = loadingStates[currentState].icon;
 
@@ -58,3 +60,5 @@ export const LoadingStates = () => {
     </div>
   );
 };
+
+export { LoadingStates };
