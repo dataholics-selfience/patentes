@@ -1,109 +1,113 @@
-# Pharmyrus - IA Completa para Desenvolvimento de Medicamentos Inovadores
+# Gen.OI - Plataforma de Inovação Aberta
 
-## 🧬 Sobre o Projeto
+## 🔧 Configuração do MailerSend
 
-Pharmyrus é uma plataforma de inteligência artificial revolucionária que automatiza completamente o desenvolvimento de novos medicamentos. Nossa IA analisa patentes vigentes, preços internacionais, informações técnicas de agências regulatórias globais e cria medicamentos inovadores com pipeline completo de desenvolvimento, estudos de mercado e documentação regulatória.
+### 1. Instalar a extensão oficial do MailerSend
 
-## 🚀 Funcionalidades Principais
+#### Via Console Firebase:
+1. Acesse o [Firebase Console](https://console.firebase.google.com/)
+2. Selecione seu projeto `genoi-7777`
+3. Vá em **Extensions** no menu lateral
+4. Clique em **Browse Hub**
+5. Procure por "MailerSend" ou acesse diretamente: [MailerSend Extension](https://extensions.dev/extensions/mailersend/mailersend-email)
+6. Clique em **Install**
 
-### 🧬 Criação Automática de Medicamentos
-- **Desenvolvimento de Formulações**: IA cria novos compostos e estruturas químicas inovadoras
-- **Análise de Patentes Globais**: Verificação completa de propriedade intelectual em todas as agências
-- **Benchmarking de Preços**: Análise de preços internacionais e estratégia de precificação
-- **Informações Regulatórias**: Dados completos de FDA, EMA, ANVISA, Health Canada, TGA, PMDA
-
-### 📊 Estudos de Mercado Automatizados
-- **TAM SAM SOM**: Cálculo automático de Total/Serviceable/Obtainable Market
-- **Análise SWOT Completa**: Forças, fraquezas, oportunidades e ameaças detalhadas
-- **Segmentação de Público**: Identificação automática de target personas
-- **Análise Competitiva**: Benchmarking completo com concorrentes globais
-- **Projeções Financeiras**: ROI, NPV, IRR e análise de viabilidade
-
-### 📋 Documentação Regulatória Automática
-- **Dossiês para Patentes**: Documentação completa para registro de propriedade intelectual
-- **Submissões Regulatórias**: Preparação automática para FDA, EMA, ANVISA
-- **Estudos Pré-clínicos**: Planejamento detalhado de testes e validações
-- **Timeline Regulatório**: Cronograma completo de aprovações por país
-
-### 🔬 Inovação Farmacêutica Avançada
-- **Descoberta de Moléculas**: IA cria estruturas químicas completamente novas
-- **Otimização de Formulações**: Estratégias avançadas de drug delivery
-- **Análise de Viabilidade**: Estudos técnicos e comerciais completos
-- **Gestão de Riscos**: Identificação preditiva e estratégias de mitigação
-
-## 🛠️ Tecnologias
-
-- **Frontend**: React + TypeScript + Vite
-- **Styling**: Tailwind CSS
-- **Autenticação**: Firebase Auth
-- **Banco de Dados**: Firestore
-- **IA**: Pipeline proprietário de análise farmacêutica
-- **Deploy**: Netlify
-
-## 📦 Instalação
-
+#### Via Firebase CLI:
 ```bash
-npm install
+firebase ext:install mailersend/mailersend-email --project=genoi-7777
+```
+
+### 2. Configuração durante a instalação
+
+Durante a instalação, você será solicitado a configurar os seguintes parâmetros:
+
+- **MAILERSEND_API_KEY**: `mlsn.sua_api_key_aqui`
+- **EMAIL_COLLECTION**: `emails`
+- **DEFAULT_FROM_EMAIL**: `noreply@genoi.net`
+- **DEFAULT_FROM_NAME**: `Gen.OI - Inovação Aberta`
+
+### 3. Configurar domínio no MailerSend
+
+1. Acesse o [painel do MailerSend](https://app.mailersend.com/)
+2. Vá em **Domains** > **Add Domain**
+3. Adicione o domínio `genoi.net`
+4. Configure os registros DNS conforme instruído:
+   - **TXT** para verificação
+   - **CNAME** para DKIM
+   - **MX** (se necessário)
+
+### 4. Obter API Key
+
+1. No painel do MailerSend, vá em **API Tokens**
+2. Clique em **Create Token**
+3. Selecione as permissões: **Email Send**
+4. Copie a API key (formato: `mlsn.xxxxx`)
+
+## 📧 Como funciona
+
+### Envio de Email
+1. O usuário preenche o formulário na interface
+2. O sistema adiciona um documento na coleção `emails` do Firestore
+3. A extensão do MailerSend detecta automaticamente o novo documento
+4. O email é enviado via MailerSend
+5. O status é atualizado no documento
+
+### Estrutura do documento de email:
+```javascript
+{
+  to: [{ email: 'destinatario@exemplo.com', name: 'Nome' }],
+  from: { email: 'noreply@genoi.net', name: 'Gen.OI' },
+  subject: 'Assunto do email',
+  html: 'Conteúdo HTML formatado',
+  text: 'Conteúdo em texto simples',
+  reply_to: { email: 'contact@genoi.net', name: 'Gen.OI - Suporte' },
+  tags: ['crm', 'startup-interaction'],
+  metadata: { startupId: 'xxx', userId: 'xxx' }
+}
+```
+
+## 🎯 Vantagens desta abordagem
+
+✅ **Mais confiável**: Extensão oficial mantida pelo MailerSend  
+✅ **Mais simples**: Sem código de Functions para manter  
+✅ **Mais segura**: API key protegida na configuração da extensão  
+✅ **Monitoramento automático**: Logs e status integrados  
+✅ **Retry automático**: Tentativas automáticas em caso de falha  
+✅ **Webhooks automáticos**: Eventos de entrega configurados automaticamente  
+
+## 🚀 Deploy
+
+### Desenvolvimento
+```bash
 npm run dev
 ```
 
-## 🔧 Configuração
-
-1. Configure as variáveis de ambiente do Firebase
-2. Configure a API de análise farmacêutica
-3. Configure os planos de pagamento (Stripe)
-
-## 🏗️ Estrutura do Projeto
-
-```
-src/
-├── components/
-│   ├── auth/                    # Autenticação
-│   ├── DrugPipelineCreator.tsx  # Criador de pipeline de medicamentos
-│   ├── MarketAnalysisReport.tsx # Relatórios de análise de mercado
-│   ├── PatentAnalysisPage.tsx   # Análise de patentes
-│   ├── RegulatoryDossier.tsx    # Dossiês regulatórios
-│   ├── Layout.tsx
-│   └── ...
-├── utils/
-│   ├── drugPipelineParser.ts    # Parser para pipeline de medicamentos
-│   ├── marketAnalysis.ts        # Análise de mercado
-│   ├── patentChecker.ts         # Verificação de patentes
-│   ├── regulatoryData.ts        # Dados regulatórios
-│   └── pricingAnalysis.ts       # Análise de preços
-└── types.ts
+### Produção
+```bash
+npm run build
+firebase deploy
 ```
 
-## 🌍 Agências Conectadas
+## 📊 Monitoramento
 
-### Patentes
-- **INPI** (Brasil)
-- **USPTO** (Estados Unidos)
-- **EPO** (Europa)
-- **WIPO** (Internacional)
-- **JPO** (Japão)
-- **CNIPA** (China)
+### Logs da extensão
+- Acesse **Extensions** > **MailerSend** > **Logs** no Firebase Console
+- Monitore envios, falhas e status de entrega
 
-### Regulatórias
-- **FDA** (Estados Unidos)
-- **EMA** (Europa)
-- **ANVISA** (Brasil)
-- **Health Canada** (Canadá)
-- **TGA** (Austrália)
-- **PMDA** (Japão)
+### Métricas no MailerSend
+- Dashboard com estatísticas de envio
+- Taxa de entrega, abertura e cliques
+- Relatórios detalhados
 
-## 🔐 Segurança
+## 🔧 Troubleshooting
 
-- Autenticação Firebase
-- Verificação de email
-- Controle de acesso por planos
-- Proteção de dados LGPD/GDPR
-- Criptografia de dados sensíveis
+### Email não enviado
+1. Verifique se a extensão está instalada e ativa
+2. Confirme se a API key está correta
+3. Verifique se o domínio está verificado no MailerSend
+4. Consulte os logs da extensão no Firebase Console
 
-## 📞 Suporte
-
-WhatsApp: +55 11 99573-6666
-
----
-
-© 2025 Pharmyrus. Todos os direitos reservados.
+### Domínio não verificado
+1. Confirme os registros DNS no seu provedor
+2. Aguarde a propagação (pode levar até 24h)
+3. Use a ferramenta de verificação do MailerSend

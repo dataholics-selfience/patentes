@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { ArrowLeft, Pill } from 'lucide-react';
-import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
+import { doc, getDoc } from 'firebase/firestore';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Login = () => {
+  const { isDarkMode } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,121 +37,77 @@ const Login = () => {
     return true;
   };
 
-  // Função para configurar usuário com acesso irrestrito
-  const setupUnrestrictedUser = async (user: any) => {
-    try {
-      console.log(`🔧 Configurando usuário com acesso irrestrito: ${user.email}`);
-      
-      const now = new Date();
-      const transactionId = crypto.randomUUID();
-
-      // 1. Criar/atualizar documento do usuário
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        name: UNRESTRICTED_USER_CONFIG.name,
-        email: user.email,
-        cpf: UNRESTRICTED_USER_CONFIG.cpf,
-        company: UNRESTRICTED_USER_CONFIG.company,
-        phone: UNRESTRICTED_USER_CONFIG.phone,
-        plan: UNRESTRICTED_USER_CONFIG.plan,
-        activated: true,
-        activatedAt: now.toISOString(),
-        unrestrictedAccess: true,
-        createdAt: now.toISOString(),
-        acceptedTerms: true,
-        termsAcceptanceId: transactionId
-      }, { merge: true });
-
-      // 2. Criar/atualizar token usage
-      await setDoc(doc(db, 'tokenUsage', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        plan: UNRESTRICTED_USER_CONFIG.plan,
-        totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
-        usedTokens: 0,
-        lastUpdated: now.toISOString(),
-        purchasedAt: now.toISOString(),
-        renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(), // Primeiro dia do próximo mês
-        autoRenewal: true
-      }, { merge: true });
-
-      // 3. Registrar compliance GDPR
-      await setDoc(doc(db, 'gdprCompliance', transactionId), {
-        uid: user.uid,
-        email: user.email,
-        type: 'unrestricted_access_setup',
-        unrestrictedAccess: true,
-        grantedAt: now.toISOString(),
-        transactionId
-      });
-
-      console.log(`✅ Usuário com acesso irrestrito configurado com sucesso: ${user.email}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao configurar usuário com acesso irrestrito:', error);
-      return false;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      // Reset error state
       setError('');
       
+      // Validate inputs before attempting login
       if (!validateInputs()) {
         return;
       }
 
+      // Set loading state
       setIsLoading(true);
 
+      // Trim values before storing them
       const trimmedEmail = email.trim().toLowerCase();
       const trimmedPassword = password.trim();
 
+      // Attempt login with a small delay to prevent brute force attempts
       await new Promise(resolve => setTimeout(resolve, 500));
       
+      // Attempt login
       const userCredential = await signInWithEmailAndPassword(
         auth,
         trimmedEmail,
         trimmedPassword
       );
 
+      // Verify user exists
       const user = userCredential.user;
       if (!user) {
         throw new Error('No user data available');
       }
 
-      // Verificar se o usuário tem acesso irrestrito
-      if (hasUnrestrictedAccess(user.email)) {
-        console.log(`✅ Login com acesso irrestrito: ${user.email}`);
+      // Check email verification using Firestore document
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : null;
         
-        // Configurar estrutura completa do usuário
-        const setupSuccess = await setupUnrestrictedUser(user);
+        // Vendedores criados por admin não precisam verificar email
+        // Apenas usuários que se registraram sozinhos precisam verificar
+        const isEmailVerified = userData?.emailVerified === true || user.emailVerified;
         
-        if (setupSuccess) {
-          setError('');
-          navigate('/', { replace: true });
+        if (!isEmailVerified) {
+          await auth.signOut();
+          setError('Por favor, verifique seu email antes de fazer login.');
+          navigate('/verify-email');
           return;
-        } else {
-          setError('Erro ao configurar conta com acesso irrestrito. Tente novamente.');
+        }
+      } catch (firestoreError) {
+        console.error('Error fetching user data from Firestore:', firestoreError);
+        // Fall back to Firebase Auth email verification if Firestore fails
+        if (!user.emailVerified) {
+          await auth.signOut();
+          setError('Por favor, verifique seu email antes de fazer login.');
+          navigate('/verify-email');
           return;
         }
       }
 
-      // Verificação normal de e-mail para outros usuários
-      if (!user.emailVerified) {
-        await auth.signOut();
-        setError('Por favor, verifique seu email antes de fazer login.');
-        navigate('/verify-email');
-        return;
-      }
-
+      // Clear any existing errors
       setError('');
+      
+      // Navigate on success
       navigate('/', { replace: true });
       
     } catch (error: any) {
       console.error('Login error:', error);
       
+      // Handle specific Firebase error codes with more detailed messages
       const errorMessages: { [key: string]: string } = {
         'auth/invalid-credential': 'Email ou senha incorretos. Por favor, verifique suas credenciais e tente novamente.',
         'auth/user-disabled': 'Esta conta foi desativada. Entre em contato com o suporte.',
@@ -160,47 +116,36 @@ const Login = () => {
         'auth/invalid-email': 'O formato do email é inválido.',
         'auth/user-not-found': 'Não existe uma conta com este email.',
         'auth/wrong-password': 'Senha incorreta.',
+        'auth/popup-closed-by-user': 'O processo de login foi interrompido. Por favor, tente novamente.',
+        'auth/operation-not-allowed': 'Este método de login não está habilitado. Entre em contato com o suporte.',
+        'auth/requires-recent-login': 'Por favor, faça login novamente para continuar.',
       };
 
+      // Set appropriate error message with fallback
       setError(
         errorMessages[error.code] || 
         'Ocorreu um erro ao fazer login. Por favor, verifique suas credenciais e tente novamente.'
       );
       
     } finally {
+      // Always reset loading state
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${isDarkMode ? 'bg-black' : 'bg-white'}`}>
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="flex items-center justify-between mb-6">
-            <Link 
-              to="/" 
-              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeft size={20} className="mr-2" />
-              <span className="text-sm">Voltar</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <Pill size={48} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
-            </div>
-            <div className="w-16"></div> {/* Spacer for centering */}
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">Faça seu login</h2>
-          <p className="mt-2 text-gray-600">Acesse sua conta para criar medicamentos inovadores</p>
+          <h1 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            CRM DATAHOLICS
+          </h1>
+          <h2 className={`mt-6 text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Login</h2>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className={`text-center p-3 rounded-md border ${
-              error.includes('irrestrito') || error.includes('acesso liberado')
-                ? 'text-green-600 bg-green-50 border-green-200'
-                : 'text-red-600 bg-red-50 border-red-200'
-            }`}>
+            <div className="text-red-500 text-center bg-red-900/20 p-3 rounded-md border border-red-800">
               {error}
             </div>
           )}
@@ -212,26 +157,15 @@ const Login = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode 
+                    ? 'bg-gray-800 border-gray-700 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
                 placeholder="Email"
                 disabled={isLoading}
                 autoComplete="email"
               />
-              {/* Indicador visual para e-mails com acesso irrestrito */}
-              {email.trim() && hasUnrestrictedAccess(email.trim()) && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
-                      <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                      <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
-                    <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
-                      <div>• Renovação automática todo mês</div>
-                      <div>• Sem necessidade de verificação de e-mail</div>
-                    <div>• Sem necessidade de verificação de e-mail</div>
-                  </div>
-                </div>
-              )}
             </div>
             <div>
               <input
@@ -239,7 +173,11 @@ const Login = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDarkMode 
+                    ? 'bg-gray-800 border-gray-700 text-white' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
                 placeholder="Senha"
                 disabled={isLoading}
                 minLength={6}
@@ -252,7 +190,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
+              className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
                 isLoading ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
@@ -263,18 +201,14 @@ const Login = () => {
           <div className="flex items-center justify-between">
             <Link 
               to="/forgot-password" 
-              className="text-sm text-blue-600 hover:text-blue-700"
+              className="text-sm text-blue-400 hover:text-blue-500"
               tabIndex={isLoading ? -1 : 0}
             >
               Esqueceu a senha?
             </Link>
-            <Link 
-              to="/register" 
-              className="text-lg text-blue-600 hover:text-blue-700 font-medium"
-              tabIndex={isLoading ? -1 : 0}
-            >
-              Criar conta
-            </Link>
+            <p className="text-gray-400 text-sm">
+              Apenas administradores podem criar contas no sistema
+            </p>
           </div>
         </form>
       </div>
