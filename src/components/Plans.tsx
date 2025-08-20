@@ -22,8 +22,8 @@ const Plans = () => {
       id: 'especialista',
       name: 'Especialista',
       icon: Dna,
-      description: 'Plano para especialistas em propriedade intelectual farmacêutica',
-      tokens: 10,
+      description: 'Plano para especialistas em desenvolvimento farmacêutico',
+      tokens: 50,
       price: 13000,
       highlight: true,
       stripeLink: 'https://buy.stripe.com/4gMaEXg1h2Mw8N9fHlfYY0z'
@@ -32,8 +32,8 @@ const Plans = () => {
       id: 'analista',
       name: 'Analista',
       icon: Pill,
-      description: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
-      tokens: 5,
+      description: 'Plano para analistas de P&D farmacêutico',
+      tokens: 20,
       price: 7500,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/eVq14ng1hevefbx8eTfYY0y'
@@ -42,8 +42,8 @@ const Plans = () => {
       id: 'diretor',
       name: 'Diretor',
       icon: Sparkles,
-      description: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
-      tokens: 20,
+      description: 'Plano para diretores de P&D que gerenciam portfólios de medicamentos',
+      tokens: 100,
       price: 25000,
       highlight: false,
       stripeLink: 'https://buy.stripe.com/8x26oH3ev0Eofbx8eTfYY0A'
@@ -159,7 +159,7 @@ const Plans = () => {
                   <div className="text-3xl font-bold text-gray-900 mb-2">
                     {formatPrice(plan.price)}
                   </div>
-                  <div className="text-blue-600">{plan.tokens} consultas/mês</div>
+                  <div className="text-blue-600">{plan.tokens} pipelines/mês</div>
                   <div className="text-xs text-gray-500 mt-1">
                     Sem renovação automática
                   </div>

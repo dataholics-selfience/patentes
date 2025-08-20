@@ -185,13 +185,13 @@ const Login = () => {
               <span className="text-sm">Voltar</span>
             </Link>
             <div className="flex items-center gap-3">
-              <FlaskConical size={48} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
+              <Pill size={48} className="text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
             </div>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Faça seu login</h2>
-          <p className="mt-2 text-gray-600">Acesse sua conta para consultar patentes</p>
+          <p className="mt-2 text-gray-600">Acesse sua conta para criar medicamentos inovadores</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

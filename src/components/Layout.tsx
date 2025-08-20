@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { PatentResultType, TokenUsageType } from '../types';
-import PatentConsultation from './PatentConsultation';
+import { TokenUsageType } from '../types';
+import DrugPipelineCreator from './DrugPipelineCreator';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
-import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock } from 'lucide-react';
+import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock, Pill } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { parsePatentResponse } from '../utils/patentParser';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
 import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
-import PatentMonitoring from './PatentMonitoring';
+import DrugPipelineMonitoring from './DrugPipelineMonitoring';
 import { MonitoringManager } from '../utils/monitoringManager';
 
 // Componente para verificar se usuário tem acesso ao dashboard
@@ -230,8 +229,8 @@ const Layout = () => {
               <Menu size={24} />
             </button>
             <div className="flex items-center gap-3">
-              <FlaskConical size={32} className="text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h1>
+              <Pill size={32} className="text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">Pharmyrus</h1>
             </div>
           </div>
           
@@ -239,7 +238,7 @@ const Layout = () => {
             {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Conta Corporativa
+                Pharmyrus Pipeline
               </div>
             )}
             {auth.currentUser && isAdminUser(auth.currentUser.email) && (
@@ -282,8 +281,8 @@ const Layout = () => {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <FlaskConical size={24} className="text-blue-600" />
-                  <span className="font-bold text-gray-900">Patentes</span>
+                  <Pill size={24} className="text-blue-600" />
+                  <span className="font-bold text-gray-900">Pharmyrus</span>
                 </div>
                 <button
                   onClick={() => setShowSidebar(false)}
@@ -363,8 +362,8 @@ const Layout = () => {
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <FlaskConical size={16} />
-                  Nova Consulta
+                  <Pill size={16} />
+                  Histórico
                 </div>
               </button>
               {auth.currentUser && isAdminUser(auth.currentUser.email) && (
@@ -378,7 +377,7 @@ const Layout = () => {
                 >
                   <div className="flex items-center gap-2">
                     <Clock size={16} />
-                    Monitoramento
+                    Pipeline
                   </div>
                 </button>
               )}
@@ -389,12 +388,12 @@ const Layout = () => {
         <div className="grid grid-cols-1">
           <div className="w-full">
             {activeTab === 'consultation' ? (
-              <PatentConsultation 
+              <DrugPipelineCreator 
                 checkTokenUsage={() => checkTokenUsage(tokenUsage)}
                 tokenUsage={tokenUsage}
               />
             ) : (auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <PatentMonitoring />
+              <DrugPipelineMonitoring />
             ))}
             
             {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
@@ -422,7 +421,7 @@ const Layout = () => {
             </a>
 
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
+              <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências farmacêuticas:</span>
               <div className="flex items-center gap-4">
                 {patentAgencies.map((agency, index) => (
                   <div key={index} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
@@ -439,7 +438,7 @@ const Layout = () => {
           </div>
 
           <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
-            <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Pharmyrus - IA para Criação Completa de Novos Medicamentos. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

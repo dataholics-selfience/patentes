@@ -199,9 +199,9 @@ interface Translations {
 const translations: Record<Language, Translations> = {
   pt: {
     // App name and branding
-    appName: 'Consulta de Patentes',
-    patentConsultation: 'Consulta de Patentes',
-    platformDescription: 'Plataforma especializada em consulta e análise de patentes farmacêuticas com inteligência artificial.',
+    appName: 'Pharmyrus',
+    patentConsultation: 'Pipeline de Medicamentos',
+    platformDescription: 'IA completa para desenvolvimento de medicamentos inovadores com pipeline automatizado.',
     
     // Navigation and buttons
     back: 'Voltar',
@@ -239,10 +239,10 @@ const translations: Record<Language, Translations> = {
     wrongPassword: 'Senha incorreta',
     
     // Patent consultation
-    newConsultation: 'Nova Consulta',
-    consultPatent: 'Consultar Patente',
-    consulting: 'Consultando',
-    consultationPlaceholder: 'Digite o nome do produto ou substância para verificar o status da patente',
+    newConsultation: 'Novo Pipeline',
+    consultPatent: 'Criar Medicamento',
+    consulting: 'Criando Pipeline',
+    consultationPlaceholder: 'Digite a doença alvo para criar um medicamento inovador',
     substanceAnalyzed: 'Substância Analisada',
     patentStatus: 'Status da Patente',
     patentVigent: 'Patente Vigente',
@@ -274,11 +274,11 @@ const translations: Record<Language, Translations> = {
     spanish: 'Espanhol',
     
     // Landing page
-    landingTitle: 'Análise Inteligente de Patentes Farmacêuticas',
-    landingDescription: 'Verifique o status de patentes, identifique riscos regulatórios e descubra oportunidades de mercado com nossa IA especializada.',
-    freeConsultations: '100 consultas gratuitas',
-    noCreditCard: 'Sem cartão de crédito',
-    immediateAccess: 'Acesso imediato',
+    landingTitle: 'Desenvolvimento Inteligente de Medicamentos com IA',
+    landingDescription: 'Crie medicamentos inovadores, analise patentes, desenvolva estudos de mercado e gere documentação regulatória com nossa IA especializada.',
+    freeConsultations: 'Pipelines profissionais',
+    noCreditCard: 'Desenvolvimento completo',
+    immediateAccess: 'Medicamentos inovadores',
     instantVerification: 'Verificação Instantânea',
     accelerateRD: 'Acelere P&D',
     guaranteedSavings: 'Economia Garantida',
@@ -307,14 +307,14 @@ const translations: Record<Language, Translations> = {
     allRightsReserved: 'Todos os direitos reservados',
     
     // Plans - EXPANDED
-    planPesquisador: 'Pesquisador',
+    planPesquisador: 'Iniciante',
     planAnalista: 'Analista',
     planEspecialista: 'Especialista',
     planDiretor: 'Diretor',
-    planPesquisadorDescription: 'Plano inicial para pesquisadores que estão começando suas análises de patentes',
-    planAnalistaDescription: 'Plano para analistas que precisam de consultas regulares de patentes farmacêuticas',
-    planEspecialistaDescription: 'Plano para especialistas em propriedade intelectual farmacêutica',
-    planDiretorDescription: 'Plano para diretores de P&D que gerenciam portfólios extensos de patentes',
+    planPesquisadorDescription: 'Plano inicial para pesquisadores iniciando desenvolvimento farmacêutico',
+    planAnalistaDescription: 'Plano para analistas de P&D que criam pipelines regulares de medicamentos',
+    planEspecialistaDescription: 'Plano para especialistas em desenvolvimento farmacêutico avançado',
+    planDiretorDescription: 'Plano para diretores de P&D que gerenciam portfólios extensos de medicamentos',
     choosePlan: 'Escolha seu Plano',
     unlockPowerDescription: 'Desbloqueie o poder da análise de patentes com nossos planos especializados',
     mostPopular: 'Mais Popular',
@@ -333,7 +333,7 @@ const translations: Record<Language, Translations> = {
     whatsappSupport: 'Suporte via WhatsApp',
     
     // Footer
-    copyright: '© 2025 Consulta de Patentes. Todos os direitos reservados.',
+    copyright: '© 2025 Pharmyrus - IA para Desenvolvimento de Medicamentos. Todos os direitos reservados.',
     
     // Sidebar
     newChallenge: 'Novo Desafio',

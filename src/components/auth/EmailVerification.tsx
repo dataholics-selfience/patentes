@@ -204,8 +204,8 @@ const EmailVerification = () => {
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
           <div className="flex items-center justify-center gap-3 mb-6">
-            <FlaskConical size={48} className="text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
+            <Pill size={48} className="text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
           </div>
           
           {currentUserHasUnrestrictedAccess ? (
