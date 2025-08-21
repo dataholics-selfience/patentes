@@ -14,6 +14,7 @@ import UserManagement from './components/UserProfile/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
+import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -93,6 +94,15 @@ function App() {
         <Route path="/profile" element={
           user && canAccessDashboard(user) ? (
             <UserManagement />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        <Route path="/admin/serp-keys" element={
+          user && canAccessDashboard(user) ? (
+            <SerpKeyAdmin />
           ) : user && !canAccessDashboard(user) ? (
             <Navigate to="/verify-email" replace />
           ) : (

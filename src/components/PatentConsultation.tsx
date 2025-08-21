@@ -7,6 +7,7 @@ import {
   Pill,
   Target,
   MapPin,
+  Settings,
   TestTube,
   Zap,
   Loader2
@@ -17,9 +18,7 @@ import { PatentResultType, TokenUsageType, ConsultaCompleta } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
-import { getSerpKeyManager } from '../utils/serpKeyManager';
-import { initializeSerpKeyManager } from '../utils/serpKeyManager';
-import { SERP_API_KEYS } from '../utils/serpKeyData';
+import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
 
@@ -111,84 +110,15 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState('');
+  const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
-  const [userCompany, setUserCompany] = useState('');
-  const [userSessionId, setUserSessionId] = useState<string>('');
 
   // Verificar se o usuário tem tokens disponíveis
   const hasAvailableTokens = (tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0) || 
                             (auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email));
 
-
-  // Inicializar gerenciador de chaves SERP
-  useEffect(() => {
-    initializeSerpKeyManager(SERP_API_KEYS);
-  }, []);
-
-  // Gerar ou recuperar sessionId persistente para o usuário
-  useEffect(() => {
-    const getOrCreateUserSessionId = async () => {
-      if (!auth.currentUser) return;
-      
-      try {
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          
-          if (userData.sessionId) {
-            // Usar sessionId existente
-            setUserSessionId(userData.sessionId);
-          } else {
-            // Gerar novo sessionId de 24 caracteres alfanuméricos
-            const newSessionId = generateSessionId();
-            
-            // Salvar no documento do usuário
-            await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-              sessionId: newSessionId
-            });
-            
-            setUserSessionId(newSessionId);
-            console.log(`🆔 Novo sessionId gerado para usuário: ${newSessionId}`);
-          }
-        }
-      } catch (error) {
-        console.error('Error getting/creating sessionId:', error);
-        // Fallback: gerar sessionId temporário
-        setUserSessionId(generateSessionId());
-      }
-    };
-
-    getOrCreateUserSessionId();
-  }, []);
-
-  // Função para gerar sessionId de 24 caracteres alfanuméricos
-  const generateSessionId = (): string => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < 24; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
-
-  // Buscar dados do usuário
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!auth.currentUser) return;
-      
-      try {
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserCompany(userData.company || 'Empresa');
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  // Verificar se o usuário é o admin que pode ver o seletor
+  const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setSearchData(prev => ({
@@ -239,13 +169,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       return;
     }
 
-    // Verificar se há chaves SERP disponíveis
-    const manager = getSerpKeyManager();
-    if (!manager || !manager.hasAvailableCredits()) {
-      setError('Sistema temporariamente indisponível. Todas as chaves de API atingiram o limite mensal. Tente novamente no próximo mês.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     setResult(null);
@@ -253,20 +176,13 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
     const startTime = Date.now();
     try {
-      // Obter chave SERP disponível
-      const availableKey = manager.getAvailableKey();
-      if (!availableKey) {
-        throw new Error('Nenhuma chave SERP API disponível no momento');
-      }
-
       // Buscar dados do usuário para metadados
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
       const userData = userDoc.data();
 
       // Preparar dados para o webhook
       const webhookData = {
-        cliente: userCompany,
-        sessionId: userSessionId,
+        cliente: userData?.company || 'Empresa',
         nome_comercial: searchData.nome_comercial.trim(),
         nome_molecula: searchData.nome_molecula.trim(),
         industria: 'Farmacêutica',
@@ -275,7 +191,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        serpApiKey: availableKey
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
@@ -306,17 +221,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
-      // Registrar uso da chave SERP
-      const usageRecorded = manager.recordUsage(
-        availableKey, 
-        auth.currentUser.uid, 
-        `${searchData.nome_comercial} (${searchData.nome_molecula})`
-      );
-
-      if (!usageRecorded) {
-        console.warn('⚠️ Falha ao registrar uso da chave SERP');
-      }
-
       // Preparar dados completos da consulta para salvar
       const consultaCompleta: Omit<ConsultaCompleta, 'id'> = {
         userId: auth.currentUser.uid,
@@ -333,9 +237,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         pais_alvo: searchData.pais_alvo,
         
         // Metadados
-        sessionId: userSessionId,
         environment,
-        serpApiKey: availableKey.substring(0, 12) + '...', // Truncar para segurança
+        serpApiKey: 'auto', // Será selecionada automaticamente pelo webhook
         
         // Resultado
         resultado: webhookResponse,
@@ -364,17 +267,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         // Salvar consulta completa
         await addDoc(collection(db, 'consultas'), consultaCompleta);
         
-        // Salvar consulta no histórico apenas para dados de patente normais
-        const consultationData: Omit<PatentConsultationType, 'id'> = {
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email || '',
-          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId: userSessionId,
-          resultado: patentData,
-          consultedAt: new Date().toISOString()
-        };
-
-        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
       }
 
       // Atualizar tokens do usuário
@@ -425,8 +317,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       {/* Formulário Principal */}
       <div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          {/* Header */}
-          <div className="flex items-center mb-6">
+          {/* Header com seletor de ambiente para admin */}
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <FlaskConical size={32} className="text-blue-600" />
               <div>
@@ -434,6 +326,60 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
               </div>
             </div>
+
+            {/* Seletor de ambiente apenas para admin */}
+            {isAdminUser && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsEnvironmentSelectorOpen(!isEnvironmentSelectorOpen)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-colors ${
+                    environment === 'production'
+                      ? 'bg-green-600 text-white border-green-600'
+                      : 'bg-yellow-600 text-white border-yellow-600'
+                  }`}
+                >
+                  <Settings size={16} />
+                  <span className="font-medium">
+                    {environment === 'production' ? 'PRODUÇÃO' : 'TESTES'}
+                  </span>
+                </button>
+
+                {isEnvironmentSelectorOpen && (
+                  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
+                    <button
+                      onClick={() => {
+                        setEnvironment('production');
+                        setIsEnvironmentSelectorOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        environment === 'production' ? 'bg-green-50 text-green-700' : 'text-gray-700'
+                      }`}
+                    >
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">Produção</div>
+                        <div className="text-xs text-gray-500">Webhook principal</div>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEnvironment('test');
+                        setIsEnvironmentSelectorOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        environment === 'test' ? 'bg-yellow-50 text-yellow-700' : 'text-gray-700'
+                      }`}
+                    >
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div>
+                        <div className="font-medium">Testes</div>
+                        <div className="text-xs text-gray-500">Webhook de desenvolvimento</div>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {error && (
@@ -572,13 +518,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                       Países selecionados ({searchData.pais_alvo.length}):
                     </span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {searchData.pais_alvo.map((pais, index) => (
-                      <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
-                        {pais}
-                      </span>
-                    ))}
-                  </div>
+                  <CountryFlagsFromText 
+                    countriesText={searchData.pais_alvo.join(', ')}
+                    size={20}
+                    showNames={true}
+                    className="flex flex-wrap gap-2"
+                  />
                 </div>
               )}
             </div>

@@ -1,3 +1,5 @@
+import { DivideIcon as LucideIcon } from 'lucide-react';
+
 export interface MessageType {
   id: string;
   role: 'user' | 'assistant';
@@ -56,7 +58,6 @@ export interface ConsultaCompleta {
   pais_alvo: string[];
   
   // Metadados da consulta
-  sessionId: string;
   environment: 'production' | 'test';
   serpApiKey: string; // Chave usada (truncada para segurança)
   
@@ -203,4 +204,15 @@ export interface PatentResultType {
   riscos_regulatorios_eticos?: string[];
   data_vencimento_patente_novo_produto?: string | null;
   alternativas_compostos?: string[];
+}
+
+export interface PlanType {
+  id: string;
+  name: string;
+  description: string;
+  tokens: number;
+  price: number;
+  icon: LucideIcon;
+  highlight: boolean;
+  stripeLink: string;
 }

@@ -4,11 +4,55 @@ import {
   ArrowLeft, Key, Plus, Edit2, Trash2, RotateCcw, Copy,
   CheckCircle, XCircle, AlertTriangle, Save, X,
   Shield, Calendar, Phone, Mail, Settings, BarChart3, 
-  TrendingUp, Activity, Clock
+  TrendingUp, Activity, Clock, Search, Loader2
 } from 'lucide-react';
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebase';
+import { PatentResultType, ConsultaCompleta } from '../../types';
+import { parsePatentResponse, isDashboardData, parseDashboardData } from '../../utils/patentParser';
+import PatentResultsPage from '../PatentResultsPage';
+import PatentDashboardReport from '../PatentDashboardReport';
 import { getSerpKeyManager, SerpKey, ConsultationStats } from '../../utils/serpKeyManager';
-import { auth } from '../../firebase';
+import { initializeSerpKeyManager } from '../../utils/serpKeyManager';
+import { SERP_API_KEYS } from '../../utils/serpKeyData';
+import { CountryFlagsFromText } from '../../utils/countryFlags';
 import { isAdminUser } from '../../utils/serpKeyData';
+
+// Países disponíveis para seleção
+const AVAILABLE_COUNTRIES = [
+  'Brasil',
+  'Estados Unidos',
+  'União Europeia',
+  'Argentina',
+  'México',
+  'Canadá',
+  'Japão',
+  'China',
+  'Alemanha',
+  'França',
+  'Reino Unido',
+  'Austrália',
+  'Índia'
+];
+
+// Categorias farmacêuticas
+const PHARMACEUTICAL_CATEGORIES = [
+  'Antidiabéticos e Antiobesidade',
+  'Cardiovasculares',
+  'Antibióticos',
+  'Antivirais',
+  'Oncológicos',
+  'Neurológicos',
+  'Imunológicos',
+  'Respiratórios',
+  'Gastrointestinais',
+  'Dermatológicos',
+  'Oftalmológicos',
+  'Analgésicos',
+  'Anti-inflamatórios',
+  'Hormônios',
+  'Vitaminas e Suplementos'
+];
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
@@ -17,6 +61,20 @@ const SerpKeyAdmin = () => {
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingKeyData, setEditingKeyData] = useState<SerpKey | null>(null);
+  const [showConsultationForm, setShowConsultationForm] = useState(false);
+  const [isConsulting, setIsConsulting] = useState(false);
+  const [consultationResult, setConsultationResult] = useState<PatentResultType | null>(null);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [consultationError, setConsultationError] = useState('');
+  const [searchData, setSearchData] = useState({
+    nome_comercial: '',
+    nome_molecula: '',
+    categoria: '',
+    beneficio: '',
+    doenca_alvo: '',
+    pais_alvo: ['Brasil', 'Estados Unidos']
+  });
+  const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [newKey, setNewKey] = useState<Partial<SerpKey>>({
     email: '',
     phone: '',
@@ -35,6 +93,8 @@ const SerpKeyAdmin = () => {
       return;
     }
 
+    // Inicializar gerenciador de chaves SERP
+    initializeSerpKeyManager(SERP_API_KEYS);
     loadKeys();
   }, [navigate]);
 
@@ -158,6 +218,214 @@ const SerpKeyAdmin = () => {
   const totalLimit = keys.reduce((sum, key) => sum + key.monthlyLimit, 0);
   const totalConsultationsAvailable = Math.floor(totalCredits / 8);
 
+  const handleInputChange = (field: string, value: string | string[]) => {
+    setSearchData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleCountryToggle = (country: string) => {
+    setSearchData(prev => ({
+      ...prev,
+      pais_alvo: prev.pais_alvo.includes(country)
+        ? prev.pais_alvo.filter(c => c !== country)
+        : [...prev.pais_alvo, country]
+    }));
+  };
+
+  const validateConsultationForm = (): boolean => {
+    if (!searchData.nome_comercial.trim()) {
+      setConsultationError('Por favor, informe o nome comercial do produto.');
+      return false;
+    }
+    if (!searchData.nome_molecula.trim()) {
+      setConsultationError('Por favor, informe o nome da molécula.');
+      return false;
+    }
+    if (searchData.pais_alvo.length === 0) {
+      setConsultationError('Por favor, selecione pelo menos um país alvo.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleConsultationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!auth.currentUser) {
+      setConsultationError('Usuário não autenticado');
+      return;
+    }
+
+    if (!validateConsultationForm()) {
+      return;
+    }
+
+    // Verificar se há chaves SERP disponíveis
+    const manager = getSerpKeyManager();
+    if (!manager || !manager.hasAvailableCredits()) {
+      setConsultationError('Sistema temporariamente indisponível. Todas as chaves de API atingiram o limite mensal. Tente novamente no próximo mês.');
+      return;
+    }
+
+    setIsConsulting(true);
+    setConsultationError('');
+    setConsultationResult(null);
+    setDashboardData(null);
+
+    const startTime = Date.now();
+    try {
+      // Obter chave SERP disponível
+      const availableKey = manager.getAvailableKey();
+      if (!availableKey) {
+        throw new Error('Nenhuma chave SERP API disponível no momento');
+      }
+
+      // Buscar dados do usuário para metadados
+      const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      const userData = userDoc.data();
+
+      // Preparar dados para o webhook
+      const webhookData = {
+        cliente: userData?.company || 'Admin',
+        nome_comercial: searchData.nome_comercial.trim(),
+        nome_molecula: searchData.nome_molecula.trim(),
+        industria: 'Farmacêutica',
+        setor: 'Medicamentos',
+        categoria: searchData.categoria || 'Medicamentos',
+        beneficio: searchData.beneficio || 'Tratamento médico',
+        doenca_alvo: searchData.doenca_alvo || 'Condição médica',
+        pais_alvo: searchData.pais_alvo,
+        serpApiKey: availableKey
+      };
+
+      console.log('🚀 Enviando consulta de patente (Admin):', webhookData);
+
+      // URL do webhook baseada no ambiente
+      const webhookUrl = environment === 'production' 
+        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'
+        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
+
+      console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
+
+      // Enviar requisição e aguardar resposta diretamente
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro no webhook: ${response.status} ${response.statusText}`);
+      }
+
+      const webhookResponse = await response.json();
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      console.log('✅ Resposta do webhook recebida:', webhookResponse);
+
+      // Registrar uso da chave SERP
+      const usageRecorded = manager.recordUsage(
+        availableKey, 
+        auth.currentUser.uid, 
+        `${searchData.nome_comercial} (${searchData.nome_molecula}) - Admin`
+      );
+
+      if (!usageRecorded) {
+        console.warn('⚠️ Falha ao registrar uso da chave SERP');
+      }
+
+      // Preparar dados completos da consulta para salvar
+      const consultaCompleta: Omit<ConsultaCompleta, 'id'> = {
+        userId: auth.currentUser.uid,
+        userEmail: auth.currentUser.email || '',
+        userName: userData?.name || '',
+        userCompany: userData?.company || '',
+        
+        // Dados de input
+        nome_comercial: searchData.nome_comercial.trim(),
+        nome_molecula: searchData.nome_molecula.trim(),
+        categoria: searchData.categoria || 'Medicamentos',
+        beneficio: searchData.beneficio || 'Tratamento médico',
+        doenca_alvo: searchData.doenca_alvo || 'Condição médica',
+        pais_alvo: searchData.pais_alvo,
+        
+        // Metadados
+        environment,
+        serpApiKey: availableKey.substring(0, 12) + '...', // Truncar para segurança
+        
+        // Resultado
+        resultado: webhookResponse,
+        isDashboard: isDashboardData(webhookResponse),
+        
+        // Timestamps
+        consultedAt: new Date().toISOString(),
+        webhookResponseTime: responseTime
+      };
+
+      // Verificar se é dashboard ou dados de patente normais
+      if (isDashboardData(webhookResponse)) {
+        console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
+        const dashboardInfo = parseDashboardData(webhookResponse);
+        setDashboardData(dashboardInfo);
+        
+        // Salvar consulta completa
+        await addDoc(collection(db, 'consultas'), consultaCompleta);
+      } else {
+        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
+        const patentData = parsePatentResponse(webhookResponse);
+        setConsultationResult(patentData);
+        
+        // Atualizar resultado parseado na consulta
+        consultaCompleta.resultado = patentData;
+        
+        // Salvar consulta completa
+        await addDoc(collection(db, 'consultas'), consultaCompleta);
+      }
+
+      // Recarregar estatísticas
+      loadKeys();
+
+    } catch (error) {
+      console.error('❌ Erro na consulta de patente:', error);
+      setConsultationError(error instanceof Error ? error.message : 'Erro desconhecido na consulta');
+    } finally {
+      setIsConsulting(false);
+    }
+  };
+
+  const handleBackToAdmin = () => {
+    setConsultationResult(null);
+    setDashboardData(null);
+    setConsultationError('');
+    setShowConsultationForm(false);
+  };
+
+  // Se há dashboard data, mostrar dashboard
+  if (dashboardData) {
+    return (
+      <PatentDashboardReport
+        data={dashboardData}
+        onBack={handleBackToAdmin}
+      />
+    );
+  }
+
+  // Se há resultado de patente, mostrar página de resultados
+  if (consultationResult) {
+    return (
+      <PatentResultsPage
+        result={consultationResult}
+        searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
+        onBack={handleBackToAdmin}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -182,6 +450,14 @@ const SerpKeyAdmin = () => {
               </div>
             </div>
 
+            <button
+              onClick={() => setShowConsultationForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors mr-2"
+            >
+              <Search size={16} />
+              Consulta Admin
+            </button>
+            
             <button
               onClick={() => setShowAddForm(true)}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -380,6 +656,136 @@ const SerpKeyAdmin = () => {
                 Cancelar
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Formulário de Consulta Admin */}
+        {showConsultationForm && (
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">Consulta de Patente - Admin</h3>
+              <div className="flex items-center gap-2">
+                <select
+                  value={environment}
+                  onChange={(e) => setEnvironment(e.target.value as 'production' | 'test')}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="production">Produção</option>
+                  <option value="test">Teste</option>
+                </select>
+                <button
+                  onClick={() => setShowConsultationForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {consultationError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600">{consultationError}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleConsultationSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Nome comercial *"
+                  value={searchData.nome_comercial}
+                  onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isConsulting}
+                />
+                <input
+                  type="text"
+                  placeholder="Nome da molécula *"
+                  value={searchData.nome_molecula}
+                  onChange={(e) => handleInputChange('nome_molecula', e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isConsulting}
+                />
+              </div>
+
+              <select
+                value={searchData.categoria}
+                onChange={(e) => handleInputChange('categoria', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isConsulting}
+              >
+                <option value="">Selecione uma categoria</option>
+                {PHARMACEUTICAL_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Benefício principal"
+                  value={searchData.beneficio}
+                  onChange={(e) => handleInputChange('beneficio', e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isConsulting}
+                />
+                <input
+                  type="text"
+                  placeholder="Doença alvo"
+                  value={searchData.doenca_alvo}
+                  onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isConsulting}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Países Alvo * (selecione pelo menos um)
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {AVAILABLE_COUNTRIES.map(country => (
+                    <label
+                      key={country}
+                      className={`flex items-center gap-2 p-2 border rounded cursor-pointer transition-colors text-sm ${
+                        searchData.pais_alvo.includes(country)
+                          ? 'bg-blue-50 border-blue-300 text-blue-700'
+                          : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      } ${isConsulting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={searchData.pais_alvo.includes(country)}
+                        onChange={() => !isConsulting && handleCountryToggle(country)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                        disabled={isConsulting}
+                      />
+                      <span className="font-medium">{country}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isConsulting || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isConsulting ? (
+                  <>
+                    <Loader2 size={20} className="animate-spin" />
+                    Consultando...
+                  </>
+                ) : (
+                  <>
+                    <Search size={20} />
+                    Consultar Patente
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         )}
 
