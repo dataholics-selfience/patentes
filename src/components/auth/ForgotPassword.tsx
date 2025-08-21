@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { Pill } from 'lucide-react';
+import { FlaskConical } from 'lucide-react';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -39,11 +39,8 @@ const ForgotPassword = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <img 
-              src="/logo-pharmyrus.jpg" 
-              alt="Pharmyrus" 
-              className="h-12 w-auto"
-            />
+            <FlaskConical size={48} className="text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Recuperar Senha</h2>
         </div>

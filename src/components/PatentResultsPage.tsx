@@ -239,11 +239,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
               </button>
               
               <div className="flex items-center gap-3">
-                <img 
-                  src="/logo-pharmyrus.jpg" 
-                  alt="Pharmyrus" 
-                  className="h-8 w-auto"
-                />
+                <FlaskConical size={32} className="text-blue-600" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Análise Completa de Propriedade Intelectual</h1>
                   <p className="text-gray-600">Relatório detalhado do produto farmacêutico</p>

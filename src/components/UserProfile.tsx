@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserType, TokenUsageType } from '../types';
+import { User } from 'lucide-react';
 
 interface UserProfileProps {
   hideText?: boolean;
@@ -53,14 +54,19 @@ const UserProfile = ({ hideText = false }: UserProfileProps) => {
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-900">{firstName}</span>
-            <span className="text-xs text-gray-600">({userData.plan || 'Pesquisador'})</span>
+            {!userData.unrestrictedAccess && (
+              <span className="text-xs text-gray-600">({userData.plan || 'Pesquisador'})</span>
+            )}
+            {userData.unrestrictedAccess && (
+              <span className="text-xs text-green-600 font-medium">(Acesso Corporativo)</span>
+            )}
           </div>
           {tokenUsage && (
             <div className="text-xs">
               <span className="text-blue-600">{tokenUsage.totalTokens - tokenUsage.usedTokens}</span>
               <span className="text-gray-600">
                 {tokenUsage.totalTokens > 0 
-                  ? ` de ${tokenUsage.totalTokens} consultas` 
+                  ? ` de ${tokenUsage.totalTokens} consultas${tokenUsage.autoRenewal ? ' (mensal)' : ''}` 
                   : ' - Sem plano ativo'
                 }
               </span>

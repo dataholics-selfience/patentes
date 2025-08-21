@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Pill, Shield, Clock, TrendingUp, Users, CheckCircle, 
+  FlaskConical, Shield, Clock, TrendingUp, Users, CheckCircle, 
   ArrowRight, Phone, Mail, Globe, Zap, Target, Award,
   MessageCircle, Star, ChevronRight
 } from 'lucide-react';
@@ -33,43 +33,43 @@ const LandingPage = () => {
   const features = [
     {
       icon: Shield,
-      title: "Análise Completa de Patentes",
-      description: "Verificação global de propriedade intelectual e identificação de oportunidades para novos medicamentos."
+      title: "Verificação Instantânea de Patentes",
+      description: "Consulte o status de patentes farmacêuticas em segundos, evitando riscos jurídicos e multas milionárias."
     },
     {
       icon: Clock,
-      title: "Pipeline Acelerado",
-      description: "Reduza o tempo de desenvolvimento de medicamentos de anos para meses com nossa IA especializada."
+      title: "Acelere seu P&D",
+      description: "Reduza o tempo de pesquisa e desenvolvimento identificando rapidamente oportunidades de mercado."
     },
     {
       icon: TrendingUp,
-      title: "Estudos de Mercado Completos",
-      description: "TAM SAM SOM, análise SWOT, precificação e estratégia de entrada automáticos."
+      title: "Economia Garantida",
+      description: "Elimine a necessidade de consultorias caras. Nossa IA oferece análises precisas por uma fração do custo."
     },
     {
       icon: Globe,
-      title: "Aprovação Regulatória",
-      description: "Documentação completa para FDA, EMA, ANVISA e outras agências internacionais."
+      title: "Cobertura Internacional",
+      description: "Acesse informações de patentes de múltiplos países e jurisdições em uma única plataforma."
     },
     {
       icon: Target,
-      title: "Medicamentos Inovadores",
-      description: "IA cria novas formulações e compostos com base em gaps de mercado identificados."
+      title: "Análise de Riscos",
+      description: "Identifique riscos regulatórios e éticos antes de investir em desenvolvimento de produtos."
     },
     {
       icon: Zap,
-      title: "Documentação Automática",
-      description: "Gere automaticamente toda documentação necessária para registro de patentes e aprovações."
+      title: "Alternativas Inteligentes",
+      description: "Descubra compostos análogos e alternativas viáveis para seus projetos de inovação."
     }
   ];
 
   const benefits = [
-    "Crie medicamentos inovadores em meses ao invés de anos",
-    "Reduza custos de P&D em até 80% com IA especializada",
-    "Acelere aprovações regulatórias com documentação automática",
-    "Identifique gaps de mercado e oportunidades inexploradas",
-    "Minimize riscos de desenvolvimento com análise preditiva",
-    "Otimize investimentos com projeções financeiras precisas"
+    "Evite processos judiciais custosos por violação de patentes",
+    "Reduza custos de consultoria em até 90%",
+    "Acelere o time-to-market de novos produtos",
+    "Identifique oportunidades de mercado inexploradas",
+    "Minimize riscos regulatórios e éticos",
+    "Otimize investimentos em P&D"
   ];
 
   const stats = [
@@ -83,26 +83,30 @@ const LandingPage = () => {
     {
       name: "Instituto Nacional da Propriedade Industrial",
       country: "Brasil",
-      logo: "/inpi-logo-1.jpeg",
-      alt: "INPI Brasil"
+      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "INPI Brasil",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "United States Patent and Trademark Office",
       country: "Estados Unidos",
-      logo: "/uspto-logo-2.png",
-      alt: "USPTO"
+      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "USPTO",
+      size: "normal"
     },
     {
       name: "European Patent Office",
       country: "Europa",
-      logo: "/epto-logo-3.png",
-      alt: "EPO"
+      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "EPO",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "World Intellectual Property Organization",
       country: "Internacional",
-      logo: "/Wipo-logo-4.png",
-      alt: "WIPO"
+      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "WIPO",
+      size: "normal"
     }
   ];
 
@@ -113,11 +117,8 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
-              <img 
-                src="/logo-pharmyrus.jpg" 
-                alt="Pharmyrus" 
-                className="h-8 w-auto"
-              />
+              <FlaskConical size={32} className="text-blue-600" />
+              <span className="text-2xl font-bold text-gray-900">Consulta de Patentes</span>
             </div>
             <div className="flex items-center gap-4">
               <Link 
@@ -143,14 +144,14 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Crie Medicamentos
-                <span className="text-blue-600"> Inovadores</span>
-                <br />com IA
+                Verifique Patentes
+                <span className="text-blue-600"> Farmacêuticas</span>
+                <br />em Segundos
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Pipeline completo de desenvolvimento farmacêutico: análise de patentes, preços, 
-                estudos de mercado, SWOT, TAM SAM SOM, criação de medicamentos inovadores e 
-                documentação para registro com nossa IA especializada.
+                Proteja sua empresa de riscos jurídicos, acelere seu P&D e economize milhões 
+                em consultorias com nossa plataforma de inteligência artificial especializada 
+                em propriedade intelectual farmacêutica.
               </p>
               
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -177,24 +178,24 @@ const LandingPage = () => {
               )}
               
               <p className="text-sm text-gray-500">
-                ✅ Pipeline completo • ✅ Medicamentos inovadores • ✅ Documentação regulatória
+                ✅ Planos profissionais • ✅ Análise especializada • ✅ Acesso imediato
               </p>
             </div>
             
             <div className="relative">
               <img 
-                src="https://images.pexels.com/photos/3825527/pexels-photo-3825527.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                alt="Desenvolvimento de medicamentos com IA"
+                src="https://images.pexels.com/photos/3786126/pexels-photo-3786126.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                alt="Laboratório farmacêutico moderno"
                 className="rounded-2xl shadow-2xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-xl shadow-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <Pill className="text-green-600" size={24} />
+                    <CheckCircle className="text-green-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">Medicamento Criado</p>
-                    <p className="text-sm text-gray-600">Pipeline: Completo</p>
+                    <p className="font-semibold text-gray-900">Patente Verificada</p>
+                    <p className="text-sm text-gray-600">Status: Livre para uso</p>
                   </div>
                 </div>
               </div>
@@ -222,11 +223,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Conectado às Principais Agências Farmacêuticas Mundiais
+              Conectado às Principais Agências de Patentes Mundiais
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA consulta dados em tempo real das mais importantes 
-              agências regulatórias e de propriedade intelectual farmacêutica do mundo.
+              Nossa plataforma consulta dados em tempo real das mais importantes 
+              organizações de propriedade intelectual do mundo.
             </p>
           </div>
           
@@ -237,7 +238,10 @@ const LandingPage = () => {
                   <img
                     src={agency.logo}
                     alt={agency.alt}
-                    className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                    className={`max-h-full max-w-full object-contain ${
+                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                      agency.size === 'reduced' ? 'scale-80' : ''
+                    }`}
                   />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
@@ -273,11 +277,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que Empresas Farmacêuticas Escolhem o Pharmyrus?
+              Por que Empresas Farmacêuticas Escolhem Nossa Plataforma?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA especializada cria pipelines completos de medicamentos, 
-              acelerando a inovação e reduzindo riscos no desenvolvimento farmacêutico.
+              Nossa IA especializada oferece análises precisas e instantâneas, 
+              protegendo empresas e acelerando a inovação.
             </p>
           </div>
           
@@ -301,11 +305,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                Revolucione o Desenvolvimento Farmacêutico
+                Transforme Riscos em Oportunidades
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                No setor farmacêutico, o desenvolvimento de um novo medicamento pode levar 15 anos e custar bilhões. 
-                O Pharmyrus acelera esse processo com IA especializada e análise completa.
+                No setor farmacêutico, uma única violação de patente pode custar milhões. 
+                Nossa plataforma elimina esses riscos e acelera sua inovação.
               </p>
               
               <div className="space-y-4">
@@ -322,7 +326,7 @@ const LandingPage = () => {
                   to="/register" 
                   className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center gap-2"
                 >
-                  Criar Primeiro Pipeline
+                  Começar Análise Agora
                   <ChevronRight size={20} />
                 </Link>
               </div>
@@ -330,14 +334,14 @@ const LandingPage = () => {
             
             <div className="relative">
               <img 
-                src="https://images.pexels.com/photos/3786126/pexels-photo-3786126.jpeg?auto=compress&cs=tinysrgb&w=800" 
-                alt="Laboratório de desenvolvimento farmacêutico"
+                src="https://images.pexels.com/photos/3825527/pexels-photo-3825527.jpeg?auto=compress&cs=tinysrgb&w=800" 
+                alt="Pesquisador analisando dados"
                 className="rounded-2xl shadow-2xl"
               />
               <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">15 meses</div>
-                  <div className="text-sm text-gray-600">Tempo economizado</div>
+                  <div className="text-2xl font-bold text-red-600">R$ 2.5M</div>
+                  <div className="text-sm text-gray-600">Economia em 1 ano</div>
                 </div>
               </div>
             </div>
@@ -349,11 +353,11 @@ const LandingPage = () => {
       <section className="py-20 bg-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Pronto para Revolucionar seu P&D?
+            Pronto para Proteger sua Empresa?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Junte-se a empresas farmacêuticas que já aceleram o desenvolvimento 
-            de medicamentos com o Pharmyrus.
+            Junte-se a centenas de empresas que já protegem seus investimentos 
+            e aceleram a inovação com nossa plataforma.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -383,15 +387,12 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <img 
-                  src="/logo-pharmyrus.jpg" 
-                  alt="Pharmyrus" 
-                  className="h-8 w-auto"
-                />
+                <FlaskConical size={32} className="text-blue-400" />
+                <span className="text-2xl font-bold">Consulta de Patentes</span>
               </div>
               <p className="text-gray-400 mb-6">
-                IA completa para criação de novos medicamentos: análise de patentes, estudos de mercado, 
-                desenvolvimento de formulações inovadoras e documentação regulatória automática.
+                Plataforma de inteligência artificial especializada em análise de patentes 
+                farmacêuticas, protegendo empresas e acelerando a inovação.
               </p>
               <div className="flex items-center gap-4">
                 <a 
@@ -435,7 +436,10 @@ const LandingPage = () => {
                     <img
                       src={agency.logo}
                       alt={agency.alt}
-                      className="h-8 object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
+                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                        agency.size === 'reduced' ? 'scale-80' : ''
+                      }`}
                     />
                   </div>
                 ))}
@@ -443,7 +447,7 @@ const LandingPage = () => {
             </div>
             
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 Pharmyrus - IA para Criação Completa de Novos Medicamentos. Todos os direitos reservados.</p>
+              <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
             </div>
           </div>
         </div>

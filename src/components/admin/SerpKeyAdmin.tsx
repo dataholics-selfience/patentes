@@ -9,8 +9,6 @@ import {
 import { getSerpKeyManager, SerpKey, ConsultationStats } from '../../utils/serpKeyManager';
 import { auth } from '../../firebase';
 import { isAdminUser } from '../../utils/serpKeyData';
-import { SERP_API_KEYS } from '../../utils/serpKeyData';
-import { initializeSerpKeyManager } from '../../utils/serpKeyManager';
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
@@ -36,9 +34,6 @@ const SerpKeyAdmin = () => {
       navigate('/');
       return;
     }
-
-    // Inicializar gerenciador de chaves SERP
-    initializeSerpKeyManager(SERP_API_KEYS);
 
     loadKeys();
   }, [navigate]);
@@ -179,11 +174,7 @@ const SerpKeyAdmin = () => {
               </button>
               
               <div className="flex items-center gap-3">
-                <img 
-                  src="/logo-pharmyrus.jpg" 
-                  alt="Pharmyrus" 
-                  className="h-8 w-auto"
-                />
+                <Shield size={32} className="text-red-600" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Admin SUDO - Chaves SERP API</h1>
                   <p className="text-gray-600">Gerenciamento de chaves da SerpAPI</p>
