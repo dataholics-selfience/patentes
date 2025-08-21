@@ -223,10 +223,10 @@ const EmailVerification = () => {
                   <div className="font-medium mb-2">Configuração Automática:</div>
                   <div className="text-left space-y-1">
                     <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                    • {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais<br/>
+                    <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                     <div>• Empresa: {UNRESTRICTED_USER_CONFIG.company}</div>
-                    • Renovação automática todo mês<br/>
-                    • Sem necessidade de verificação de e-mail
+                    <div>• Renovação automática todo mês</div>
+                    <div>• Sem necessidade de verificação de e-mail</div>
                   </div>
                 </div>
               </div>

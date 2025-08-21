@@ -83,30 +83,22 @@ const LandingPage = () => {
     {
       name: "Instituto Nacional da Propriedade Industrial",
       country: "Brasil",
-      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "INPI Brasil",
-      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+      abbreviation: "INPI Brasil"
     },
     {
       name: "United States Patent and Trademark Office",
       country: "Estados Unidos",
-      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "USPTO",
-      size: "normal"
+      abbreviation: "USPTO"
     },
     {
       name: "European Patent Office",
       country: "Europa",
-      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "EPO",
-      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
+      abbreviation: "EPO"
     },
     {
       name: "World Intellectual Property Organization",
       country: "Internacional",
-      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "WIPO",
-      size: "normal"
+      abbreviation: "WIPO"
     }
   ];
 
@@ -239,17 +231,12 @@ const LandingPage = () => {
             {patentAgencies.map((agency, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow text-center">
                 <div className="h-20 flex items-center justify-center mb-4">
-                  <img
-                    src={agency.logo}
-                    alt={agency.alt}
-                    className={`max-h-full max-w-full object-contain ${
-                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
-                      agency.size === 'reduced' ? 'scale-80' : ''
-                    }`}
-                  />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 mb-1">{agency.abbreviation}</div>
+                    <div className="text-xs text-gray-500">{agency.country}</div>
+                  </div>
                 </div>
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
-                <p className="text-xs text-gray-600">{agency.country}</p>
               </div>
             ))}
           </div>
@@ -436,17 +423,11 @@ const LandingPage = () => {
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="text-center mb-6">
               <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Bases de Dados Farmacêuticas</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-items-center">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {patentAgencies.map((agency, index) => (
-                  <div key={index} className="bg-white p-3 rounded-lg">
-                    <img
-                      src={agency.logo}
-                      alt={agency.alt}
-                      className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
-                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
-                        agency.size === 'reduced' ? 'scale-80' : ''
-                      }`}
-                    />
+                  <div key={index} className="bg-white p-3 rounded-lg text-center">
+                    <div className="text-lg font-bold text-blue-600">{agency.abbreviation}</div>
+                    <div className="text-xs text-gray-600">{agency.country}</div>
                   </div>
                 ))}
               </div>

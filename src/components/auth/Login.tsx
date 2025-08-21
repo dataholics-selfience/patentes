@@ -225,10 +225,8 @@ const Login = () => {
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                     <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
                       <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                      <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                     <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                       <div>• Renovação automática todo mês</div>
-                      <div>• Sem necessidade de verificação de e-mail</div>
                     <div>• Sem necessidade de verificação de e-mail</div>
                   </div>
                 </div>
