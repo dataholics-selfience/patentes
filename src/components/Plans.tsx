@@ -3,17 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Microscope, Pill, Dna, Sparkles, ArrowLeft, Shield, Lock } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
-
-interface PlanType {
-  id: string;
-  name: string;
-  description: string;
-  tokens: number;
-  price: number;
-  icon: any;
-  highlight: boolean;
-  stripeLink: string;
-}
+import { PlanType } from '../types';
 
 const SecurityBadge = ({ icon: Icon, text }: { icon: any; text: string }) => (
   <div className="flex items-center gap-2 text-gray-600">

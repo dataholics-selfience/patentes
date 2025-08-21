@@ -9,8 +9,6 @@ import {
 import { getSerpKeyManager, SerpKey, ConsultationStats } from '../../utils/serpKeyManager';
 import { auth } from '../../firebase';
 import { isAdminUser } from '../../utils/serpKeyData';
-import { SERP_API_KEYS } from '../../utils/serpKeyData';
-import { initializeSerpKeyManager } from '../../utils/serpKeyManager';
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
@@ -36,9 +34,6 @@ const SerpKeyAdmin = () => {
       navigate('/');
       return;
     }
-
-    // Inicializar gerenciador de chaves SERP
-    initializeSerpKeyManager(SERP_API_KEYS);
 
     loadKeys();
   }, [navigate]);

@@ -10,7 +10,7 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import EmailVerification from './components/auth/EmailVerification';
 import AccountDeleted from './components/AccountDeleted';
 import Plans from './components/Plans';
-import UserManagement from './components/UserManagement';
+import UserManagement from './components/UserProfile/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';

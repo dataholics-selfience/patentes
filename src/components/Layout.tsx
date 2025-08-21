@@ -9,8 +9,11 @@ import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock, Pill }
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
+import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
+import DrugPipelineMonitoring from './DrugPipelineMonitoring';
+import { MonitoringManager } from '../utils/monitoringManager';
 
 // Componente para verificar se usuário tem acesso ao dashboard
 const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
@@ -174,6 +177,9 @@ const Layout = () => {
         if (tokenDoc.exists()) {
           setTokenUsage(tokenDoc.data() as TokenUsageType);
         }
+        
+        // Inicializar monitoramentos automáticos
+        MonitoringManager.initializeScheduledMonitorings(auth.currentUser!.uid);
       } catch (error) {
         console.error('Error fetching token usage:', error);
       }
@@ -346,12 +352,40 @@ const Layout = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('consultation')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'consultation'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Pill size={16} />
+                  Histórico
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1">
           <div className="w-full">
             <DrugPipelineCreator 
               checkTokenUsage={() => checkTokenUsage(tokenUsage)}
               tokenUsage={tokenUsage}
             />
+            
+            {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
+            {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
+              <div className="mt-8">
+                <SerpKeyStats />
+              </div>
+            )}
           </div>
         </div>
       </main>
