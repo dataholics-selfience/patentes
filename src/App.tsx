@@ -3,21 +3,27 @@ import { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
+import UserManagement from './components/UserProfile/UserManagement';
 import EmailVerification from './components/auth/EmailVerification';
 import AccountDeleted from './components/AccountDeleted';
-import Plans from './components/Plans';
-import UserManagement from './components/UserProfile/UserManagement';
-import LandingPage from './components/LandingPage';
-import Terms from './components/Terms';
-import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
-import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
+import Pipeline from './components/Pipeline';
+import ClientDetail from './components/ClientDetail';
+import BusinessDetail from './components/BusinessDetail';
+import SalesmanRegistration from './components/SalesmanRegistration';
+import AdminRegistration from './components/AdminRegistration';
+import ServiceManagement from './components/ServiceManagement';
+import Dashboard from './components/Dashboard';
+import StageManagement from './components/StageManagement';
+import { UserType } from './types';
 
 function App() {
   const [user, setUser] = useState<any>(null);
+  const [userData, setUserData] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +34,12 @@ function App() {
           if (userDoc.exists() && userDoc.data().disabled) {
             await signOut(auth);
             setUser(null);
+            setUserData(null);
           } else {
             setUser(user);
+            if (userDoc.exists()) {
+              setUserData(userDoc.data() as UserType);
+            }
           }
         } catch (error) {
           console.error('Error checking user status:', error);
@@ -37,6 +47,7 @@ function App() {
         }
       } else {
         setUser(null);
+        setUserData(null);
       }
       setLoading(false);
     });
@@ -44,109 +55,46 @@ function App() {
     return () => unsubscribe();
   }, []);
 
-  const canAccessDashboard = (user: any): boolean => {
-    if (!user) return false;
-    
-    if (hasUnrestrictedAccess(user.email)) {
-      console.log(`✅ Acesso irrestrito concedido para: ${user.email}`);
-      return true;
-    }
-    
-    // Verificar se o usuário tem tokens disponíveis além da verificação de email
-    return user.emailVerified;
-  };
-
-  const shouldRedirectToPlans = (user: any): boolean => {
-    if (!user) return false;
-    
-    // Usuários com acesso irrestrito nunca vão para planos
-    if (hasUnrestrictedAccess(user.email)) {
-      return false;
-    }
-    
-    // Outros usuários verificados vão para planos
-    return user.emailVerified;
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-900">Carregando...</div>
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/home" element={<LandingPage />} />
-        <Route path="/terms" element={<Terms />} />
-        
-        {/* Auth routes */}
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/verify-email" element={<EmailVerification />} />
-        <Route path="/account-deleted" element={<AccountDeleted />} />
-        
-        {/* Protected routes */}
-        <Route path="/profile" element={
-          user && canAccessDashboard(user) ? (
-            <UserManagement />
-          ) : user && !canAccessDashboard(user) ? (
-            <Navigate to="/verify-email" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        <Route path="/admin/serp-keys" element={
-          user && canAccessDashboard(user) ? (
-            <SerpKeyAdmin />
-          ) : user && !canAccessDashboard(user) ? (
-            <Navigate to="/verify-email" replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        <Route path="/plans" element={
-          user && hasUnrestrictedAccess(user.email) ? (
-            <Navigate to="/dashboard" replace />
-          ) : (
-            <Plans />
-          )
-        } />
-        <Route path="/dashboard" element={
-          user ? (
-            hasUnrestrictedAccess(user.email) ? (
-              <Layout />
-            ) : canAccessDashboard(user) ? (
-              <Navigate to="/plans" replace />
+    <ThemeProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
+          <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
+          <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/" replace />} />
+          <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/profile" element={userData?.emailVerified ? <UserManagement /> : <Navigate to="/verify-email" replace />} />
+          <Route path="/client/:id" element={userData?.emailVerified ? <ClientDetail /> : <Navigate to="/verify-email" replace />} />
+          <Route path="/negocio/:id" element={userData?.emailVerified ? <BusinessDetail /> : <Navigate to="/verify-email" replace />} />
+          <Route path="/cadastro-vendedor" element={userData?.emailVerified && userData?.role === 'admin' ? <SalesmanRegistration /> : <Navigate to="/" replace />} />
+          <Route path="/cadastro-administrador" element={userData?.emailVerified && userData?.role === 'admin' ? <AdminRegistration /> : <Navigate to="/" replace />} />
+          <Route path="/services" element={userData?.emailVerified && userData?.role === 'admin' ? <ServiceManagement /> : <Navigate to="/" replace />} />
+          <Route path="/stages" element={userData?.emailVerified && userData?.role === 'admin' ? <StageManagement /> : <Navigate to="/" replace />} />
+          <Route path="/dashboard" element={userData?.emailVerified ? <Dashboard /> : <Navigate to="/verify-email" replace />} />
+          <Route path="/account-deleted" element={<AccountDeleted />} />
+          <Route path="/" element={
+            user ? (
+              userData?.emailVerified ? (
+                <Pipeline />
+              ) : (
+                <Navigate to="/verify-email" replace />
+              )
             ) : (
-              <Navigate to="/verify-email" replace />
+              <Navigate to="/login" replace />
             )
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        
-        {/* Default routes */}
-        <Route path="/" element={
-          user ? (
-            hasUnrestrictedAccess(user.email) ? (
-              <Layout />
-            ) : shouldRedirectToPlans(user) ? (
-              <Navigate to="/plans" replace />
-            ) : (
-              <Navigate to="/verify-email" replace />
-            )
-          ) : (
-            <LandingPage />
-          )
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Router>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
