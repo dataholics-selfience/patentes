@@ -229,11 +229,8 @@ const Layout = () => {
               <Menu size={24} />
             </button>
             <div className="flex items-center gap-3">
-              <img 
-                src="/logo-pharmyrus.jpg" 
-                alt="Pharmyrus" 
-                className="h-8 w-auto"
-              />
+              <Pill size={32} className="text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">Pharmyrus</h1>
             </div>
           </div>
           
@@ -412,7 +409,7 @@ const Layout = () => {
                     <img
                       src={agency.logo}
                       alt={agency.alt}
-                      className="h-6 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      className="h-6 object-contain opacity-80 hover:opacity-100 transition-opacity"
                       title={agency.name}
                     />
                   </div>

@@ -132,9 +132,9 @@ const Sidebar = ({ isOpen, toggleSidebar, challenges, currentChallengeId, onSele
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-800">
           <img 
-            src="/logo-pharmyrus.jpg" 
-            alt="Pharmyrus" 
-            className="h-8 w-auto"
+            src="https://genoi.net/wp-content/uploads/2024/12/Logo-gen.OI-Novo-1-2048x1035.png" 
+            alt="Genie Logo" 
+            className="h-12"
           />
           <button
             onClick={toggleSidebar}

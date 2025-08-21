@@ -19,6 +19,8 @@ import { parsePatentResponse, isDashboardData, parseDashboardData } from '../uti
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
 import { getSerpKeyManager } from '../utils/serpKeyManager';
+import { initializeSerpKeyManager } from '../utils/serpKeyManager';
+import { SERP_API_KEYS } from '../utils/serpKeyData';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';

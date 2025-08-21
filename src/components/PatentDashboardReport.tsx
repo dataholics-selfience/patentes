@@ -189,11 +189,7 @@ const PatentDashboardReport = ({ data, onBack }: PatentDashboardReportProps) => 
               </button>
               
               <div className="flex items-center gap-3">
-                <img 
-                  src="/logo-pharmyrus.jpg" 
-                  alt="Pharmyrus" 
-                  className="h-8 w-auto"
-                />
+                <FlaskConical size={32} className="text-blue-600" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Dashboard de Oportunidade de Mercado</h1>
                   <p className="text-gray-600">Análise estratégica e proposta de produto</p>
