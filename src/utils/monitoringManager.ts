@@ -14,7 +14,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { ConsultaCompleta } from '../types';
-import { getSerpKeyManager } from './serpKeyManager';
 
 // Configuração da Evolution API para WhatsApp
 const EVOLUTION_API_CONFIG = {

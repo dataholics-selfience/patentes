@@ -39,7 +39,11 @@ const ForgotPassword = () => {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <img src="/logo-pharmyrus.jpg" alt="Pharmyrus" className="h-16" />
+            <img 
+              src="/logo-pharmyrus.jpg" 
+              alt="Pharmyrus" 
+              className="h-12 w-auto"
+            />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Recuperar Senha</h2>
         </div>

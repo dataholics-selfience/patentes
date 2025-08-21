@@ -52,16 +52,19 @@ function App() {
       return true;
     }
     
+    // Verificar se o usuário tem tokens disponíveis além da verificação de email
     return user.emailVerified;
   };
 
   const shouldRedirectToPlans = (user: any): boolean => {
     if (!user) return false;
     
+    // Usuários com acesso irrestrito nunca vão para planos
     if (hasUnrestrictedAccess(user.email)) {
       return false;
     }
     
+    // Outros usuários verificados vão para planos
     return user.emailVerified;
   };
 

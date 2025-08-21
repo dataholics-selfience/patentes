@@ -117,7 +117,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
-              <img src="/logo-pharmyrus.jpg" alt="Pharmyrus" className="h-10" />
+              <img 
+                src="/logo-pharmyrus.jpg" 
+                alt="Pharmyrus" 
+                className="h-8 w-auto"
+              />
             </div>
             <div className="flex items-center gap-4">
               <Link 
@@ -237,7 +241,7 @@ const LandingPage = () => {
                   <img
                     src={agency.logo}
                     alt={agency.alt}
-                    className="max-h-full max-w-full object-contain"
+                    className="h-8 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
                   />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
@@ -383,7 +387,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo-pharmyrus.jpg" alt="Pharmyrus" className="h-12" />
+                <img 
+                  src="/logo-pharmyrus.jpg" 
+                  alt="Pharmyrus" 
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-gray-400 mb-6">
                 IA completa para criação de novos medicamentos: análise de patentes, estudos de mercado, 
@@ -431,7 +439,10 @@ const LandingPage = () => {
                     <img
                       src={agency.logo}
                       alt={agency.alt}
-                      className="h-8 object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
+                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                        agency.size === 'reduced' ? 'scale-80' : ''
+                      }`}
                     />
                   </div>
                 ))}

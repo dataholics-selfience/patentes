@@ -6,116 +6,14 @@ import {
   Shield, Calendar, Phone, Mail, Settings, BarChart3, 
   TrendingUp, Activity, Clock
 } from 'lucide-react';
+import { getSerpKeyManager, SerpKey, ConsultationStats } from '../../utils/serpKeyManager';
 import { auth } from '../../firebase';
-
-// SERP API Keys data
-export interface SerpKey {
-  id: string;
-  email: string;
-  phone: string;
-  instance: string;
-  key: string;
-  monthlyLimit: number;
-  currentUsage: number;
-  lastResetDate: string;
-  renewalDate: string;
-  isActive: boolean;
-  isDev: boolean;
-}
-
-// Base de dados das chaves SERP API
-const SERP_API_KEYS: SerpKey[] = [
-  {
-    id: 'serp_001',
-    email: 'daniel.mendes@dataholics.io',
-    phone: '11995736666',
-    instance: 'Instância 1',
-    key: '11e7b23032aae12b0f75c06af0ad60a861e9f7ea6d53fc7ca039aed18b5e3573',
-    monthlyLimit: 100,
-    currentUsage: 100,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-07-26',
-    isActive: false,
-    isDev: false
-  },
-  {
-    id: 'serp_002',
-    email: 'innovagenoi2@gmail.com',
-    phone: '5511988092945',
-    instance: 'Instância 2',
-    key: '3f22448f4d43ce8259fa2f7f6385222323a67c4ce4e72fcc774b43d23812889d',
-    monthlyLimit: 100,
-    currentUsage: 100,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-08-08',
-    isActive: false,
-    isDev: false
-  },
-  {
-    id: 'serp_003',
-    email: 'innovagenoi3@gmail.com',
-    phone: '5511966423140',
-    instance: 'Instância 3',
-    key: '871b533d956978e967e7621c871d53fb448bc36e90af6389eda2aca3420236e1',
-    monthlyLimit: 100,
-    currentUsage: 100,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-08-08',
-    isActive: false,
-    isDev: false
-  },
-  {
-    id: 'serp_004',
-    email: 'innovagenoi@gmail.com',
-    phone: '5511945616521',
-    instance: 'Instância 4 (Keith)',
-    key: '81a36621f3efc12ca9bdd1c0dbcc30d3ab2f2dea5f9e42af3508ff04ee8ed527',
-    monthlyLimit: 100,
-    currentUsage: 100,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-08-09',
-    isActive: false,
-    isDev: false
-  },
-  {
-    id: 'serp_005',
-    email: 'innovagenoi4@gmail.com',
-    phone: '5511976722257',
-    instance: 'Instância 5 (LG)',
-    key: 'bc20bca64032a7ac59abf330bbdeca80aa79cd72bb208059056b10fb6e33e4bc',
-    monthlyLimit: 100,
-    currentUsage: 49,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-08-09',
-    isActive: true,
-    isDev: true
-  },
-  {
-    id: 'serp_006',
-    email: 'innovagenoi5@gmail.com',
-    phone: '5511940685027',
-    instance: 'Instância 6 (Keith Clínica)',
-    key: '5e7943e3a4832058ab4f430b46e29c7e2cf3522b50e7aba2f19bea45c480c790',
-    monthlyLimit: 100,
-    currentUsage: 0,
-    lastResetDate: new Date().toISOString(),
-    renewalDate: '2025-08-10',
-    isActive: true,
-    isDev: false
-  }
-];
-
-// Email do admin
-const ADMIN_EMAIL = 'innovagenoi@gmail.com';
-
-// Função para verificar se o usuário é admin
-const isAdminUser = (email: string | null): boolean => {
-  return email === ADMIN_EMAIL;
-};
+import { isAdminUser } from '../../utils/serpKeyData';
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
   const [keys, setKeys] = useState<SerpKey[]>([]);
+  const [consultationStats, setConsultationStats] = useState<ConsultationStats | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingKeyData, setEditingKeyData] = useState<SerpKey | null>(null);
@@ -141,30 +39,65 @@ const SerpKeyAdmin = () => {
   }, [navigate]);
 
   const loadKeys = () => {
-    setKeys(SERP_API_KEYS);
+    const manager = getSerpKeyManager();
+    if (manager) {
+      setKeys(manager.getAllKeys());
+      setConsultationStats(manager.getConsultationStats());
+    }
   };
 
   const handleAddKey = () => {
-    // Implementação simplificada para visualização
-    console.log('Adicionar nova chave:', newKey);
-    setShowAddForm(false);
+    const manager = getSerpKeyManager();
+    if (manager && newKey.email && newKey.key) {
+      const keyToAdd = {
+        ...newKey,
+        currentUsage: 0,
+        lastResetDate: new Date().toISOString()
+      } as Omit<SerpKey, 'id'>;
+      
+      manager.addKey(keyToAdd);
+      loadKeys();
+      setShowAddForm(false);
+      setNewKey({
+        email: '',
+        phone: '',
+        instance: '',
+        key: '',
+        monthlyLimit: 100,
+        renewalDate: '',
+        isActive: true,
+        isDev: false
+      });
+    }
   };
 
   const handleUpdateKey = (keyId: string, updates: Partial<SerpKey>) => {
-    console.log('Atualizar chave:', keyId, updates);
-    setEditingKey(null);
-    setEditingKeyData(null);
+    const manager = getSerpKeyManager();
+    if (manager) {
+      manager.updateKey(keyId, updates);
+      loadKeys();
+      setEditingKey(null);
+      setEditingKeyData(null);
+    }
   };
 
   const handleDeleteKey = (keyId: string) => {
     if (confirm('Tem certeza que deseja remover esta chave?')) {
-      console.log('Remover chave:', keyId);
+      const manager = getSerpKeyManager();
+      if (manager) {
+        manager.removeKey(keyId);
+        loadKeys();
+      }
     }
   };
 
   const handleResetUsage = (keyId: string) => {
     if (confirm('Tem certeza que deseja resetar o uso desta chave?')) {
-      console.log('Resetar uso da chave:', keyId);
+      const manager = getSerpKeyManager();
+      if (manager) {
+        manager.resetKeyUsage(keyId);
+        loadKeys();
+      }
     }
   };
 
@@ -241,7 +174,11 @@ const SerpKeyAdmin = () => {
               </button>
               
               <div className="flex items-center gap-3">
-                <Shield size={32} className="text-red-600" />
+                <img 
+                  src="/logo-pharmyrus.jpg" 
+                  alt="Pharmyrus" 
+                  className="h-8 w-auto"
+                />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Admin SUDO - Chaves SERP API</h1>
                   <p className="text-gray-600">Gerenciamento de chaves da SerpAPI</p>
@@ -307,6 +244,62 @@ const SerpKeyAdmin = () => {
           </div>
         </div>
 
+        {/* Estatísticas de Consultas */}
+        {consultationStats && (
+          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <BarChart3 className="text-indigo-600" size={24} />
+              Estatísticas de Consultas
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-indigo-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="text-indigo-600" size={20} />
+                  <span className="text-sm font-medium text-indigo-800">Total de Consultas</span>
+                </div>
+                <p className="text-2xl font-bold text-indigo-900">{consultationStats.totalConsultations}</p>
+                <p className="text-xs text-indigo-600">{consultationStats.totalCreditsUsed} créditos usados</p>
+              </div>
+              
+              <div className="bg-green-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="text-green-600" size={20} />
+                  <span className="text-sm font-medium text-green-800">Hoje</span>
+                </div>
+                <p className="text-2xl font-bold text-green-900">{consultationStats.consultationsToday}</p>
+                <p className="text-xs text-green-600">{consultationStats.consultationsToday * 8} créditos</p>
+              </div>
+              
+              <div className="bg-blue-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Activity className="text-blue-600" size={20} />
+                  <span className="text-sm font-medium text-blue-800">Este Mês</span>
+                </div>
+                <p className="text-2xl font-bold text-blue-900">{consultationStats.consultationsThisMonth}</p>
+                <p className="text-xs text-blue-600">{consultationStats.consultationsThisMonth * 8} créditos</p>
+              </div>
+              
+              <div className="bg-purple-50 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="text-purple-600" size={20} />
+                  <span className="text-sm font-medium text-purple-800">Média por Consulta</span>
+                </div>
+                <p className="text-2xl font-bold text-purple-900">
+                  {consultationStats.averageCreditsPerConsultation.toFixed(1)}
+                </p>
+                <p className="text-xs text-purple-600">créditos por consulta</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                💡 <strong>Lembrete:</strong> Cada consulta de patente consome exatamente 8 créditos da SERP API.
+                O sistema automaticamente seleciona chaves com pelo menos 8 créditos disponíveis.
+              </p>
+            </div>
+          </div>
+        )}
         {/* Formulário de Nova Chave */}
         {showAddForm && (
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-8">
@@ -450,6 +443,9 @@ const SerpKeyAdmin = () => {
                         </div>
                         <div className="text-gray-500">
                           {key.monthlyLimit - key.currentUsage} restantes
+                        </div>
+                        <div className="text-xs text-blue-600">
+                          {Math.floor((key.monthlyLimit - key.currentUsage) / 8)} consultas
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
                           <div 
