@@ -9,11 +9,8 @@ import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock, Pill }
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
-import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
-import DrugPipelineMonitoring from './DrugPipelineMonitoring';
-import { MonitoringManager } from '../utils/monitoringManager';
 
 // Componente para verificar se usuário tem acesso ao dashboard
 const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
@@ -88,22 +85,22 @@ const Layout = () => {
   const patentAgencies = [
     {
       name: "INPI Brasil",
-      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/inpi-logo-1.jpeg",
       alt: "INPI Brasil"
     },
     {
       name: "USPTO",
-      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/uspto-logo-2.png",
       alt: "USPTO"
     },
     {
       name: "EPO",
-      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/epto-logo-3.png",
       alt: "EPO"
     },
     {
       name: "WIPO",
-      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      logo: "/Wipo-logo-4.png",
       alt: "WIPO"
     }
   ];
@@ -177,9 +174,6 @@ const Layout = () => {
         if (tokenDoc.exists()) {
           setTokenUsage(tokenDoc.data() as TokenUsageType);
         }
-        
-        // Inicializar monitoramentos automáticos
-        MonitoringManager.initializeScheduledMonitorings(auth.currentUser!.uid);
       } catch (error) {
         console.error('Error fetching token usage:', error);
       }
@@ -229,8 +223,11 @@ const Layout = () => {
               <Menu size={24} />
             </button>
             <div className="flex items-center gap-3">
-              <Pill size={32} className="text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Pharmyrus</h1>
+              <img 
+                src="/logo-pharmyrus.jpg" 
+                alt="Pharmyrus" 
+                className="h-8 w-auto"
+              />
             </div>
           </div>
           
@@ -349,59 +346,12 @@ const Layout = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        {/* Tab Navigation */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('consultation')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'consultation'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Pill size={16} />
-                  Histórico
-                </div>
-              </button>
-              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-                <button
-                  onClick={() => setActiveTab('monitoring')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'monitoring'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} />
-                    Pipeline
-                  </div>
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1">
           <div className="w-full">
-            {activeTab === 'consultation' ? (
-              <DrugPipelineCreator 
-                checkTokenUsage={() => checkTokenUsage(tokenUsage)}
-                tokenUsage={tokenUsage}
-              />
-            ) : (auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <DrugPipelineMonitoring />
-            ))}
-            
-            {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
-            {activeTab === 'consultation' && auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
-              <div className="mt-8">
-                <SerpKeyStats />
-              </div>
-            )}
+            <DrugPipelineCreator 
+              checkTokenUsage={() => checkTokenUsage(tokenUsage)}
+              tokenUsage={tokenUsage}
+            />
           </div>
         </div>
       </main>
@@ -428,7 +378,7 @@ const Layout = () => {
                     <img
                       src={agency.logo}
                       alt={agency.alt}
-                      className="h-6 object-contain opacity-80 hover:opacity-100 transition-opacity"
+                      className="h-6 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
                       title={agency.name}
                     />
                   </div>

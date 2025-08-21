@@ -1,5 +1,3 @@
-import { DivideIcon as LucideIcon } from 'lucide-react';
-
 // Drug Pipeline Types
 export interface DrugPipelineRequest {
   id: string;
@@ -391,15 +389,6 @@ export interface InnovationFactor {
   justification: string;
 }
 
-// Legacy types for backward compatibility
-export interface MessageType {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  hidden?: boolean;
-}
-
 export interface UserType {
   uid: string;
   name: string;
@@ -422,16 +411,6 @@ export interface TokenUsageType {
   autoRenewal?: boolean;
   renewalDate?: string;
   purchasedAt?: string;
-}
-
-export interface DrugPipelineConsultationType {
-  id: string;
-  userId: string;
-  userEmail: string;
-  target_disease: string;
-  sessionId: string;
-  resultado: DrugPipelineResult;
-  consultedAt: string;
 }
 
 export interface PipelineCompleta {
@@ -463,14 +442,6 @@ export interface PipelineCompleta {
   consultedAt: string;
   webhookResponseTime?: number; // Tempo de resposta em ms
 }
-
-// Therapeutic Areas
-export const THERAPEUTIC_AREAS = [
-  'Oncologia', 'Cardiologia', 'Neurologia', 'Endocrinologia', 'Imunologia',
-  'Infectologia', 'Pneumologia', 'Gastroenterologia', 'Dermatologia', 
-  'Oftalmologia', 'Urologia', 'Ginecologia', 'Pediatria', 'Geriatria',
-  'Psiquiatria', 'Reumatologia', 'Hematologia', 'Nefrologia'
-];
 
 export interface PatentByCountry {
   pais: string;
@@ -608,36 +579,12 @@ export interface PatentResultType {
   alternativas_compostos?: string[];
 }
 
-export interface PlanType {
+export interface PatentConsultationType {
   id: string;
-  name: string;
-  description: string;
-  tokens: number;
-  price: number;
-  icon: LucideIcon;
-  highlight: boolean;
-  stripeLink: string;
-}
-
-export interface MonitoringConfig {
-  id: string;
-  consultaId: string;
   userId: string;
-  intervalHours: number;
-  isActive: boolean;
-  createdAt: string;
-  lastRunAt?: string;
-  nextRunAt: string;
-  runCount: number;
-  originalConsulta: {
-    nome_comercial: string;
-    nome_molecula: string;
-    categoria: string;
-    beneficio: string;
-    doenca_alvo: string;
-    pais_alvo: string[];
-    userCompany: string;
-    sessionId: string;
-    environment: 'production' | 'test';
-  };
+  userEmail: string;
+  produto: string;
+  sessionId: string;
+  resultado: PatentResultType;
+  consultedAt: string;
 }

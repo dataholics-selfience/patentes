@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
-import { FlaskConical, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pill } from 'lucide-react';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
 
 const Login = () => {
@@ -185,8 +185,11 @@ const Login = () => {
               <span className="text-sm">Voltar</span>
             </Link>
             <div className="flex items-center gap-3">
-              <Pill size={48} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
+              <img 
+                src="/logo-pharmyrus.jpg" 
+                alt="Pharmyrus" 
+                className="h-12 w-auto"
+              />
             </div>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>

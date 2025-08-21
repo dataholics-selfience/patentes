@@ -197,7 +197,11 @@ const DrugPipelineReport = ({ data, onBack }: DrugPipelineReportProps) => {
               </button>
               
               <div className="flex items-center gap-3">
-                <FlaskConical size={32} className="text-blue-600" />
+                <img 
+                  src="/logo-pharmyrus.jpg" 
+                  alt="Pharmyrus" 
+                  className="h-8 w-auto"
+                />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Pipeline Completo de Medicamento</h1>
                   <p className="text-gray-600">Análise estratégica e desenvolvimento farmacêutico</p>
