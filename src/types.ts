@@ -1,5 +1,3 @@
-import { DivideIcon as LucideIcon } from 'lucide-react';
-
 export interface MessageType {
   id: string;
   role: 'user' | 'assistant';
@@ -205,38 +203,4 @@ export interface PatentResultType {
   riscos_regulatorios_eticos?: string[];
   data_vencimento_patente_novo_produto?: string | null;
   alternativas_compostos?: string[];
-}
-
-export interface PlanType {
-  id: string;
-  name: string;
-  description: string;
-  tokens: number;
-  price: number;
-  icon: LucideIcon;
-  highlight: boolean;
-  stripeLink: string;
-}
-
-export interface MonitoringConfig {
-  id: string;
-  consultaId: string;
-  userId: string;
-  intervalHours: number;
-  isActive: boolean;
-  createdAt: string;
-  lastRunAt?: string;
-  nextRunAt: string;
-  runCount: number;
-  originalConsulta: {
-    nome_comercial: string;
-    nome_molecula: string;
-    categoria: string;
-    beneficio: string;
-    doenca_alvo: string;
-    pais_alvo: string[];
-    userCompany: string;
-    sessionId: string;
-    environment: 'production' | 'test';
-  };
 }

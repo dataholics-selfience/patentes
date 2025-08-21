@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { PatentResultType, TokenUsageType } from '../types';
+import { TokenUsageType } from '../types';
 import PatentConsultation from './PatentConsultation';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
-import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock } from 'lucide-react';
+import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { parsePatentResponse } from '../utils/patentParser';
 import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
-import SerpKeyStats from './SerpKeyStats';
-import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
-import PatentMonitoring from './PatentMonitoring';
-import { MonitoringManager } from '../utils/monitoringManager';
 
 // Componente para verificar se usuário tem acesso ao dashboard
 const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
@@ -83,7 +78,6 @@ const Layout = () => {
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'consultation' | 'monitoring'>('consultation');
 
   // Patent agencies data with corrected image paths
   const patentAgencies = [
@@ -178,9 +172,6 @@ const Layout = () => {
         if (tokenDoc.exists()) {
           setTokenUsage(tokenDoc.data() as TokenUsageType);
         }
-        
-        // Inicializar monitoramentos automáticos
-        MonitoringManager.initializeScheduledMonitorings(auth.currentUser!.uid);
       } catch (error) {
         console.error('Error fetching token usage:', error);
       }
@@ -241,15 +232,6 @@ const Layout = () => {
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 Conta Corporativa
               </div>
-            )}
-            {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <Link
-                to="/admin/serp-keys"
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <Shield size={16} />
-                Admin SUDO
-              </Link>
             )}
             {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
               <Link
@@ -323,16 +305,6 @@ const Layout = () => {
                   Planos
                 </Link>
               )}
-              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-                <Link
-                  to="/admin/serp-keys"
-                  className="flex items-center gap-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  onClick={() => setShowSidebar(false)}
-                >
-                  <Shield size={16} />
-                  Admin SUDO
-                </Link>
-              )}
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>
@@ -350,59 +322,13 @@ const Layout = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
-        {/* Tab Navigation */}
-        <div className="mb-8">
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('consultation')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'consultation'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FlaskConical size={16} />
-                  Nova Consulta
-                </div>
-              </button>
-              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-                <button
-                  onClick={() => setActiveTab('monitoring')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'monitoring'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Clock size={16} />
-                    Monitoramento
-                  </div>
-                </button>
-              )}
-            </nav>
-          </div>
-        </div>
 
         <div className="grid grid-cols-1">
           <div className="w-full">
-            {activeTab === 'consultation' ? (
-              <PatentConsultation 
-                checkTokenUsage={() => checkTokenUsage(tokenUsage)}
-                tokenUsage={tokenUsage}
-              />
-            ) : (auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <PatentMonitoring />
-            ))}
-            
-            {/* Mostrar stats das chaves SERP apenas para usuários com acesso irrestrito */}
-            {activeTab === 'consultation' && auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
-              <div className="mt-8">
-                <SerpKeyStats />
-              </div>
-            )}
+            <PatentConsultation 
+              checkTokenUsage={() => checkTokenUsage(tokenUsage)}
+              tokenUsage={tokenUsage}
+            />
           </div>
         </div>
       </main>

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { UserType, TokenUsageType } from '../types';
-import { User } from 'lucide-react';
 
 interface UserProfileProps {
   hideText?: boolean;
