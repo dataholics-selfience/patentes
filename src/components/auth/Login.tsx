@@ -185,11 +185,8 @@ const Login = () => {
               <span className="text-sm">Voltar</span>
             </Link>
             <div className="flex items-center gap-3">
-              <img 
-                src="/logo-pharmyrus.jpg" 
-                alt="Pharmyrus" 
-                className="h-12 w-auto"
-              />
+              <Pill size={48} className="text-blue-600" />
+              <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
             </div>
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>

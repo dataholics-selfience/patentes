@@ -280,11 +280,8 @@ Precisa de ajuda? Responda esta mensagem.
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <img 
-              src="/logo-pharmyrus.jpg" 
-              alt="Pharmyrus" 
-              className="h-12 w-auto"
-            />
+            <Pill size={48} className="text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Pharmyrus</h1>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Criar conta</h2>
           <p className="mt-2 text-gray-600">Registre-se para criar medicamentos inovadores</p>
