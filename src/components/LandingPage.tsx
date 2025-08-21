@@ -117,8 +117,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center gap-3">
-              <FlaskConical size={32} className="text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900">Consulta de Patentes</span>
+              <img 
+                src="/logo_pharmyrus.png" 
+                alt="Pharmyrus" 
+                className="h-12 w-auto"
+              />
             </div>
             <div className="flex items-center gap-4">
               <Link 
@@ -144,9 +147,9 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Verifique Patentes
-                <span className="text-blue-600"> Farmacêuticas</span>
-                <br />em Segundos
+                Análise Inteligente de
+                <span className="text-blue-600"> Patentes</span>
+                <br />Farmacêuticas
               </h1>
               <p className="text-xl text-gray-600 mb-8">
                 Proteja sua empresa de riscos jurídicos, acelere seu P&D e economize milhões 
@@ -386,10 +389,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <FlaskConical size={32} className="text-blue-400" />
-                <span className="text-2xl font-bold">Consulta de Patentes</span>
-              </div>
+              <img 
+                src="/logo_pharmyrus.png" 
+                alt="Pharmyrus" 
+                className="h-12 w-auto mb-4"
+              />
               <p className="text-gray-400 mb-6">
                 Plataforma de inteligência artificial especializada em análise de patentes 
                 farmacêuticas, protegendo empresas e acelerando a inovação.

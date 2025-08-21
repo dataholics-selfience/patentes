@@ -184,10 +184,11 @@ const Login = () => {
               <ArrowLeft size={20} className="mr-2" />
               <span className="text-sm">Voltar</span>
             </Link>
-            <div className="flex items-center gap-3">
-              <FlaskConical size={48} className="text-blue-600" />
-              <h1 className="text-3xl font-bold text-gray-900">Consulta de Patentes</h1>
-            </div>
+            <img 
+              src="/logo_pharmyrus.png" 
+              alt="Pharmyrus" 
+              className="h-16 w-auto"
+            />
             <div className="w-16"></div> {/* Spacer for centering */}
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Faça seu login</h2>

@@ -320,11 +320,11 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           {/* Header com seletor de ambiente para admin */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <FlaskConical size={32} className="text-blue-600" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h2>
-                <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
-              </div>
+              <img 
+                src="/logo_pharmyrus.png" 
+                alt="Pharmyrus" 
+                className="h-12 w-auto"
+              />
             </div>
 
             {/* Seletor de ambiente apenas para admin */}

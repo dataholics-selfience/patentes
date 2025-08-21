@@ -1,8 +1,8 @@
-# Consulta de Patentes - Plataforma de Análise de Propriedade Intelectual Farmacêutica
+# Pharmyrus - Plataforma de Análise de Propriedade Intelectual Farmacêutica
 
 ## 🔬 Sobre o Projeto
 
-Plataforma especializada em consulta e análise de patentes farmacêuticas com inteligência artificial. Permite verificar status de patentes, identificar riscos regulatórios e descobrir oportunidades de mercado.
+Pharmyrus é uma plataforma especializada em consulta e análise de patentes farmacêuticas com inteligência artificial. Permite verificar status de patentes, identificar riscos regulatórios e descobrir oportunidades de mercado.
 
 ## 🚀 Funcionalidades
 
@@ -75,4 +75,4 @@ WhatsApp: +55 11 99573-6666
 
 ---
 
-© 2025 Consulta de Patentes. Todos os direitos reservados.
+© 2025 Pharmyrus. Todos os direitos reservados.

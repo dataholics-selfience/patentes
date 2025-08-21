@@ -225,10 +225,11 @@ const Layout = () => {
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-3">
-              <FlaskConical size={32} className="text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h1>
-            </div>
+            <img 
+              src="/logo_pharmyrus.png" 
+              alt="Pharmyrus" 
+              className="h-10 w-auto"
+            />
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
@@ -277,10 +278,11 @@ const Layout = () => {
           <div className="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 lg:hidden">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <FlaskConical size={24} className="text-blue-600" />
-                  <span className="font-bold text-gray-900">Patentes</span>
-                </div>
+                <img 
+                  src="/logo_pharmyrus.png" 
+                  alt="Pharmyrus" 
+                  className="h-8 w-auto"
+                />
                 <button
                   onClick={() => setShowSidebar(false)}
                   className="p-2 text-gray-600 hover:text-gray-900"
