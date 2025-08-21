@@ -4,7 +4,6 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { ArrowLeft, Pill } from 'lucide-react';
-import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -18,124 +17,41 @@ const Login = () => {
     return emailRegex.test(email.trim());
   };
 
-  const validateInputs = () => {
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-
-    if (!trimmedEmail || !trimmedPassword) {
-      setError('Por favor, preencha todos os campos.');
-      return false;
-    }
-    if (!validateEmail(trimmedEmail)) {
-      setError('Por favor, insira um email válido.');
-      return false;
-    }
-    if (trimmedPassword.length < 6) {
-      setError('A senha deve ter pelo menos 6 caracteres.');
-      return false;
-    }
-    return true;
-  };
-
-  // Função para configurar usuário com acesso irrestrito
-  const setupUnrestrictedUser = async (user: any) => {
-    try {
-      console.log(`🔧 Configurando usuário com acesso irrestrito: ${user.email}`);
-      
-      const now = new Date();
-      const transactionId = crypto.randomUUID();
-
-      // 1. Criar/atualizar documento do usuário
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        name: UNRESTRICTED_USER_CONFIG.name,
-        email: user.email,
-        cpf: UNRESTRICTED_USER_CONFIG.cpf,
-        company: UNRESTRICTED_USER_CONFIG.company,
-        phone: UNRESTRICTED_USER_CONFIG.phone,
-        plan: UNRESTRICTED_USER_CONFIG.plan,
-        activated: true,
-        activatedAt: now.toISOString(),
-        unrestrictedAccess: true,
-        createdAt: now.toISOString(),
-        acceptedTerms: true,
-        termsAcceptanceId: transactionId
-      }, { merge: true });
-
-      // 2. Criar/atualizar token usage
-      await setDoc(doc(db, 'tokenUsage', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        plan: UNRESTRICTED_USER_CONFIG.plan,
-        totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
-        usedTokens: 0,
-        lastUpdated: now.toISOString(),
-        purchasedAt: now.toISOString(),
-        renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(), // Primeiro dia do próximo mês
-        autoRenewal: true
-      }, { merge: true });
-
-      // 3. Registrar compliance GDPR
-      await setDoc(doc(db, 'gdprCompliance', transactionId), {
-        uid: user.uid,
-        email: user.email,
-        type: 'unrestricted_access_setup',
-        unrestrictedAccess: true,
-        grantedAt: now.toISOString(),
-        transactionId
-      });
-
-      console.log(`✅ Usuário com acesso irrestrito configurado com sucesso: ${user.email}`);
-      return true;
-    } catch (error) {
-      console.error('❌ Erro ao configurar usuário com acesso irrestrito:', error);
-      return false;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       setError('');
       
-      if (!validateInputs()) {
+      const trimmedEmail = email.trim();
+      const trimmedPassword = password.trim();
+
+      if (!trimmedEmail || !trimmedPassword) {
+        setError('Por favor, preencha todos os campos.');
+        return;
+      }
+      if (!validateEmail(trimmedEmail)) {
+        setError('Por favor, insira um email válido.');
+        return;
+      }
+      if (trimmedPassword.length < 6) {
+        setError('A senha deve ter pelo menos 6 caracteres.');
         return;
       }
 
       setIsLoading(true);
 
-      const trimmedEmail = email.trim().toLowerCase();
-      const trimmedPassword = password.trim();
-
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const userCredential = await signInWithEmailAndPassword(
         auth,
-        trimmedEmail,
+        trimmedEmail.toLowerCase(),
         trimmedPassword
       );
 
       const user = userCredential.user;
       if (!user) {
         throw new Error('No user data available');
-      }
-
-      // Verificar se o usuário tem acesso irrestrito
-      if (hasUnrestrictedAccess(user.email)) {
-        console.log(`✅ Login com acesso irrestrito: ${user.email}`);
-        
-        // Configurar estrutura completa do usuário
-        const setupSuccess = await setupUnrestrictedUser(user);
-        
-        if (setupSuccess) {
-          setError('');
-          navigate('/', { replace: true });
-          return;
-        } else {
-          setError('Erro ao configurar conta com acesso irrestrito. Tente novamente.');
-          return;
-        }
       }
 
       // Verificação normal de e-mail para outros usuários
@@ -221,20 +137,6 @@ const Login = () => {
                 autoComplete="email"
               />
               {/* Indicador visual para e-mails com acesso irrestrito */}
-              {email.trim() && hasUnrestrictedAccess(email.trim()) && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
-                      <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                      <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
-                    <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
-                      <div>• Renovação automática todo mês</div>
-                      <div>• Sem necessidade de verificação de e-mail</div>
-                    <div>• Sem necessidade de verificação de e-mail</div>
-                  </div>
-                </div>
-              )}
             </div>
             <div>
               <input

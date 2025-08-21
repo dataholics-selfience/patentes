@@ -7,55 +7,14 @@ import {
   Pill,
   Target,
   MapPin,
-  Settings,
-  TestTube,
-  Zap,
   Loader2
 } from 'lucide-react';
-import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { PatentResultType, TokenUsageType, ConsultaCompleta } from '../types';
-import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
+import { parsePatentResponse } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
-import PatentDashboardReport from './PatentDashboardReport';
-import { getSerpKeyManager } from '../utils/serpKeyManager';
-import { initializeSerpKeyManager } from '../utils/serpKeyManager';
-import { SERP_API_KEYS } from '../utils/serpKeyData';
-import { CountryFlagsFromText } from '../utils/countryFlags';
-import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
-
-// Componente para redirecionar usuários sem tokens
-const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; hasTokens: boolean }) => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!hasTokens && !hasUnrestrictedAccess(auth.currentUser?.email)) {
-      navigate('/plans');
-    }
-  }, [hasTokens, navigate]);
-
-  if (!hasTokens && !hasUnrestrictedAccess(auth.currentUser?.email)) {
-    return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-orange-900 mb-4">Acesso Restrito</h2>
-          <p className="text-orange-700 mb-6">
-            Você precisa de um plano ativo para realizar consultas de patentes.
-          </p>
-          <button
-            onClick={() => navigate('/plans')}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
-          >
-            Ver Planos Disponíveis
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
-};
 
 interface PatentConsultationProps {
   checkTokenUsage: () => boolean;
@@ -100,10 +59,10 @@ const PHARMACEUTICAL_CATEGORIES = [
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
+  
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
-    nome_molecula: '',
     categoria: '',
     beneficio: '',
     doenca_alvo: '',
@@ -111,24 +70,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   });
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
-  const [dashboardData, setDashboardData] = useState<any>(null);
   const [error, setError] = useState('');
-  const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
-  const [environment, setEnvironment] = useState<'production' | 'test'>('production');
   const [userCompany, setUserCompany] = useState('');
   const [userSessionId, setUserSessionId] = useState<string>('');
 
   // Verificar se o usuário tem tokens disponíveis
-  const hasAvailableTokens = (tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0) || 
-                            (auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email));
-
-  // Verificar se o usuário é o admin que pode ver o seletor
-  const isAdminUser = auth.currentUser?.email === 'innovagenoi@gmail.com';
-
-  // Inicializar gerenciador de chaves SERP
-  useEffect(() => {
-    initializeSerpKeyManager(SERP_API_KEYS);
-  }, []);
+  const hasAvailableTokens = tokenUsage && (tokenUsage.totalTokens - tokenUsage.usedTokens) > 0;
 
   // Gerar ou recuperar sessionId persistente para o usuário
   useEffect(() => {
@@ -141,24 +88,17 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
           const userData = userDoc.data();
           
           if (userData.sessionId) {
-            // Usar sessionId existente
             setUserSessionId(userData.sessionId);
           } else {
-            // Gerar novo sessionId de 24 caracteres alfanuméricos
             const newSessionId = generateSessionId();
-            
-            // Salvar no documento do usuário
             await updateDoc(doc(db, 'users', auth.currentUser.uid), {
               sessionId: newSessionId
             });
-            
             setUserSessionId(newSessionId);
-            console.log(`🆔 Novo sessionId gerado para usuário: ${newSessionId}`);
           }
         }
       } catch (error) {
         console.error('Error getting/creating sessionId:', error);
-        // Fallback: gerar sessionId temporário
         setUserSessionId(generateSessionId());
       }
     };
@@ -216,10 +156,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       setError('Por favor, informe o nome comercial do produto.');
       return false;
     }
-    if (!searchData.nome_molecula.trim()) {
-      setError('Por favor, informe o nome da molécula.');
-      return false;
-    }
     if (searchData.pais_alvo.length === 0) {
       setError('Por favor, selecione pelo menos um país alvo.');
       return false;
@@ -244,26 +180,12 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       return;
     }
 
-    // Verificar se há chaves SERP disponíveis
-    const manager = getSerpKeyManager();
-    if (!manager || !manager.hasAvailableCredits()) {
-      setError('Sistema temporariamente indisponível. Todas as chaves de API atingiram o limite mensal. Tente novamente no próximo mês.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     setResult(null);
-    setDashboardData(null);
 
     const startTime = Date.now();
     try {
-      // Obter chave SERP disponível
-      const availableKey = manager.getAvailableKey();
-      if (!availableKey) {
-        throw new Error('Nenhuma chave SERP API disponível no momento');
-      }
-
       // Buscar dados do usuário para metadados
       const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
       const userData = userDoc.data();
@@ -271,26 +193,19 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       // Preparar dados para o webhook
       const webhookData = {
         cliente: userCompany,
-        sessionId: userSessionId,
         nome_comercial: searchData.nome_comercial.trim(),
-        nome_molecula: searchData.nome_molecula.trim(),
         industria: 'Farmacêutica',
         setor: 'Medicamentos',
         categoria: searchData.categoria || 'Medicamentos',
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
-        pais_alvo: searchData.pais_alvo,
-        serpApiKey: availableKey
+        pais_alvo: searchData.pais_alvo
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
 
-      // URL do webhook baseada no ambiente
-      const webhookUrl = environment === 'production' 
-        ? 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev'
-        : 'https://primary-production-2e3b.up.railway.app/webhook-test/patentesdev';
-
-      console.log(`🌐 Usando ambiente: ${environment} - URL: ${webhookUrl}`);
+      // URL do webhook
+      const webhookUrl = 'https://primary-production-2e3b.up.railway.app/webhook/patentesdev';
 
       // Enviar requisição e aguardar resposta diretamente
       const response = await fetch(webhookUrl, {
@@ -311,17 +226,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       
       console.log('✅ Resposta do webhook recebida:', webhookResponse);
 
-      // Registrar uso da chave SERP
-      const usageRecorded = manager.recordUsage(
-        availableKey, 
-        auth.currentUser.uid, 
-        `${searchData.nome_comercial} (${searchData.nome_molecula})`
-      );
-
-      if (!usageRecorded) {
-        console.warn('⚠️ Falha ao registrar uso da chave SERP');
-      }
-
       // Preparar dados completos da consulta para salvar
       const consultaCompleta: Omit<ConsultaCompleta, 'id'> = {
         userId: auth.currentUser.uid,
@@ -331,7 +235,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         
         // Dados de input
         nome_comercial: searchData.nome_comercial.trim(),
-        nome_molecula: searchData.nome_molecula.trim(),
+        nome_molecula: searchData.nome_comercial.trim(), // Usar nome comercial como molécula
         categoria: searchData.categoria || 'Medicamentos',
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
@@ -339,48 +243,24 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         
         // Metadados
         sessionId: userSessionId,
-        environment,
-        serpApiKey: availableKey.substring(0, 12) + '...', // Truncar para segurança
+        environment: 'production',
+        serpApiKey: 'webhook-direct',
         
         // Resultado
         resultado: webhookResponse,
-        isDashboard: isDashboardData(webhookResponse),
+        isDashboard: false,
         
         // Timestamps
         consultedAt: new Date().toISOString(),
         webhookResponseTime: responseTime
       };
-      // Verificar se é dashboard ou dados de patente normais
-      if (isDashboardData(webhookResponse)) {
-        console.log('📊 Detectado dados de dashboard, renderizando dashboard...');
-        const dashboardInfo = parseDashboardData(webhookResponse);
-        setDashboardData(dashboardInfo);
-        
-        // Salvar consulta completa
-        await addDoc(collection(db, 'consultas'), consultaCompleta);
-      } else {
-        console.log('📋 Detectado dados de patente normais, renderizando interface padrão...');
-        const patentData = parsePatentResponse(webhookResponse);
-        setResult(patentData);
-        
-        // Atualizar resultado parseado na consulta
-        consultaCompleta.resultado = patentData;
-        
-        // Salvar consulta completa
-        await addDoc(collection(db, 'consultas'), consultaCompleta);
-        
-        // Salvar consulta no histórico apenas para dados de patente normais
-        const consultationData: Omit<PatentConsultationType, 'id'> = {
-          userId: auth.currentUser.uid,
-          userEmail: auth.currentUser.email || '',
-          produto: `${searchData.nome_comercial} (${searchData.nome_molecula})`,
-          sessionId: userSessionId,
-          resultado: patentData,
-          consultedAt: new Date().toISOString()
-        };
 
-        const docRef = await addDoc(collection(db, 'patentConsultations'), consultationData);
-      }
+      // Parse e exibir resultado
+      const patentData = parsePatentResponse(webhookResponse);
+      setResult(patentData);
+      
+      // Salvar consulta completa
+      await addDoc(collection(db, 'consultas'), consultaCompleta);
 
       // Atualizar tokens do usuário
       if (tokenUsage) {
@@ -399,299 +279,207 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
 
   const handleBackToConsultation = () => {
     setResult(null);
-    setDashboardData(null);
     setError('');
   };
-
-  // Se há dashboard data, mostrar dashboard
-  if (dashboardData) {
-    return (
-      <PatentDashboardReport
-        data={dashboardData}
-        onBack={handleBackToConsultation}
-      />
-    );
-  }
 
   // Se há resultado de patente, mostrar página de resultados
   if (result) {
     return (
       <PatentResultsPage
         result={result}
-        searchTerm={`${searchData.nome_comercial} (${searchData.nome_molecula})`}
+        searchTerm={searchData.nome_comercial}
         onBack={handleBackToConsultation}
       />
     );
   }
 
   return (
-    <TokenAccessGuard hasTokens={hasAvailableTokens}>
-      <div className="max-w-4xl mx-auto">
-      {/* Formulário Principal */}
-      <div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          {/* Header com seletor de ambiente para admin */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <FlaskConical size={32} className="text-blue-600" />
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h2>
-                <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
-              </div>
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <FlaskConical size={32} className="text-blue-600" />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Consulta de Patentes</h2>
+            <p className="text-gray-600">Análise completa de propriedade intelectual farmacêutica</p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">{error}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Nome comercial */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Pill size={16} className="inline mr-2 text-blue-600" />
+              Nome Comercial *
+            </label>
+            <input
+              type="text"
+              value={searchData.nome_comercial}
+              onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
+              onClick={() => !hasAvailableTokens && navigate('/plans')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ex: Ozempic, Trulicity, Victoza"
+              required
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* Categoria farmacêutica */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Building2 size={16} className="inline mr-2 text-green-600" />
+              Categoria Farmacêutica
+            </label>
+            <select
+              value={searchData.categoria}
+              onChange={(e) => handleInputChange('categoria', e.target.value)}
+              onClick={() => !hasAvailableTokens && navigate('/plans')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              disabled={isLoading}
+            >
+              <option value="">Selecione uma categoria</option>
+              {PHARMACEUTICAL_CATEGORIES.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Benefício e doença alvo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Target size={16} className="inline mr-2 text-orange-600" />
+                Benefício Principal
+              </label>
+              <input
+                type="text"
+                value={searchData.beneficio}
+                onChange={(e) => handleInputChange('beneficio', e.target.value)}
+                onClick={() => !hasAvailableTokens && navigate('/plans')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ex: Controle glicêmico e perda de peso"
+                disabled={isLoading}
+              />
             </div>
 
-            {/* Seletor de ambiente apenas para admin */}
-            {isAdminUser && (
-              <div className="relative">
-                <button
-                  onClick={() => setIsEnvironmentSelectorOpen(!isEnvironmentSelectorOpen)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-colors ${
-                    environment === 'production'
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-yellow-600 text-white border-yellow-600'
-                  }`}
-                >
-                  <Settings size={16} />
-                  <span className="font-medium">
-                    {environment === 'production' ? 'PRODUÇÃO' : 'TESTES'}
-                  </span>
-                </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Target size={16} className="inline mr-2 text-red-600" />
+                Doença Alvo
+              </label>
+              <input
+                type="text"
+                value={searchData.doenca_alvo}
+                onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
+                onClick={() => !hasAvailableTokens && navigate('/plans')}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Ex: Diabetes tipo 2 e obesidade"
+                disabled={isLoading}
+              />
+            </div>
+          </div>
 
-                {isEnvironmentSelectorOpen && (
-                  <div className="absolute top-full right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[200px]">
-                    <button
-                      onClick={() => {
-                        setEnvironment('production');
-                        setIsEnvironmentSelectorOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                        environment === 'production' ? 'bg-green-50 text-green-700' : 'text-gray-700'
-                      }`}
-                    >
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <div>
-                        <div className="font-medium">Produção</div>
-                        <div className="text-xs text-gray-500">Webhook principal</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEnvironment('test');
-                        setIsEnvironmentSelectorOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
-                        environment === 'test' ? 'bg-yellow-50 text-yellow-700' : 'text-gray-700'
-                      }`}
-                    >
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div>
-                        <div className="font-medium">Testes</div>
-                        <div className="text-xs text-gray-500">Webhook de desenvolvimento</div>
-                      </div>
-                    </button>
-                  </div>
-                )}
+          {/* Seleção de países */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              <Globe size={16} className="inline mr-2 text-indigo-600" />
+              Países Alvo * (selecione pelo menos um)
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {AVAILABLE_COUNTRIES.map(country => (
+                <label
+                  key={country}
+                  className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                    searchData.pais_alvo.includes(country)
+                      ? 'bg-blue-50 border-blue-300 text-blue-700'
+                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                  } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={searchData.pais_alvo.includes(country)}
+                    onChange={() => !isLoading && handleCountryToggle(country)}
+                    onClick={() => !hasAvailableTokens && navigate('/plans')}
+                    className="rounded text-blue-600 focus:ring-blue-500"
+                    disabled={isLoading}
+                  />
+                  <span className="text-sm font-medium">{country}</span>
+                </label>
+              ))}
+            </div>
+            
+            {searchData.pais_alvo.length > 0 && (
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin size={16} className="text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700">
+                    Países selecionados ({searchData.pais_alvo.length}):
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {searchData.pais_alvo.map((country, idx) => (
+                    <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                      {country}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
+          <button
+            type="submit"
+            disabled={isLoading || !searchData.nome_comercial.trim() || searchData.pais_alvo.length === 0 || !hasAvailableTokens}
+            onClick={() => !hasAvailableTokens && navigate('/plans')}
+            className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg transition-colors text-lg font-semibold ${
+              !hasAvailableTokens 
+                ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
+            }`}
+          >
+            {isLoading ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Search size={20} />
+            )}
+            {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
+          </button>
+        </form>
+
+        {/* Informações sobre tokens */}
+        {tokenUsage && (
+          <div className={`mt-6 p-4 border rounded-lg ${
+            hasAvailableTokens 
+              ? 'bg-gray-50 border-gray-200' 
+              : 'bg-orange-50 border-orange-200'
+          }`}>
+            <div className="flex items-center justify-between text-sm">
+              <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
+                Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
+              </span>
+              <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
+                Plano: <strong>{tokenUsage.plan}</strong>
+              </span>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Campos principais */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Pill size={16} className="inline mr-2 text-blue-600" />
-                  Nome Comercial *
-                </label>
-                <input
-                  type="text"
-                  value={searchData.nome_comercial}
-                  onChange={(e) => handleInputChange('nome_comercial', e.target.value)}
-                  onClick={() => !hasAvailableTokens && navigate('/plans')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Ozempic, Trulicity, Victoza"
-                  required
-                  disabled={isLoading}
-                />
+            {!hasAvailableTokens && (
+              <div className="mt-2 text-center">
+                <button
+                  onClick={() => navigate('/plans')}
+                  className="text-orange-600 hover:text-orange-700 font-medium underline"
+                >
+                  Adquirir plano para realizar consultas
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <TestTube size={16} className="inline mr-2 text-purple-600" />
-                  Nome da Molécula *
-                </label>
-                <input
-                  type="text"
-                  value={searchData.nome_molecula}
-                  onChange={(e) => handleInputChange('nome_molecula', e.target.value)}
-                  onClick={() => !hasAvailableTokens && navigate('/plans')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Semaglutida, Dulaglutida, Liraglutida"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            {/* Categoria farmacêutica */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Building2 size={16} className="inline mr-2 text-green-600" />
-                Categoria Farmacêutica
-              </label>
-              <select
-                value={searchData.categoria}
-                onChange={(e) => handleInputChange('categoria', e.target.value)}
-                onClick={() => !hasAvailableTokens && navigate('/plans')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading}
-              >
-                <option value="">Selecione uma categoria</option>
-                {PHARMACEUTICAL_CATEGORIES.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Benefício e doença alvo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Target size={16} className="inline mr-2 text-orange-600" />
-                  Benefício Principal
-                </label>
-                <input
-                  type="text"
-                  value={searchData.beneficio}
-                  onChange={(e) => handleInputChange('beneficio', e.target.value)}
-                  onClick={() => !hasAvailableTokens && navigate('/plans')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Controle glicêmico e perda de peso"
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Zap size={16} className="inline mr-2 text-red-600" />
-                  Doença Alvo
-                </label>
-                <input
-                  type="text"
-                  value={searchData.doenca_alvo}
-                  onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
-                  onClick={() => !hasAvailableTokens && navigate('/plans')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Diabetes tipo 2 e obesidade"
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            {/* Seleção de países */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                <Globe size={16} className="inline mr-2 text-indigo-600" />
-                Países Alvo * (selecione pelo menos um)
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {AVAILABLE_COUNTRIES.map(country => (
-                  <label
-                    key={country}
-                    className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                      searchData.pais_alvo.includes(country)
-                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
-                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={searchData.pais_alvo.includes(country)}
-                      onChange={() => !isLoading && handleCountryToggle(country)}
-                      onClick={() => !hasAvailableTokens && navigate('/plans')}
-                      className="rounded text-blue-600 focus:ring-blue-500"
-                      disabled={isLoading}
-                    />
-                    <span className="text-sm font-medium">{country}</span>
-                  </label>
-                ))}
-              </div>
-              
-              {searchData.pais_alvo.length > 0 && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center gap-2 mb-2">
-                    <MapPin size={16} className="text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">
-                      Países selecionados ({searchData.pais_alvo.length}):
-                    </span>
-                  </div>
-                  <CountryFlagsFromText 
-                    countriesText={searchData.pais_alvo.join(', ')}
-                    size={20}
-                    showNames={true}
-                    className="flex flex-wrap gap-2"
-                  />
-                </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !searchData.nome_comercial.trim() || !searchData.nome_molecula.trim() || searchData.pais_alvo.length === 0 || !hasAvailableTokens}
-              onClick={() => !hasAvailableTokens && navigate('/plans')}
-              className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg transition-colors text-lg font-semibold ${
-                !hasAvailableTokens 
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed'
-              }`}
-            >
-              {isLoading ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <Search size={20} />
-              )}
-              {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
-            </button>
-
-          </form>
-
-          {/* Informações sobre tokens */}
-          {tokenUsage && (
-            <div className={`mt-6 p-4 border rounded-lg ${
-              hasAvailableTokens 
-                ? 'bg-gray-50 border-gray-200' 
-                : 'bg-orange-50 border-orange-200'
-            }`}>
-              <div className="flex items-center justify-between text-sm">
-                <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
-                  Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
-                </span>
-                <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
-                  Plano: <strong>{tokenUsage.plan}</strong>
-                </span>
-              </div>
-              {!hasAvailableTokens && (
-                <div className="mt-2 text-center">
-                  <button
-                    onClick={() => navigate('/plans')}
-                    className="text-orange-600 hover:text-orange-700 font-medium underline"
-                  >
-                    Adquirir plano para realizar consultas
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
-      </div>
-    </TokenAccessGuard>
+    </div>
   );
 };
 

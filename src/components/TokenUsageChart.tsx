@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { format } from 'date-fns';
-import { ptBR, enUS, fr, de, it } from 'date-fns/locale';
+import { ptBR } from 'date-fns/locale';
 import { useTranslation } from '../utils/i18n';
-import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 
 interface TokenUsageChartProps {
   totalTokens: number;
@@ -15,21 +14,11 @@ interface TokenUsageChartProps {
 }
 
 const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: TokenUsageChartProps) => {
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const [purchaseDate, setPurchaseDate] = useState<Date | null>(null);
   const [nextRenewal, setNextRenewal] = useState<Date | null>(null);
   const percentage = Math.min((usedTokens / totalTokens) * 100, 100);
   const remainingTokens = totalTokens - usedTokens;
-
-  const getLocale = () => {
-    switch (language) {
-      case 'pt': return ptBR;
-      case 'fr': return fr;
-      case 'de': return de;
-      case 'it': return it;
-      default: return enUS;
-    }
-  };
 
   useEffect(() => {
     const fetchPurchaseDate = async () => {
@@ -53,38 +42,14 @@ const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: 
 
   const getFormattedPurchaseDate = () => {
     if (!purchaseDate) return null;
-    
-    switch (language) {
-      case 'pt':
-        return format(purchaseDate, "dd 'de' MMMM", { locale: ptBR });
-      case 'fr':
-        return format(purchaseDate, "dd MMMM", { locale: fr });
-      case 'de':
-        return format(purchaseDate, "dd. MMMM", { locale: de });
-      case 'it':
-        return format(purchaseDate, "dd MMMM", { locale: it });
-      default:
-        return format(purchaseDate, "MMMM dd", { locale: enUS });
-    }
+    return format(purchaseDate, "dd 'de' MMMM", { locale: ptBR });
   };
 
   const formattedPurchaseDate = getFormattedPurchaseDate();
   
   const getFormattedRenewalDate = () => {
     if (!nextRenewal) return null;
-    
-    switch (language) {
-      case 'pt':
-        return format(nextRenewal, "dd 'de' MMMM", { locale: ptBR });
-      case 'fr':
-        return format(nextRenewal, "dd MMMM", { locale: fr });
-      case 'de':
-        return format(nextRenewal, "dd. MMMM", { locale: de });
-      case 'it':
-        return format(nextRenewal, "dd MMMM", { locale: it });
-      default:
-        return format(nextRenewal, "MMMM dd", { locale: enUS });
-    }
+    return format(nextRenewal, "dd 'de' MMMM", { locale: ptBR });
   };
 
   const formattedRenewalDate = getFormattedRenewalDate();
@@ -127,18 +92,12 @@ const TokenUsageChart = ({ totalTokens, usedTokens, autoRenewal, renewalDate }: 
         </div>
       )}
 
-      {!auth.currentUser?.email || !hasUnrestrictedAccess(auth.currentUser.email) ? (
-        <Link 
-          to="/plans" 
-          className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
-        >
-          {remainingTokens === 0 ? 'Adquirir plano para consultar' : 'Ver outros planos'}
-        </Link>
-      ) : (
-        <div className="mt-3 text-center text-sm text-green-600 font-medium">
-          Conta Corporativa - Renovação Automática
-        </div>
-      )}
+      <Link 
+        to="/plans" 
+        className="mt-3 block text-center text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+      >
+        {remainingTokens === 0 ? 'Adquirir plano para consultar' : 'Ver outros planos'}
+      </Link>
     </div>
   );
 };

@@ -1,79 +1,14 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc, collection } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { TokenUsageType } from '../types';
-import DrugPipelineCreator from './DrugPipelineCreator';
+import PatentConsultation from './PatentConsultation';
 import UserProfile from './UserProfile';
 import TokenUsageChart from './TokenUsageChart';
-import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Clock, Pill } from 'lucide-react';
+import { Menu, X, FlaskConical, CreditCard, LogOut, MessageCircle, Pill } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrestrictedEmails';
-import { Shield } from 'lucide-react';
-import { isAdminUser } from '../utils/serpKeyData';
 
-// Componente para verificar se usuário tem acesso ao dashboard
-const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
-  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAccess = async () => {
-      if (!auth.currentUser) {
-        navigate('/login');
-        return;
-      }
-
-      // Verificar se tem acesso irrestrito
-      if (hasUnrestrictedAccess(auth.currentUser.email)) {
-        console.log(`✅ Acesso irrestrito confirmado para: ${auth.currentUser.email}`);
-        setHasAccess(true);
-        return;
-      }
-
-      // Verificar se tem tokens disponíveis
-      try {
-        const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
-        if (tokenDoc.exists()) {
-          const tokenData = tokenDoc.data();
-          const remainingTokens = tokenData.totalTokens - tokenData.usedTokens;
-          
-          if (remainingTokens > 0) {
-            setHasAccess(true);
-          } else {
-            // Sem tokens - redirecionar para planos
-            navigate('/plans');
-            return;
-          }
-        } else {
-          // Sem dados de token - redirecionar para planos
-          navigate('/plans');
-          return;
-        }
-      } catch (error) {
-        console.error('Error checking token access:', error);
-        navigate('/plans');
-        return;
-      }
-    };
-
-    checkAccess();
-  }, [navigate]);
-
-  if (hasAccess === null) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-blue-600 text-lg">Verificando acesso...</div>
-      </div>
-    );
-  }
-
-  if (!hasAccess) {
-    return null; // Será redirecionado
-  }
-
-  return <>{children}</>;
-};
 const Layout = () => {
   const navigate = useNavigate();
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
@@ -105,70 +40,13 @@ const Layout = () => {
     }
   ];
 
-  const ensureUnrestrictedUserSetup = async () => {
-    if (!auth.currentUser) return;
-
-    if (hasUnrestrictedAccess(auth.currentUser.email)) {
-      try {
-        console.log(`🔧 Verificando configuração do usuário irrestrito: ${auth.currentUser.email}`);
-        
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
-        const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser.uid));
-        
-        const now = new Date();
-        const transactionId = crypto.randomUUID();
-
-        if (!userDoc.exists() || !userDoc.data()?.unrestrictedAccess) {
-          console.log('📝 Criando dados do usuário irrestrito...');
-          await setDoc(doc(db, 'users', auth.currentUser.uid), {
-            uid: auth.currentUser.uid,
-            name: UNRESTRICTED_USER_CONFIG.name,
-            email: auth.currentUser.email,
-            cpf: UNRESTRICTED_USER_CONFIG.cpf,
-            company: UNRESTRICTED_USER_CONFIG.company,
-            phone: UNRESTRICTED_USER_CONFIG.phone,
-            plan: UNRESTRICTED_USER_CONFIG.plan,
-            activated: true,
-            activatedAt: now.toISOString(),
-            unrestrictedAccess: true,
-            createdAt: now.toISOString(),
-            acceptedTerms: true,
-            termsAcceptanceId: transactionId
-          }, { merge: true });
-        }
-
-        if (!tokenDoc.exists()) {
-          console.log('🎫 Criando dados de token para usuário irrestrito...');
-          const now = new Date();
-          await setDoc(doc(db, 'tokenUsage', auth.currentUser.uid), {
-            uid: auth.currentUser.uid,
-            email: auth.currentUser.email,
-            plan: UNRESTRICTED_USER_CONFIG.plan,
-            totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens,
-            usedTokens: 0,
-            lastUpdated: now.toISOString(), 
-            purchasedAt: now.toISOString(),
-            renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(),
-            autoRenewal: true
-          });
-        }
-
-        console.log(`✅ Configuração do usuário irrestrito verificada/criada: ${auth.currentUser.email}`);
-      } catch (error) {
-        console.error('❌ Erro ao configurar usuário irrestrito:', error);
-      }
-    }
-  };
-
   useEffect(() => {
     if (!auth.currentUser) {
       setIsLoading(false);
       return;
     }
 
-    const initializeUser = async () => {
-      await ensureUnrestrictedUserSetup();
-      
+    const fetchTokenUsage = async () => {
       try {
         const tokenDoc = await getDoc(doc(db, 'tokenUsage', auth.currentUser!.uid));
         if (tokenDoc.exists()) {
@@ -176,11 +54,12 @@ const Layout = () => {
         }
       } catch (error) {
         console.error('Error fetching token usage:', error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
-    initializeUser();
+    fetchTokenUsage();
   }, []);
 
   // Função simplificada apenas para verificar tokens
@@ -210,7 +89,6 @@ const Layout = () => {
   }
 
   return (
-    <DashboardAccessChecker>
       <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-4 py-3">
@@ -232,30 +110,13 @@ const Layout = () => {
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
-            {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Pharmyrus Pipeline
-              </div>
-            )}
-            {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-              <Link
-                to="/admin/serp-keys"
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                <Shield size={16} />
-                Admin SUDO
-              </Link>
-            )}
-            {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
-              <Link
-                to="/plans"
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <CreditCard size={16} />
-                Planos
-              </Link>
-            )}
+            <Link
+              to="/plans"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <CreditCard size={16} />
+              Planos
+            </Link>
             <UserProfile />
             <button
               onClick={handleLogout}
@@ -297,38 +158,14 @@ const Layout = () => {
                 />
               )}
               
-              {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center gap-2 text-green-800 text-sm font-medium mb-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    Conta Corporativa
-                  </div>
-                  <div className="text-xs text-green-600">
-                    {UNRESTRICTED_USER_CONFIG.company}
-                  </div>
-                </div>
-              )}
-              
-              {!(auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email)) && (
-                <Link
-                  to="/plans"
-                  className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  onClick={() => setShowSidebar(false)}
-                >
-                  <CreditCard size={16} />
-                  Planos
-                </Link>
-              )}
-              {auth.currentUser && isAdminUser(auth.currentUser.email) && (
-                <Link
-                  to="/admin/serp-keys"
-                  className="flex items-center gap-2 w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  onClick={() => setShowSidebar(false)}
-                >
-                  <Shield size={16} />
-                  Admin SUDO
-                </Link>
-              )}
+            <Link
+              to="/plans"
+              className="flex items-center gap-2 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => setShowSidebar(false)}
+            >
+              <CreditCard size={16} />
+              Planos
+            </Link>
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>
@@ -348,7 +185,7 @@ const Layout = () => {
       <main className="flex-1 max-w-7xl mx-auto px-4 py-8 w-full">
         <div className="grid grid-cols-1">
           <div className="w-full">
-            <DrugPipelineCreator 
+            <PatentConsultation 
               checkTokenUsage={() => checkTokenUsage(tokenUsage)}
               tokenUsage={tokenUsage}
             />
@@ -393,7 +230,6 @@ const Layout = () => {
         </div>
       </footer>
       </div>
-    </DashboardAccessChecker>
   );
 };
 
