@@ -281,19 +281,15 @@ export class MonitoringManager {
       const lastConsultasQuery = query(
         collection(db, 'consultas'),
         where('userId', '==', monitoringConfig.userId),
-        limit(10)
+        orderBy('consultedAt', 'desc'),
+        limit(5)
       );
       
       const lastConsultasSnapshot = await getDocs(lastConsultasQuery);
-      const allConsultas = lastConsultasSnapshot.docs.map(doc => ({
+      const lastConsultas = lastConsultasSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      // Ordenar por consultedAt no cliente e pegar as últimas 5
-      const lastConsultas = allConsultas
-        .sort((a, b) => new Date(b.consultedAt).getTime() - new Date(a.consultedAt).getTime())
-        .slice(0, 5);
       
       // Preparar dados completos da consulta original para o webhook de monitoramento
       const monitoringData = {
@@ -480,13 +476,7 @@ export class MonitoringManager {
       console.log(`✅ Monitoramento ${monitoringConfig.runCount + 1} executado e próximo agendado em ${Math.round(finalIntervalMs/60000)} minutos`);
 
     } catch (error) {
-      // Check for network connectivity issues
-      if (error instanceof Error && error.message === 'Failed to fetch') {
-        console.error('❌ Erro de conectividade no monitoramento: Verifique sua conexão com a internet ou tente novamente mais tarde');
-        throw new Error('Falha na conexão com o servidor de monitoramento. Verifique sua conexão com a internet.');
-      } else {
-        console.error('❌ Erro na execução do monitoramento:', error);
-      }
+      console.error('❌ Erro na execução do monitoramento:', error);
       
       // Reagendar para tentar novamente em 1 hora  
       console.log('🔄 Reagendando monitoramento devido ao erro...');

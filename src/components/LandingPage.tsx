@@ -83,28 +83,28 @@ const LandingPage = () => {
     {
       name: "Instituto Nacional da Propriedade Industrial",
       country: "Brasil",
-      logo: "/inpi-logo-1.jpeg",
+      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "INPI Brasil",
       size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "United States Patent and Trademark Office",
       country: "Estados Unidos",
-      logo: "/uspto-logo-2.png",
+      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "USPTO",
       size: "normal"
     },
     {
       name: "European Patent Office",
       country: "Europa",
-      logo: "/epto-logo-3.png",
+      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "EPO",
       size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "World Intellectual Property Organization",
       country: "Internacional",
-      logo: "/Wipo-logo-4.png",
+      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
       alt: "WIPO",
       size: "normal"
     }
