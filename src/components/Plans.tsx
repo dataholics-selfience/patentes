@@ -12,6 +12,7 @@ interface Plan {
   popular?: boolean;
   tokens: number;
   description: string;
+  stripeLink: string;
 }
 
 const Plans: React.FC = () => {
@@ -28,13 +29,14 @@ const Plans: React.FC = () => {
 
   const plans: Plan[] = [
     {
-      id: 'basic',
-      name: 'Pesquisador',
-      price: 'R$ 97',
-      tokens: 10,
-      description: 'Ideal para pesquisadores e pequenas consultas',
+      id: 'analista',
+      name: 'Analista',
+      price: 'R$ 7.500',
+      tokens: 5,
+      description: 'Para analistas e pequenas consultas especializadas',
+      stripeLink: 'https://buy.stripe.com/eVq14ng1hevefbx8eTfYY0y',
       features: [
-        '10 consultas de patentes por mês',
+        '5 consultas de patentes por mês',
         'Análise completa de propriedade intelectual',
         'Dados químicos e moleculares',
         'Status de patentes por país',
@@ -43,13 +45,14 @@ const Plans: React.FC = () => {
       ]
     },
     {
-      id: 'pro',
-      name: 'Profissional',
-      price: 'R$ 297',
-      tokens: 50,
-      description: 'Para empresas e profissionais do setor farmacêutico',
+      id: 'especialista',
+      name: 'Especialista',
+      price: 'R$ 13.000',
+      tokens: 10,
+      description: 'Para especialistas e profissionais do setor farmacêutico',
+      stripeLink: 'https://buy.stripe.com/4gMaEXg1h2Mw8N9fHlfYY0z',
       features: [
-        '50 consultas de patentes por mês',
+        '10 consultas de patentes por mês',
         'Análise avançada de ensaios clínicos',
         'Dados do FDA Orange Book',
         'Regulação por país detalhada',
@@ -61,13 +64,14 @@ const Plans: React.FC = () => {
       popular: true
     },
     {
-      id: 'enterprise',
-      name: 'Corporativo',
-      price: 'R$ 997',
-      tokens: 200,
-      description: 'Para grandes empresas farmacêuticas e laboratórios',
+      id: 'diretor',
+      name: 'Diretor',
+      price: 'R$ 25.000',
+      tokens: 20,
+      description: 'Para diretores e grandes empresas farmacêuticas',
+      stripeLink: 'https://buy.stripe.com/14A3cv9CTdraaVh52HfYY0B',
       features: [
-        '200 consultas de patentes por mês',
+        '20 consultas de patentes por mês',
         'Análise completa de mercado TAM SAM SOM',
         'Estratégias de formulação',
         'Documentação regulatória completa',
@@ -79,6 +83,10 @@ const Plans: React.FC = () => {
       ]
     }
   ];
+
+  const handlePlanSelect = (stripeLink: string) => {
+    window.open(stripeLink, '_blank');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -137,9 +145,9 @@ const Plans: React.FC = () => {
               <div className="p-8">
                 <div className="text-center mb-8">
                   <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                    {plan.id === 'basic' && <Zap className="text-white" size={32} />}
-                    {plan.id === 'pro' && <Rocket className="text-white" size={32} />}
-                    {plan.id === 'enterprise' && <Crown className="text-white" size={32} />}
+                    {plan.id === 'analista' && <Zap className="text-white" size={32} />}
+                    {plan.id === 'especialista' && <Rocket className="text-white" size={32} />}
+                    {plan.id === 'diretor' && <Crown className="text-white" size={32} />}
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <p className="text-gray-600 text-sm">{plan.description}</p>
@@ -169,6 +177,7 @@ const Plans: React.FC = () => {
                 
                 <div>
                   <button
+                    onClick={() => handlePlanSelect(plan.stripeLink)}
                     className={`w-full py-4 px-6 rounded-xl text-lg font-bold transition-all duration-300 ${
                       plan.popular
                         ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl'

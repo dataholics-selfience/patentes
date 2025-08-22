@@ -207,7 +207,7 @@ Precisa de ajuda? Responda esta mensagem.
       await setDoc(doc(db, 'tokenUsage', user.uid), {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
-        plan: 'Pesquisador',
+        plan: 'Sem Plano',
         totalTokens: 0, // SEM CONSULTAS GRATUITAS - REDIRECIONAR PARA PLANOS
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),

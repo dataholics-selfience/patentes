@@ -536,6 +536,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 <Search size={20} />
               )}
               {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
+              {isLoading ? 'Criando pipeline...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Criar pipeline de produto'}
             </button>
 
           </form>
