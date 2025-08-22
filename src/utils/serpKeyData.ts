@@ -127,9 +127,13 @@ export const validateSerpKey = (key: string): boolean => {
 };
 
 // Email do admin que pode acessar a interface de gerenciamento
-export const ADMIN_EMAIL = 'innovagenoi@gmail.com';
+export const ADMIN_EMAILS = [
+  'innovagenoi@gmail.com',
+  'thays.perpetua@dataholics.io',
+  'daniel.mendes@dataholics.io'
+];
 
 // Função para verificar se o usuário é admin
 export const isAdminUser = (email: string | null): boolean => {
-  return email === ADMIN_EMAIL;
+  return email ? ADMIN_EMAILS.includes(email) : false;
 };

@@ -138,14 +138,7 @@ const Login = () => {
         }
       }
 
-      // Verificação normal de e-mail para outros usuários
-      if (!user.emailVerified) {
-        await auth.signOut();
-        setError('Por favor, verifique seu email antes de fazer login.');
-        navigate('/verify-email');
-        return;
-      }
-
+      // Redirecionar todos os outros usuários diretamente para planos
       setError('');
       navigate('/plans', { replace: true });
       

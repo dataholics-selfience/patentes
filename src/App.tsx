@@ -52,8 +52,8 @@ function App() {
       return true;
     }
     
-    // Verificar se o usuário tem tokens disponíveis além da verificação de email
-    return user.emailVerified;
+    // Todos os outros usuários devem ir para planos
+    return false;
   };
 
   const shouldRedirectToPlans = (user: any): boolean => {
@@ -64,8 +64,8 @@ function App() {
       return false;
     }
     
-    // Outros usuários verificados vão para planos
-    return user.emailVerified;
+    // Todos os outros usuários vão para planos
+    return true;
   };
 
   if (loading) {
@@ -94,19 +94,15 @@ function App() {
         <Route path="/profile" element={
           user && canAccessDashboard(user) ? (
             <UserManagement />
-          ) : user && !canAccessDashboard(user) ? (
-            <Navigate to="/verify-email" replace />
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to="/plans" replace />
           )
         } />
         <Route path="/admin/serp-keys" element={
           user && canAccessDashboard(user) ? (
             <SerpKeyAdmin />
-          ) : user && !canAccessDashboard(user) ? (
-            <Navigate to="/verify-email" replace />
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to="/plans" replace />
           )
         } />
         <Route path="/plans" element={
@@ -120,10 +116,8 @@ function App() {
           user ? (
             hasUnrestrictedAccess(user.email) ? (
               <Layout />
-            ) : canAccessDashboard(user) ? (
-              <Layout />
             ) : (
-              <Navigate to="/verify-email" replace />
+              <Navigate to="/plans" replace />
             )
           ) : (
             <Navigate to="/login" replace />
@@ -138,7 +132,7 @@ function App() {
             ) : shouldRedirectToPlans(user) ? (
               <Navigate to="/plans" replace />
             ) : (
-              <Navigate to="/verify-email" replace />
+              <Navigate to="/plans" replace />
             )
           ) : (
             <LandingPage />
