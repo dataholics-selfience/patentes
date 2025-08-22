@@ -85,7 +85,7 @@ function App() {
         
         {/* Auth routes */}
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/plans" replace />} />
+        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" replace />} />
         <Route path="/forgot-password" element={!user ? <ForgotPassword /> : <Navigate to="/dashboard" replace />} />
         <Route path="/verify-email" element={<EmailVerification />} />
         <Route path="/account-deleted" element={<AccountDeleted />} />
