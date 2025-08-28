@@ -440,7 +440,12 @@ const LandingPage = () => {
             </div>
             
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 Pharmyrus. Todos os direitos reservados.</p>
+              <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+              <p className="mt-2">
+                <Link to="/quem-somos" className="text-gray-400 hover:text-gray-300 transition-colors">
+                  DATAHOLICS - 21.976.713/0001-65
+                </Link>
+              </p>
             </div>
           </div>
         </div>

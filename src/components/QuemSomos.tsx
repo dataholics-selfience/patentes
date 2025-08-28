@@ -249,6 +249,11 @@ const QuemSomos = () => {
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="text-center text-gray-400">
               <p>&copy; 2025 Pharmyrus. Todos os direitos reservados.</p>
+              <p className="mt-2">
+                <Link to="/quem-somos" className="text-gray-400 hover:text-gray-300 transition-colors">
+                  DATAHOLICS - 21.976.713/0001-65
+                </Link>
+              </p>
             </div>
           </div>
         </div>
