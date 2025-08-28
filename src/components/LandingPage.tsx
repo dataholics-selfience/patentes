@@ -123,10 +123,10 @@ const LandingPage = () => {
                 Entrar
               </Link>
               <Link 
-                to="/plans" 
+                to="/quem-somos" 
                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
-                Planos
+                Quem Somos
               </Link>
               <Link 
                 to="/register" 
@@ -410,7 +410,7 @@ const LandingPage = () => {
               <h3 className="text-lg font-semibold mb-4">Produto</h3>
               <ul className="space-y-2 text-gray-400">
                 <li><Link to="/register" className="hover:text-white transition-colors">Criar Pipeline</Link></li>
-                <li><Link to="/plans" className="hover:text-white transition-colors">Planos</Link></li>
+                <li><Link to="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
                 <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Suporte</a></li>
               </ul>
             </div>

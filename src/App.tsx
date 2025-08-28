@@ -13,6 +13,7 @@ import Plans from './components/Plans';
 import UserManagement from './components/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
+import QuemSomos from './components/QuemSomos';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
 import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
 
@@ -82,6 +83,7 @@ function App() {
         {/* Public routes */}
         <Route path="/home" element={<LandingPage />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/quem-somos" element={<QuemSomos />} />
         
         {/* Auth routes */}
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
