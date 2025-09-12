@@ -16,6 +16,7 @@ import Terms from './components/Terms';
 import QuemSomos from './components/QuemSomos';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
 import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
+import CorporateUserAdmin from './components/admin/CorporateUserAdmin';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -121,6 +122,15 @@ function App() {
             ) : (
               <Navigate to="/plans" replace />
             )
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } />
+        <Route path="/admin/corporate-users" element={
+          user && canAccessDashboard(user) ? (
+            <CorporateUserAdmin />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
           ) : (
             <Navigate to="/login" replace />
           )

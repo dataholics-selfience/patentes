@@ -17,6 +17,7 @@ import { initializeSerpKeyManager } from '../../utils/serpKeyManager';
 import { SERP_API_KEYS } from '../../utils/serpKeyData';
 import { CountryFlagsFromText } from '../../utils/countryFlags';
 import { isAdminUser } from '../../utils/serpKeyData';
+import { Users } from 'lucide-react';
 
 // Países disponíveis para seleção
 const AVAILABLE_COUNTRIES = [
@@ -460,6 +461,14 @@ const SerpKeyAdmin = () => {
             >
               <Search size={16} />
               Consulta Admin
+            </button>
+            
+            <button
+              onClick={() => navigate('/admin/corporate-users')}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mr-2"
+            >
+              <Users size={16} />
+              Usuários Corporativos
             </button>
             
             <button
