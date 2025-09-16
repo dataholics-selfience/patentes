@@ -13,6 +13,8 @@ import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrest
 import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
+import LanguageSelector from './LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 // Componente para verificar se usuário tem acesso ao dashboard
 const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
@@ -78,6 +80,7 @@ const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => 
 };
 const Layout = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [tokenUsage, setTokenUsage] = useState<TokenUsageType | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -207,7 +210,7 @@ const Layout = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-blue-600 text-lg">Carregando...</div>
+        <div className="animate-pulse text-blue-600 text-lg">{t('loading')}</div>
       </div>
     );
   }
@@ -236,7 +239,7 @@ const Layout = () => {
             {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                Conta Corporativa
+                {t('corporateAccount')}
               </div>
             )}
             {auth.currentUser && isAdminUser(auth.currentUser.email) && (
@@ -254,7 +257,7 @@ const Layout = () => {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <CreditCard size={16} />
-                Planos
+                {t('plans')}
               </Link>
             )}
             <UserProfile />
@@ -303,7 +306,7 @@ const Layout = () => {
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-center gap-2 text-green-800 text-sm font-medium mb-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    Conta Corporativa
+                    {t('corporateAccount')}
                   </div>
                   <div className="text-xs text-green-600">
                     {UNRESTRICTED_USER_CONFIG.company}
@@ -318,7 +321,7 @@ const Layout = () => {
                   onClick={() => setShowSidebar(false)}
                 >
                   <CreditCard size={16} />
-                  Planos
+                  {t('plans')}
                 </Link>
               )}
               {auth.currentUser && isAdminUser(auth.currentUser.email) && (
@@ -332,6 +335,9 @@ const Layout = () => {
                 </Link>
               )}
               <div className="pt-4 border-t border-gray-200">
+                <LanguageSelector />
+              </div>
+              <div className="pt-4 border-t border-gray-200">
                 <UserProfile />
               </div>
               <button
@@ -339,7 +345,7 @@ const Layout = () => {
                 className="flex items-center gap-2 w-full px-4 py-2 text-red-600 hover:text-red-700 transition-colors"
               >
                 <LogOut size={16} />
-                Sair
+                {t('logout')}
               </button>
             </div>
           </div>
@@ -378,11 +384,11 @@ const Layout = () => {
               className="flex items-center gap-2 bg-white text-green-600 border-2 border-green-600 hover:bg-green-50 px-6 py-3 rounded-lg font-medium transition-colors"
             >
               <MessageCircle size={20} />
-              Suporte via WhatsApp
+              {t('whatsappSupport')}
             </a>
 
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
+              <span className="text-sm text-gray-600 hidden lg:block">{t('connectedToMainAgencies')}:</span>
               <div className="flex items-center gap-6">
                 {patentAgencies.map((agency, index) => (
                   <div key={index} className="text-center">
@@ -395,7 +401,7 @@ const Layout = () => {
           </div>
 
           <div className="text-center text-gray-500 text-sm mt-6 pt-6 border-t border-gray-200">
-            <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+            <p>&copy; 2025 {t('patentConsultation')}. {t('allRightsReserved')}.</p>
           </div>
         </div>
       </footer>

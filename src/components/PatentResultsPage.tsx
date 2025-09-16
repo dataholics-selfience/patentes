@@ -25,6 +25,8 @@ import {
 import { PatentResultType } from '../types';
 import jsPDF from 'jspdf';
 import Flag from 'react-world-flags';
+import { useTranslation } from 'react-i18next';
+import { useContentTranslation } from '../utils/translateContent';
 
 interface PatentResultsPageProps {
   result: PatentResultType;
@@ -160,9 +162,12 @@ const OpportunityGauge = ({
 
 const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const { t } = useTranslation();
+  const { translateObject } = useContentTranslation();
 
   // Parse do JSON result
-  const data = typeof result === 'string' ? JSON.parse(result) : result;
+  const rawData = typeof result === 'string' ? JSON.parse(result) : result;
+  const data = translateObject(rawData, t('currentLanguage'));
   
   const produto = data.substancia || searchTerm;
   const nomeComercial = data.nome_comercial || '';
@@ -235,7 +240,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                 className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition-colors"
               >
                 <ArrowLeft size={20} />
-                <span>Voltar</span>
+                <span>{t('back')}</span>
               </button>
               
               <div className="flex items-center gap-3">
@@ -260,7 +265,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
               ) : (
                 <>
                   <Download size={16} />
-                  <span>Exportar PDF</span>
+                  <span>{t('exportPdf')}</span>
                 </>
               )}
             </button>
@@ -280,11 +285,11 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="space-y-2">
                       <div>
                         <span className="text-blue-200 text-lg">Nome da Molécula:</span>
-                        <h2 className="text-4xl text-white">{produto || 'Não informado'}</h2>
+                        <h2 className="text-4xl text-white">{produto || t('notInformed')}</h2>
                       </div>
                       {nomeComercial && (
                         <div>
-                          <span className="text-blue-200 text-lg">Nome Comercial:</span>
+                          <span className="text-blue-200 text-lg">{t('commercialName')}:</span>
                           <p className="text-2xl text-blue-100">{nomeComercial}</p>
                         </div>
                       )}
@@ -303,9 +308,9 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         ) : (
                           <XCircle size={20} className="text-white" />
                         )}
-                        <span className="text-white">Status da Patente:</span>
+                        <span className="text-white">{t('patentStatus')}:</span>
                         <span className={`${primeiraPatente.patente_vigente ? 'text-green-300' : 'text-red-300'}`}>
-                          {primeiraPatente.patente_vigente ? 'VIGENTE' : 'EXPIRADA'}
+                          {primeiraPatente.patente_vigente ? t('active') : t('expired')}
                         </span>
                       </div>
                       {primeiraPatente.numero_patente && (
@@ -317,7 +322,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Calendar size={20} className="text-white" />
-                        <span className="text-white">Expiração Principal:</span>
+                        <span className="text-white">{t('primaryExpiration')}:</span>
                         <span className="text-orange-300">{primeiraPatente.data_expiracao_patente_principal}</span>
                       </div>
                       {primeiraPatente.data_expiracao_patente_secundaria && primeiraPatente.data_expiracao_patente_secundaria !== 'Não informado' && (
@@ -329,9 +334,9 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Globe size={20} className="text-white" />
-                        <span className="text-white">Exploração Comercial:</span>
+                        <span className="text-white">{t('commercialExploration')}:</span>
                         <span className={`${primeiraPatente.exploracao_comercial ? 'text-green-300' : 'text-red-300'}`}>
-                          {primeiraPatente.exploracao_comercial ? 'PERMITIDA' : 'RESTRITA'}
+                          {primeiraPatente.exploracao_comercial ? t('permitted') : t('restricted')}
                         </span>
                       </div>
                     </div>
@@ -340,7 +345,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="flex items-center gap-3 p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2">
                         <Target size={20} className="text-white" />
-                        <span className="text-white">Disponível para Novo Produto:</span>
+                        <span className="text-white">{t('availableForNewProduct')}:</span>
                         <span className="text-yellow-300">{primeiraPatente.data_vencimento_para_novo_produto}</span>
                       </div>
                     </div>
@@ -350,7 +355,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                       <div className="grid grid-cols-2 gap-3">
                           {primeiraPatente.tipo_protecao_detalhado.primaria && primeiraPatente.tipo_protecao_detalhado.primaria.length > 0 && (
                             <div className="p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
-                              <span className="text-white block mb-2">Proteção Primária</span>
+                              <span className="text-white block mb-2">{t('primaryProtection')}</span>
                               <div className="flex flex-wrap gap-1">
                                 {primeiraPatente.tipo_protecao_detalhado.primaria.map((tipo, idx) => (
                                   <span key={idx} className="px-2 py-1 bg-green-600 text-white rounded text-sm">
@@ -363,7 +368,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                           
                           {primeiraPatente.tipo_protecao_detalhado.secundaria && primeiraPatente.tipo_protecao_detalhado.secundaria.length > 0 && (
                             <div className="p-3 bg-blue-800/50 rounded-lg border border-blue-600/50">
-                              <span className="text-white block mb-2">Proteção Secundária</span>
+                              <span className="text-white block mb-2">{t('secondaryProtection')}</span>
                               <div className="flex flex-wrap gap-1">
                                 {primeiraPatente.tipo_protecao_detalhado.secundaria.map((tipo, idx) => (
                                   <span key={idx} className="px-2 py-1 bg-yellow-600 text-white rounded text-sm">
@@ -384,7 +389,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   {scoreOportunidade.valor && (
                     <div className="flex flex-col items-center justify-start">
                       <div className="text-center mb-6">
-                        <h3 className="text-lg text-white mb-2">Score de Oportunidade</h3>
+                        <h3 className="text-lg text-white mb-2">{t('opportunityScore')}</h3>
                       </div>
                       
                       <OpportunityGauge 
@@ -413,7 +418,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="p-4 bg-blue-800/50 rounded-lg border border-blue-600/50">
                       <div className="flex items-center gap-2 mb-3">
                         <Shield size={20} className="text-white" />
-                        <span className="text-white">Objeto de Proteção</span>
+                        <span className="text-white">{t('protectionObject')}</span>
                       </div>
                       <p className="text-blue-100 leading-relaxed">{primeiraPatente.objeto_protecao}</p>
                     </div>
@@ -431,8 +436,8 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   <Globe size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Patentes por País</h3>
-                  <p className="text-gray-600">Status e datas de expiração por jurisdição</p>
+                  <h3 className="text-xl font-bold text-gray-900">{t('patentsByCountry')}</h3>
+                  <p className="text-gray-600">{t('statusAndExpirationDates')}</p>
                 </div>
               </div>
               
@@ -450,13 +455,13 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     <div className="space-y-2 text-sm">
                       {country.numero && (
                         <div>
-                          <strong>Número:</strong> 
+                          <strong>{t('number')}:</strong> 
                           <span className="font-mono ml-1">{country.numero}</span>
                         </div>
                       )}
                       
                       <div>
-                        <strong>Status:</strong> 
+                        <strong>{t('status')}:</strong> 
                         <span className={`ml-1 px-2 py-1 rounded text-xs ${
                           country.status === 'Ativa' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
@@ -465,13 +470,13 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                       </div>
                       
                       <div>
-                        <strong>Expiração:</strong> 
+                        <strong>{t('expiration')}:</strong> 
                         <span className="ml-1 font-medium">{country.data_expiracao}</span>
                       </div>
                       
                       {country.tipo && country.tipo.length > 0 && (
                         <div>
-                          <strong>Tipos:</strong>
+                          <strong>{t('types')}:</strong>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {country.tipo.map((tipo, i) => (
                               <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
@@ -484,7 +489,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                       
                       {country.fonte && (
                         <div className="mt-2 pt-2 border-t border-gray-200">
-                          <span className="text-xs text-gray-500">Fonte: {country.fonte}</span>
+                          <span className="text-xs text-gray-500">{t('source')}: {country.fonte}</span>
                         </div>
                       )}
                       
@@ -496,7 +501,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
                           >
-                            Ver patente
+                            {t('viewPatent')}
                             <ExternalLink size={12} />
                           </a>
                         </div>
@@ -516,36 +521,36 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   <Beaker size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Dados Químicos</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('chemicalData')}</h3>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">Fórmula Molecular</span>
+                  <span className="text-sm font-medium text-gray-600">{t('molecularFormula')}</span>
                   <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{quimica.molecular_formula}</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">Peso Molecular</span>
+                  <span className="text-sm font-medium text-gray-600">{t('molecularWeight')}</span>
                   <p className="text-lg font-bold text-gray-900 mt-1">{quimica.molecular_weight} g/mol</p>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-purple-100">
-                  <span className="text-sm font-medium text-gray-600">InChI Key</span>
+                  <span className="text-sm font-medium text-gray-600">{t('inchiKey')}</span>
                   <p className="text-sm font-mono text-gray-900 mt-1 break-all">{quimica.inchi_key}</p>
                 </div>
 
                 {quimica.iupac_name && (
                   <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
-                    <span className="text-sm font-medium text-gray-600">Nome IUPAC</span>
+                    <span className="text-sm font-medium text-gray-600">{t('iupacName')}</span>
                     <p className="text-sm text-gray-900 mt-1 break-words">{quimica.iupac_name}</p>
                   </div>
                 )}
 
                 {quimica.smiles && (
                   <div className="bg-white p-4 rounded-lg border border-purple-100 md:col-span-2 lg:col-span-3">
-                    <span className="text-sm font-medium text-gray-600">SMILES</span>
+                    <span className="text-sm font-medium text-gray-600">{t('smiles')}</span>
                     <p className="text-sm font-mono text-gray-900 mt-1 break-all">{quimica.smiles}</p>
                   </div>
                 )}
@@ -561,34 +566,34 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   <TestTube size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Ensaios Clínicos</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('clinicalTrials')}</h3>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-lg border border-green-100">
-                  <span className="text-sm font-medium text-gray-600">Estudos Ativos</span>
+                  <span className="text-sm font-medium text-gray-600">{t('activeStudies')}</span>
                   <p className="text-2xl font-bold text-green-600 mt-1">{ensaiosClinicosData.ativos}</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-green-100">
-                  <span className="text-sm font-medium text-gray-600">Fase Avançada</span>
+                  <span className="text-sm font-medium text-gray-600">{t('advancedPhase')}</span>
                   <p className={`text-lg font-bold mt-1 ${ensaiosClinicosData.fase_avancada ? 'text-green-600' : 'text-red-600'}`}>
-                    {ensaiosClinicosData.fase_avancada ? 'SIM' : 'NÃO'}
+                    {ensaiosClinicosData.fase_avancada ? t('yes') : t('no')}
                   </p>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-green-100">
-                  <span className="text-sm font-medium text-gray-600">Estudos no Brasil</span>
+                  <span className="text-sm font-medium text-gray-600">{t('studiesInBrazil')}</span>
                   <p className={`text-lg font-bold mt-1 ${ensaiosClinicosData.tem_no_brasil ? 'text-green-600' : 'text-red-600'}`}>
-                    {ensaiosClinicosData.tem_no_brasil ? 'SIM' : 'NÃO'}
+                    {ensaiosClinicosData.tem_no_brasil ? t('yes') : t('no')}
                   </p>
                 </div>
               </div>
 
               {ensaiosClinicosData.principais_indicacoes_estudadas && (
                 <div className="mb-6">
-                  <span className="text-sm font-medium text-gray-600 mb-2 block">Principais Indicações</span>
+                  <span className="text-sm font-medium text-gray-600 mb-2 block">{t('mainIndications')}</span>
                   <div className="flex flex-wrap gap-2">
                     {ensaiosClinicosData.principais_indicacoes_estudadas.map((indicacao, i) => (
                       <span key={i} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
@@ -600,7 +605,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
               )}
               
               <div className="space-y-4">
-                <h4 className="font-bold text-gray-900">Estudos Detalhados</h4>
+                <h4 className="font-bold text-gray-900">{t('detailedStudies')}</h4>
                 {ensaiosClinicosData.estudos.map((estudo, index) => (
                   <div key={index} className="bg-white p-4 rounded-lg border border-green-100">
                     <div className="flex items-start justify-between">
@@ -609,14 +614,14 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                           <div className="flex items-center gap-2">
                             <Award size={16} className="text-green-600" />
-                            <span><strong>Fase:</strong> {estudo.fase}</span>
+                            <span><strong>{t('phase')}:</strong> {estudo.fase}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <Flag 
                               code={getCountryCode(estudo.pais)} 
                               style={{ width: 16, height: 12 }}
                             />
-                            <span><strong>País:</strong> {estudo.pais}</span>
+                            <span><strong>{t('country')}:</strong> {estudo.pais}</span>
                           </div>
                         </div>
                       </div>
@@ -645,36 +650,36 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                   <FileText size={24} className="text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">FDA Orange Book</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('orangeBook')}</h3>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-orange-100">
-                  <span className="text-sm font-medium text-gray-600">Número NDA</span>
+                  <span className="text-sm font-medium text-gray-600">{t('ndaNumber')}</span>
                   <p className="text-lg font-bold text-gray-900 mt-1 font-mono">{orangeBook.nda_number}</p>
                 </div>
                 
                 <div className="bg-white p-4 rounded-lg border border-orange-100">
-                  <span className="text-sm font-medium text-gray-600">Data de Aprovação</span>
+                  <span className="text-sm font-medium text-gray-600">{t('approvalDate')}</span>
                   <p className="text-lg font-bold text-gray-900 mt-1">{orangeBook.data_aprovacao}</p>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-orange-100">
-                  <span className="text-sm font-medium text-gray-600">Expiração da Exclusividade</span>
+                  <span className="text-sm font-medium text-gray-600">{t('exclusivityExpiration')}</span>
                   <p className="text-lg font-bold text-gray-900 mt-1">{orangeBook.data_expiracao_exclusividade}</p>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-orange-100">
-                  <span className="text-sm font-medium text-gray-600">Possui Genérico</span>
+                  <span className="text-sm font-medium text-gray-600">{t('hasGeneric')}</span>
                   <p className={`text-lg font-bold mt-1 ${orangeBook.tem_generico ? 'text-green-600' : 'text-red-600'}`}>
-                    {orangeBook.tem_generico ? 'SIM' : 'NÃO'}
+                    {orangeBook.tem_generico ? t('yes') : t('no')}
                   </p>
                 </div>
 
                 {orangeBook.exclusividades && orangeBook.exclusividades.length > 0 && (
                   <div className="bg-white p-4 rounded-lg border border-orange-100 md:col-span-2">
-                    <span className="text-sm font-medium text-gray-600 mb-2 block">Exclusividades</span>
+                    <span className="text-sm font-medium text-gray-600 mb-2 block">{t('exclusivities')}</span>
                     <div className="flex flex-wrap gap-2">
                       {orangeBook.exclusividades.map((exclusividade, idx) => (
                         <span key={idx} className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-sm">
@@ -693,7 +698,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Building2 size={24} className="text-red-600" />
-                <h3 className="text-xl font-bold text-gray-900">Regulação por País</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('regulationByCountry')}</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -712,7 +717,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                     
                     <div className="space-y-3">
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Classificação</span>
+                        <span className="text-sm font-medium text-gray-600">{t('classification')}</span>
                         <div className="mt-1">
                           <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
                             {regulacao.classificacao}
@@ -721,7 +726,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                       </div>
                       
                       <div>
-                        <span className="text-sm font-medium text-gray-600">Facilidade Registro Genérico</span>
+                        <span className="text-sm font-medium text-gray-600">{t('genericRegistrationEase')}</span>
                         <div className="mt-1">
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                             regulacao.facilidade_registro_generico === 'Alta' ? 'bg-green-100 text-green-800' :
@@ -735,7 +740,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
 
                       {regulacao.numero_registro && (
                         <div>
-                          <span className="text-sm font-medium text-gray-600">Número do Registro</span>
+                          <span className="text-sm font-medium text-gray-600">{t('registrationNumber')}</span>
                           <div className="mt-1">
                             <span className="font-mono text-sm">{regulacao.numero_registro}</span>
                           </div>
@@ -744,7 +749,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
 
                       {regulacao.restricoes && regulacao.restricoes.length > 0 && (
                         <div>
-                          <span className="text-sm font-medium text-gray-600">Restrições</span>
+                          <span className="text-sm font-medium text-gray-600">{t('restrictions')}</span>
                           <div className="mt-1 flex flex-wrap gap-1">
                             {regulacao.restricoes.map((restricao, idx) => (
                               <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
@@ -757,7 +762,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
 
                       {regulacao.fonte && (
                         <div className="mt-3 pt-3 border-t border-gray-200">
-                          <span className="text-xs text-gray-500">Fonte: {regulacao.fonte}</span>
+                          <span className="text-xs text-gray-500">{t('source')}: {regulacao.fonte}</span>
                         </div>
                       )}
                     </div>
@@ -772,7 +777,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-3 mb-6">
                 <BookOpen size={24} className="text-indigo-600" />
-                <h3 className="text-xl font-bold text-gray-900">Evidência Científica Recente</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('scientificEvidence')}</h3>
               </div>
               
               <div className="space-y-4">
@@ -787,7 +792,7 @@ const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProp
                         <p className="text-gray-700 mb-3">{evidencia.resumo}</p>
                         {evidencia.doi && (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-600">DOI:</span>
+                            <span className="text-sm font-medium text-gray-600">{t('doi')}:</span>
                             <a 
                               href={`https://doi.org/${evidencia.doi}`}
                               target="_blank"

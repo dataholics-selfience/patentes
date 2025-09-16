@@ -5,8 +5,10 @@ import {
   ArrowRight, Phone, Mail, Globe, Zap, Target, Award,
   MessageCircle, Star, ChevronRight
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const LandingPage = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,50 +35,50 @@ const LandingPage = () => {
   const features = [
     {
       icon: Shield,
-      title: "Pipeline Completo em 3 Minutos",
-      description: "Crie estratégias completas para novos medicamentos, incluindo análise de patentes, pesquisa de mercado e documentação regulatória."
+      title: t('completePipeline3Min'),
+      description: t('completeStrategiesDescription')
     },
     {
       icon: Clock,
-      title: "Pesquisa Global Automatizada",
-      description: "Busca automática em INPI, EPO, WIPO, FDA, PubChem, PubMed, Drug Bank, EMA e principais farmácias online do mundo."
+      title: t('automatedGlobalResearch'),
+      description: t('automaticSearchDescription')
     },
     {
       icon: TrendingUp,
-      title: "Análise TAM SAM SOM",
-      description: "Análise completa de tamanho de mercado, preços sugeridos, custos de produção e projeções financeiras detalhadas."
+      title: t('tamSamSomAnalysis'),
+      description: t('marketAnalysisDescription')
     },
     {
       icon: Globe,
-      title: "Documentação Regulatória",
-      description: "Gere toda documentação necessária para registro de patentes e aprovação regulatória em múltiplas jurisdições."
+      title: t('regulatoryDocumentation'),
+      description: t('regulatoryDocsDescription')
     },
     {
       icon: Target,
-      title: "Análise SWOT e Riscos",
-      description: "Avaliação completa de forças, fraquezas, oportunidades, ameaças e análise detalhada de riscos jurídicos."
+      title: t('swotRiskAnalysis'),
+      description: t('swotAnalysisDescription')
     },
     {
       icon: Zap,
-      title: "Estratégia Competitiva",
-      description: "Identifique oportunidades de mercado, compostos alternativos e estratégias para superar a concorrência."
+      title: t('competitiveStrategy'),
+      description: t('competitiveStrategyDescription')
     }
   ];
 
   const benefits = [
-    "Pipeline completo de produto em apenas 3 minutos",
-    "Pesquisa automática em 15+ bases de dados globais",
-    "Documentação regulatória pronta para submissão",
-    "Análise TAM SAM SOM e projeções financeiras",
-    "Estratégias para superar a concorrência",
-    "Reduza custos de consultoria em até 95%"
+    t('benefit1'),
+    t('benefit2'),
+    t('benefit3'),
+    t('benefit4'),
+    t('benefit5'),
+    t('benefit6')
   ];
 
   const stats = [
-    { number: "1,000+", label: "Pipelines Criados" },
-    { number: "200+", label: "Empresas Farmacêuticas" },
-    { number: "3 min", label: "Tempo Médio" },
-    { number: "95%", label: "Taxa de Sucesso" }
+    { number: "1,000+", label: t('pipelinesCreated') },
+    { number: "200+", label: t('pharmaceuticalCompanies') },
+    { number: "3 min", label: t('averageTime') },
+    { number: "95%", label: t('successRate') }
   ];
 
   const patentAgencies = [
@@ -120,19 +122,19 @@ const LandingPage = () => {
                 to="/login" 
                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
-                Entrar
+                {t('login')}
               </Link>
               <Link 
                 to="/quem-somos" 
                 className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
-                Quem Somos
+                {t('whoWeAre')}
               </Link>
               <Link 
                 to="/register" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Começar Agora
+                {t('startNow')}
               </Link>
             </div>
           </div>
@@ -145,15 +147,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                IA Avançada para
+                {t('landingTitle')}
                 <span className="text-blue-600"> Pipelines</span>
-                <br />Farmacêuticos Completos
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Como um time expert de portfólio farmacêutico na palma da sua mão! 
-                Em apenas 3 minutos, criamos pipelines completos para novos medicamentos 
-                concorrentes, incluindo pesquisa de mercado, análise de patentes, 
-                documentação regulatória e estratégias para sair na frente da concorrência.
+                {t('landingSubtitle')}
               </p>
               
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -161,7 +159,7 @@ const LandingPage = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Seu email profissional"
+                  placeholder={t('yourProfessionalEmail')}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
@@ -170,7 +168,7 @@ const LandingPage = () => {
                   disabled={isSubmitting}
                   className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center gap-2 disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Processando...' : 'Começar Agora'}
+                  {isSubmitting ? t('processing') : t('startNow')}
                   <ArrowRight size={20} />
                 </button>
               </form>
@@ -180,7 +178,7 @@ const LandingPage = () => {
               )}
               
               <p className="text-sm text-gray-500">
-                ✅ Pipeline completo em 3 min • ✅ Análise de mercado • ✅ Documentação regulatória
+                ✅ {t('completeIn3Min')} • ✅ {t('marketAnalysis')} • ✅ {t('regulatoryDocs')}
               </p>
             </div>
             
@@ -197,7 +195,7 @@ const LandingPage = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Pipeline Gerado</p>
-                    <p className="text-sm text-gray-600">Produto pronto para desenvolvimento</p>
+                    <p className="text-sm text-gray-600">{t('productReadyForDevelopment')}</p>
                   </div>
                 </div>
               </div>
@@ -225,11 +223,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Conectado às Principais Bases de Dados Farmacêuticas Mundiais
+              {t('connectedToMainDatabases')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA consulta automaticamente mais de 15 bases de dados especializadas, 
-              incluindo agências de patentes, órgãos regulatórios e farmácias online globais.
+              {t('aiConsultsAutomatically')}
             </p>
           </div>
           
@@ -249,20 +246,20 @@ const LandingPage = () => {
           
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-6">
-              Acesso direto a milhões de registros farmacêuticos e de patentes em tempo real
+              {t('directAccessToMillions')}
             </p>
             <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span>Dados em tempo real</span>
+                <span>{t('realTimeData')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Cobertura global</span>
+                <span>{t('globalCoverage')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span>15+ bases de dados</span>
+                <span>{t('fifteenPlusDatabases')}</span>
               </div>
             </div>
           </div>
@@ -274,11 +271,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que Empresas Farmacêuticas Escolhem o Pharmyrus?
+              {t('whyPharmaCompaniesChoose')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA avançada cria pipelines completos de produtos farmacêuticos, 
-              acelerando drasticamente o desenvolvimento e lançamento de novos medicamentos.
+              {t('advancedAiCreates')}
             </p>
           </div>
           
@@ -302,12 +298,10 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                De Ideia a Produto em Tempo Record
+                {t('fromIdeaToProduct')}
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                Com o Pharmyrus, você tem um time completo de especialistas farmacêuticos 
-                trabalhando 24/7. Nossa IA cria estratégias completas que levariam meses 
-                para serem desenvolvidas por equipes tradicionais.
+                {t('withPharmyrus')}
               </p>
               
               <div className="space-y-4">
@@ -324,7 +318,7 @@ const LandingPage = () => {
                   to="/register" 
                   className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center gap-2"
                 >
-                  Criar Meu Primeiro Pipeline
+                  {t('createMyFirstPipeline')}
                   <ChevronRight size={20} />
                 </Link>
               </div>
@@ -339,7 +333,7 @@ const LandingPage = () => {
               <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">3 min</div>
-                  <div className="text-sm text-gray-600">Pipeline completo</div>
+                  <div className="text-sm text-gray-600">{t('completePipeline')}</div>
                 </div>
               </div>
             </div>
@@ -351,11 +345,10 @@ const LandingPage = () => {
       <section className="py-20 bg-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Pronto para Revolucionar seu Portfólio?
+            {t('readyToRevolutionize')}
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Junte-se a centenas de empresas que já criam pipelines farmacêuticos 
-            completos em minutos e dominam seus mercados com o Pharmyrus.
+            {t('joinHundredsOfCompanies')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -363,7 +356,7 @@ const LandingPage = () => {
               to="/register" 
               className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors font-semibold inline-flex items-center gap-2"
             >
-              Criar Meu Pipeline
+              {t('createMyPipeline')}
               <ArrowRight size={20} />
             </Link>
             <a 
@@ -373,7 +366,7 @@ const LandingPage = () => {
               className="border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white hover:text-blue-600 transition-colors font-semibold inline-flex items-center gap-2"
             >
               <MessageCircle size={20} />
-              Suporte via WhatsApp
+              {t('whatsappSupport')}
             </a>
           </div>
         </div>
@@ -390,8 +383,7 @@ const LandingPage = () => {
                 className="h-12 w-auto mb-4"
               />
               <p className="text-gray-400 mb-6">
-                IA avançada que cria pipelines completos de produtos farmacêuticos, 
-                transformando ideias em estratégias de mercado prontas para execução.
+                {t('advancedAiDescription')}
               </p>
               <div className="flex items-center gap-4">
                 <a 
@@ -401,26 +393,26 @@ const LandingPage = () => {
                   className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
                 >
                   <MessageCircle size={20} />
-                  Suporte via WhatsApp
+                  {t('whatsappSupport')}
                 </a>
               </div>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Produto</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('product')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/register" className="hover:text-white transition-colors">Criar Pipeline</Link></li>
-                <li><Link to="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
-                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Suporte</a></li>
+                <li><Link to="/register" className="hover:text-white transition-colors">{t('createPipeline')}</Link></li>
+                <li><Link to="/quem-somos" className="hover:text-white transition-colors">{t('whoWeAre')}</Link></li>
+                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{t('support')}</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold mb-4">Empresa</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('company')}</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Contato</a></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Termos de Uso</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Privacidade</Link></li>
+                <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">{t('contact')}</a></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">{t('termsOfUse')}</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">{t('privacy')}</Link></li>
               </ul>
             </div>
           </div>
@@ -428,7 +420,7 @@ const LandingPage = () => {
           {/* Patent Agencies Logos in Footer */}
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="text-center mb-6">
-              <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Bases de Dados Farmacêuticas</h4>
+              <h4 className="text-lg font-semibold text-gray-300 mb-4">{t('connectedToMainDatabases')}</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {patentAgencies.map((agency, index) => (
                   <div key={index} className="bg-white p-3 rounded-lg text-center">
@@ -440,7 +432,7 @@ const LandingPage = () => {
             </div>
             
             <div className="text-center text-gray-400">
-              <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
+              <p>&copy; 2025 {t('patentConsultation')}. {t('allRightsReserved')}.</p>
               <p className="mt-2">
                 <Link to="/quem-somos" className="text-gray-400 hover:text-gray-300 transition-colors">
                   DATAHOLICS - 21.976.713/0001-65
