@@ -19,7 +19,6 @@ interface Plan {
 const Plans: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { t } = useTranslation();
 
   const handleSignOut = async () => {
     try {

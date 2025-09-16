@@ -22,7 +22,6 @@ import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useContentTranslation } from '../utils/translateContent';
 
 // Componente para redirecionar usuários sem tokens
 const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; hasTokens: boolean }) => {
@@ -101,7 +100,6 @@ const PHARMACEUTICAL_CATEGORIES = [
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { translateObject } = useContentTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',

@@ -274,7 +274,9 @@ export const translatePatentContent = (targetLanguage: string) => {
   return { translateText, translateObject };
 };
 
+// Simple hook that doesn't depend on react-i18next
 export const useContentTranslation = () => {
-  const { i18n } = useTranslation();
-  return translatePatentContent(i18n.language);
+  // Default to Portuguese if no language is available
+  const currentLanguage = 'pt';
+  return translatePatentContent(currentLanguage);
 };

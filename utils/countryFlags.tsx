@@ -1,5 +1,4 @@
 import Flag from 'react-world-flags';
-import { useTranslation } from './i18n';
 
 // Country code mapping for react-world-flags
 const countryCodeMap: { [key: string]: string } = {
@@ -246,99 +245,8 @@ export const getCountryCode = (countryName: string): string | null => {
 
 // Function to get translated country name
 export const getTranslatedCountryName = (countryName: string): string => {
-  const { t } = useTranslation();
-  
-  // Map common country names to translation keys
-  const countryTranslationMap: { [key: string]: keyof typeof t } = {
-    'Brasil': 'brazil',
-    'Brazil': 'brazil',
-    'Estados Unidos': 'unitedStates',
-    'United States': 'unitedStates',
-    'USA': 'unitedStates',
-    'US': 'unitedStates',
-    'Alemanha': 'germany',
-    'Germany': 'germany',
-    'França': 'france',
-    'France': 'france',
-    'Reino Unido': 'unitedKingdom',
-    'United Kingdom': 'unitedKingdom',
-    'UK': 'unitedKingdom',
-    'Japão': 'japan',
-    'Japan': 'japan',
-    'China': 'china',
-    'Coreia do Sul': 'southKorea',
-    'South Korea': 'southKorea',
-    'Canadá': 'canada',
-    'Canada': 'canada',
-    'Austrália': 'australia',
-    'Australia': 'australia',
-    'Índia': 'india',
-    'India': 'india',
-    'Itália': 'italy',
-    'Italy': 'italy',
-    'Espanha': 'spain',
-    'Spain': 'spain',
-    'Holanda': 'netherlands',
-    'Netherlands': 'netherlands',
-    'Suíça': 'switzerland',
-    'Switzerland': 'switzerland',
-    'Suécia': 'sweden',
-    'Sweden': 'sweden',
-    'Noruega': 'norway',
-    'Norway': 'norway',
-    'Dinamarca': 'denmark',
-    'Denmark': 'denmark',
-    'Finlândia': 'finland',
-    'Finland': 'finland',
-    'Bélgica': 'belgium',
-    'Belgium': 'belgium',
-    'Áustria': 'austria',
-    'Austria': 'austria',
-    'Portugal': 'portugal',
-    'México': 'mexico',
-    'Mexico': 'mexico',
-    'Argentina': 'argentina',
-    'Chile': 'chile',
-    'Colômbia': 'colombia',
-    'Colombia': 'colombia',
-    'Peru': 'peru',
-    'Uruguai': 'uruguay',
-    'Uruguay': 'uruguay',
-    'Rússia': 'russia',
-    'Russia': 'russia',
-    'África do Sul': 'southAfrica',
-    'South Africa': 'southAfrica',
-    'Israel': 'israel',
-    'Singapura': 'singapore',
-    'Singapore': 'singapore',
-    'Tailândia': 'thailand',
-    'Thailand': 'thailand',
-    'Malásia': 'malaysia',
-    'Malaysia': 'malaysia',
-    'Indonésia': 'indonesia',
-    'Indonesia': 'indonesia',
-    'Filipinas': 'philippines',
-    'Philippines': 'philippines',
-    'Vietnã': 'vietnam',
-    'Vietnam': 'vietnam',
-    'Taiwan': 'taiwan',
-    'Hong Kong': 'hongKong',
-    'Nova Zelândia': 'newZealand',
-    'New Zealand': 'newZealand',
-    'Europa': 'europeanUnion',
-    'European Union': 'europeanUnion',
-    'EU': 'europeanUnion',
-    'União Europeia': 'europeanUnion',
-    'Internacional': 'international',
-    'International': 'international'
-  };
-  
-  const translationKey = countryTranslationMap[countryName];
-  if (translationKey && t[translationKey]) {
-    return t[translationKey] as string;
-  }
-  
-  // Return original name if no translation found
+  // For now, just return the original name
+  // Translation can be added later when i18n is properly set up
   return countryName;
 };
 
@@ -357,7 +265,7 @@ export const CountryFlag: React.FC<CountryFlagProps> = ({
   className = "" 
 }) => {
   const countryCode = getCountryCode(countryName);
-  const translatedName = getTranslatedCountryName(countryName);
+  const translatedName = countryName; // Use original name for now
   
   if (!countryCode) {
     // Fallback for unknown countries

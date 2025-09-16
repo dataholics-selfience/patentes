@@ -26,7 +26,6 @@ import { PatentResultType } from '../types';
 import jsPDF from 'jspdf';
 import Flag from 'react-world-flags';
 import { useTranslation } from 'react-i18next';
-import { useContentTranslation } from '../utils/translateContent';
 
 interface PatentResultsPageProps {
   result: PatentResultType;
@@ -163,11 +162,9 @@ const OpportunityGauge = ({
 const PatentResultsPage = ({ result, searchTerm, onBack }: PatentResultsPageProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const { t } = useTranslation();
-  const { translateObject } = useContentTranslation();
 
   // Parse do JSON result
-  const rawData = typeof result === 'string' ? JSON.parse(result) : result;
-  const data = translateObject(rawData, t('currentLanguage'));
+  const data = typeof result === 'string' ? JSON.parse(result) : result;
   
   const produto = data.substancia || searchTerm;
   const nomeComercial = data.nome_comercial || '';
