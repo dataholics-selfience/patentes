@@ -1,3 +1,77 @@
+import React, { useState } from 'react';
+
+// Country name translations
+export const countryTranslations = {
+  pt: {
+    'Brasil': 'Brasil',
+    'Estados Unidos': 'Estados Unidos',
+    'União Europeia': 'União Europeia',
+    'Argentina': 'Argentina',
+    'México': 'México',
+    'Canadá': 'Canadá',
+    'Japão': 'Japão',
+    'China': 'China',
+    'Alemanha': 'Alemanha',
+    'França': 'França',
+    'Reino Unido': 'Reino Unido',
+    'Austrália': 'Austrália',
+    'Índia': 'Índia'
+  },
+  en: {
+    'Brasil': 'Brazil',
+    'Estados Unidos': 'United States',
+    'União Europeia': 'European Union',
+    'Argentina': 'Argentina',
+    'México': 'Mexico',
+    'Canadá': 'Canada',
+    'Japão': 'Japan',
+    'China': 'China',
+    'Alemanha': 'Germany',
+    'França': 'France',
+    'Reino Unido': 'United Kingdom',
+    'Austrália': 'Australia',
+    'Índia': 'India'
+  }
+};
+
+// Pharmaceutical categories translations
+export const categoryTranslations = {
+  pt: {
+    'Antidiabéticos e Antiobesidade': 'Antidiabéticos e Antiobesidade',
+    'Cardiovasculares': 'Cardiovasculares',
+    'Antibióticos': 'Antibióticos',
+    'Antivirais': 'Antivirais',
+    'Oncológicos': 'Oncológicos',
+    'Neurológicos': 'Neurológicos',
+    'Imunológicos': 'Imunológicos',
+    'Respiratórios': 'Respiratórios',
+    'Gastrointestinais': 'Gastrointestinais',
+    'Dermatológicos': 'Dermatológicos',
+    'Oftalmológicos': 'Oftalmológicos',
+    'Analgésicos': 'Analgésicos',
+    'Anti-inflamatórios': 'Anti-inflamatórios',
+    'Hormônios': 'Hormônios',
+    'Vitaminas e Suplementos': 'Vitaminas e Suplementos'
+  },
+  en: {
+    'Antidiabéticos e Antiobesidade': 'Antidiabetics and Anti-obesity',
+    'Cardiovasculares': 'Cardiovascular',
+    'Antibióticos': 'Antibiotics',
+    'Antivirais': 'Antivirals',
+    'Oncológicos': 'Oncological',
+    'Neurológicos': 'Neurological',
+    'Imunológicos': 'Immunological',
+    'Respiratórios': 'Respiratory',
+    'Gastrointestinais': 'Gastrointestinal',
+    'Dermatológicos': 'Dermatological',
+    'Oftalmológicos': 'Ophthalmological',
+    'Analgésicos': 'Analgesics',
+    'Anti-inflamatórios': 'Anti-inflammatory',
+    'Hormônios': 'Hormones',
+    'Vitaminas e Suplementos': 'Vitamins and Supplements'
+  }
+};
+
 // Simple translation system with minimal files
 export const translations = {
   pt: {
@@ -85,7 +159,18 @@ export const translations = {
     restrictions: 'Restrições',
     scientificEvidence: 'Evidência Científica Recente',
     doi: 'DOI',
-    exportPdf: 'Exportar PDF'
+    exportPdf: 'Exportar PDF',
+    
+    // Additional translations for better coverage
+    selectCategory: 'Selecione uma categoria',
+    analyzing: 'Analisando...',
+    consultation: 'Consulta',
+    results: 'Resultados',
+    details: 'Detalhes',
+    information: 'Informação',
+    data: 'Dados',
+    analysis: 'Análise',
+    report: 'Relatório'
   },
   en: {
     // Navigation and UI
@@ -172,7 +257,18 @@ export const translations = {
     restrictions: 'Restrictions',
     scientificEvidence: 'Recent Scientific Evidence',
     doi: 'DOI',
-    exportPdf: 'Export PDF'
+    exportPdf: 'Export PDF',
+    
+    // Additional translations for better coverage
+    selectCategory: 'Select a category',
+    analyzing: 'Analyzing...',
+    consultation: 'Consultation',
+    results: 'Results',
+    details: 'Details',
+    information: 'Information',
+    data: 'Data',
+    analysis: 'Analysis',
+    report: 'Report'
   }
 };
 
@@ -194,5 +290,13 @@ export const useTranslation = () => {
     return translations[language][key] || translations.pt[key] || key;
   };
 
-  return { t, language, changeLanguage };
+  const translateCountry = (countryName: string): string => {
+    return countryTranslations[language][countryName as keyof typeof countryTranslations.pt] || countryName;
+  };
+
+  const translateCategory = (categoryName: string): string => {
+    return categoryTranslations[language][categoryName as keyof typeof categoryTranslations.pt] || categoryName;
+  };
+
+  return { t, language, changeLanguage, translateCountry, translateCategory };
 };

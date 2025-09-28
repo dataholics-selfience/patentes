@@ -62,7 +62,7 @@ interface PatentConsultationProps {
 }
 
 // Países disponíveis para seleção
-const AVAILABLE_COUNTRIES = [
+const getAvailableCountries = (language: string) => [
   'Brasil',
   'Estados Unidos',
   'União Europeia',
@@ -79,27 +79,7 @@ const AVAILABLE_COUNTRIES = [
 ];
 
 // Categorias farmacêuticas
-const getPharmaceuticalCategories = (language: string) => {
-  if (language === 'en') {
-    return [
-      'Antidiabetics and Anti-obesity',
-      'Cardiovascular',
-      'Antibiotics',
-      'Antivirals',
-      'Oncological',
-      'Neurological',
-      'Immunological',
-      'Respiratory',
-      'Gastrointestinal',
-      'Dermatological',
-      'Ophthalmological',
-      'Analgesics',
-      'Anti-inflammatory',
-      'Hormones',
-      'Vitamins and Supplements'
-    ];
-  }
-  return [
+const getPharmaceuticalCategories = () => [
     'Antidiabéticos e Antiobesidade',
     'Cardiovasculares',
     'Antibióticos',
@@ -115,12 +95,11 @@ const getPharmaceuticalCategories = (language: string) => {
     'Anti-inflamatórios',
     'Hormônios',
     'Vitaminas e Suplementos'
-  ];
-};
+];
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
-  const { t, language } = useTranslation();
+  const { t, language, translateCountry, translateCategory } = useTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -215,6 +194,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
+        idioma: language === 'en' ? 'english' : 'portuguese' // Solicitar resposta no idioma correto
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
@@ -455,9 +435,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
               >
-                <option value="">{language === 'en' ? 'Select a category' : 'Selecione uma categoria'}</option>
-                {getPharmaceuticalCategories(language).map(category => (
-                  <option key={category} value={category}>{category}</option>
+                <option value="">{t('selectCategory')}</option>
+                {getPharmaceuticalCategories().map(category => (
+                  <option key={category} value={category}>{translateCategory(category)}</option>
                 ))}
               </select>
             </div>
@@ -475,7 +455,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('beneficio', e.target.value)}
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Controle glicêmico e perda de peso"
                   placeholder={language === 'en' ? 'Ex: Glycemic control and weight loss' : 'Ex: Controle glicêmico e perda de peso'}
                   disabled={isLoading}
                 />
@@ -492,7 +471,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: Diabetes tipo 2 e obesidade"
                   placeholder={language === 'en' ? 'Ex: Type 2 diabetes and obesity' : 'Ex: Diabetes tipo 2 e obesidade'}
                   disabled={isLoading}
                 />
@@ -506,7 +484,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 {t('targetCountries')} * ({t('selectAtLeastOneCountry')})
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {AVAILABLE_COUNTRIES.map(country => (
+                {getAvailableCountries(language).map(country => (
                   <label
                     key={country}
                     className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -523,7 +501,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                       className="rounded text-blue-600 focus:ring-blue-500"
                       disabled={isLoading}
                     />
-                    <span className="text-sm font-medium">{country}</span>
+                    <span className="text-sm font-medium">{translateCountry(country)}</span>
                   </label>
                 ))}
               </div>

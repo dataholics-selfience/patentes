@@ -21,6 +21,8 @@ const LanguageToggle = ({ className = '', showText = true }: LanguageToggleProps
   const handleLanguageChange = (languageCode: Language) => {
     changeLanguage(languageCode);
     setIsOpen(false);
+    // Force page refresh to apply translations everywhere
+    window.location.reload();
   };
 
   return (

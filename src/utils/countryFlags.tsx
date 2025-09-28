@@ -1,5 +1,5 @@
 import Flag from 'react-world-flags';
-import { useTranslation } from './i18n';
+import { useTranslation } from './translations';
 
 // Country code mapping for react-world-flags
 const countryCodeMap: { [key: string]: string } = {
@@ -265,8 +265,9 @@ export const CountryFlag: React.FC<CountryFlagProps> = ({
   showName = true, 
   className = "" 
 }) => {
+  const { translateCountry } = useTranslation();
   const countryCode = getCountryCode(countryName);
-  const translatedName = countryName; // Use original name for now
+  const translatedName = translateCountry(countryName);
   
   if (!countryCode) {
     // Fallback for unknown countries
@@ -317,12 +318,13 @@ export const CountryFlagsFromText: React.FC<CountryFlagsFromTextProps> = ({
   showNames = true,
   className = ""
 }) => {
+  const { translateCountry } = useTranslation();
   const countries = parseCountriesFromText(countriesText);
   
   if (countries.length === 0) {
     return (
       <div className={`text-gray-500 ${className}`}>
-        Nenhum país identificado
+        {translateCountry('Nenhum país identificado')}
       </div>
     );
   }
