@@ -25,7 +25,7 @@ import {
 import { PatentResultType } from '../types';
 import jsPDF from 'jspdf';
 import Flag from 'react-world-flags';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../utils/translations';
 
 interface PatentResultsPageProps {
   result: PatentResultType;

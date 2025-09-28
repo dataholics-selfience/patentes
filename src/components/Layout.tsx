@@ -13,8 +13,8 @@ import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../utils/unrest
 import SerpKeyStats from './SerpKeyStats';
 import { Shield } from 'lucide-react';
 import { isAdminUser } from '../utils/serpKeyData';
-import LanguageSelector from './LanguageSelector';
-import { useTranslation } from 'react-i18next';
+import LanguageToggle from './LanguageToggle';
+import { useTranslation } from '../utils/translations';
 
 // Componente para verificar se usuário tem acesso ao dashboard
 const DashboardAccessChecker = ({ children }: { children: React.ReactNode }) => {
@@ -236,6 +236,7 @@ const Layout = () => {
           </div>
           
           <div className="hidden lg:flex items-center gap-4">
+            <LanguageToggle />
             {auth.currentUser && hasUnrestrictedAccess(auth.currentUser.email) && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -335,7 +336,7 @@ const Layout = () => {
                 </Link>
               )}
               <div className="pt-4 border-t border-gray-200">
-                <LanguageSelector />
+                <LanguageToggle />
               </div>
               <div className="pt-4 border-t border-gray-200">
                 <UserProfile />

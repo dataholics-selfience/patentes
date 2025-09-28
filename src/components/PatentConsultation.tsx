@@ -21,7 +21,7 @@ import PatentDashboardReport from './PatentDashboardReport';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from '../utils/translations';
 
 // Componente para redirecionar usuários sem tokens
 const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; hasTokens: boolean }) => {
@@ -79,27 +79,48 @@ const AVAILABLE_COUNTRIES = [
 ];
 
 // Categorias farmacêuticas
-const PHARMACEUTICAL_CATEGORIES = [
-  'Antidiabéticos e Antiobesidade',
-  'Cardiovasculares',
-  'Antibióticos',
-  'Antivirais',
-  'Oncológicos',
-  'Neurológicos',
-  'Imunológicos',
-  'Respiratórios',
-  'Gastrointestinais',
-  'Dermatológicos',
-  'Oftalmológicos',
-  'Analgésicos',
-  'Anti-inflamatórios',
-  'Hormônios',
-  'Vitaminas e Suplementos'
-];
+const getPharmaceuticalCategories = (language: string) => {
+  if (language === 'en') {
+    return [
+      'Antidiabetics and Anti-obesity',
+      'Cardiovascular',
+      'Antibiotics',
+      'Antivirals',
+      'Oncological',
+      'Neurological',
+      'Immunological',
+      'Respiratory',
+      'Gastrointestinal',
+      'Dermatological',
+      'Ophthalmological',
+      'Analgesics',
+      'Anti-inflammatory',
+      'Hormones',
+      'Vitamins and Supplements'
+    ];
+  }
+  return [
+    'Antidiabéticos e Antiobesidade',
+    'Cardiovasculares',
+    'Antibióticos',
+    'Antivirais',
+    'Oncológicos',
+    'Neurológicos',
+    'Imunológicos',
+    'Respiratórios',
+    'Gastrointestinais',
+    'Dermatológicos',
+    'Oftalmológicos',
+    'Analgésicos',
+    'Anti-inflamatórios',
+    'Hormônios',
+    'Vitaminas e Suplementos'
+  ];
+};
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -434,8 +455,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
               >
-                <option value="">Selecione uma categoria</option>
-                {PHARMACEUTICAL_CATEGORIES.map(category => (
+                <option value="">{language === 'en' ? 'Select a category' : 'Selecione uma categoria'}</option>
+                {getPharmaceuticalCategories(language).map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
@@ -455,6 +476,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Controle glicêmico e perda de peso"
+                  placeholder={language === 'en' ? 'Ex: Glycemic control and weight loss' : 'Ex: Controle glicêmico e perda de peso'}
                   disabled={isLoading}
                 />
               </div>
@@ -471,6 +493,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Ex: Diabetes tipo 2 e obesidade"
+                  placeholder={language === 'en' ? 'Ex: Type 2 diabetes and obesity' : 'Ex: Diabetes tipo 2 e obesidade'}
                   disabled={isLoading}
                 />
               </div>
