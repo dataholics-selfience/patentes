@@ -13,10 +13,8 @@ import Plans from './components/Plans';
 import UserManagement from './components/UserManagement';
 import LandingPage from './components/LandingPage';
 import Terms from './components/Terms';
-import QuemSomos from './components/QuemSomos';
 import { hasUnrestrictedAccess } from './utils/unrestrictedEmails';
 import SerpKeyAdmin from './components/admin/SerpKeyAdmin';
-import CorporateUserAdmin from './components/admin/CorporateUserAdmin';
 
 function App() {
   const [user, setUser] = useState<any>(null);
@@ -54,8 +52,8 @@ function App() {
       return true;
     }
     
-    // Todos os outros usuários devem ir para planos
-    return false;
+    // Verificar se o usuário tem tokens disponíveis além da verificação de email
+    return user.emailVerified;
   };
 
   const shouldRedirectToPlans = (user: any): boolean => {
@@ -66,8 +64,8 @@ function App() {
       return false;
     }
     
-    // Todos os outros usuários vão para planos
-    return true;
+    // Outros usuários verificados vão para planos
+    return user.emailVerified;
   };
 
   if (loading) {
@@ -84,7 +82,6 @@ function App() {
         {/* Public routes */}
         <Route path="/home" element={<LandingPage />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/quem-somos" element={<QuemSomos />} />
         
         {/* Auth routes */}
         <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" replace />} />
@@ -97,15 +94,19 @@ function App() {
         <Route path="/profile" element={
           user && canAccessDashboard(user) ? (
             <UserManagement />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
           ) : (
-            <Navigate to="/plans" replace />
+            <Navigate to="/login" replace />
           )
         } />
         <Route path="/admin/serp-keys" element={
           user && canAccessDashboard(user) ? (
             <SerpKeyAdmin />
+          ) : user && !canAccessDashboard(user) ? (
+            <Navigate to="/verify-email" replace />
           ) : (
-            <Navigate to="/plans" replace />
+            <Navigate to="/login" replace />
           )
         } />
         <Route path="/plans" element={
@@ -119,18 +120,11 @@ function App() {
           user ? (
             hasUnrestrictedAccess(user.email) ? (
               <Layout />
-            ) : (
+            ) : canAccessDashboard(user) ? (
               <Navigate to="/plans" replace />
+            ) : (
+              <Navigate to="/verify-email" replace />
             )
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } />
-        <Route path="/admin/corporate-users" element={
-          user && canAccessDashboard(user) ? (
-            <CorporateUserAdmin />
-          ) : user && !canAccessDashboard(user) ? (
-            <Navigate to="/verify-email" replace />
           ) : (
             <Navigate to="/login" replace />
           )
@@ -144,7 +138,7 @@ function App() {
             ) : shouldRedirectToPlans(user) ? (
               <Navigate to="/plans" replace />
             ) : (
-              <Navigate to="/plans" replace />
+              <Navigate to="/verify-email" replace />
             )
           ) : (
             <LandingPage />

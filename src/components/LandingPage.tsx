@@ -33,72 +33,80 @@ const LandingPage = () => {
   const features = [
     {
       icon: Shield,
-      title: "Pipeline Completo em 3 Minutos",
-      description: "Crie estratégias completas para novos medicamentos, incluindo análise de patentes, pesquisa de mercado e documentação regulatória."
+      title: "Verificação Instantânea de Patentes",
+      description: "Consulte o status de patentes farmacêuticas em segundos, evitando riscos jurídicos e multas milionárias."
     },
     {
       icon: Clock,
-      title: "Pesquisa Global Automatizada",
-      description: "Busca automática em INPI, EPO, WIPO, FDA, PubChem, PubMed, Drug Bank, EMA e principais farmácias online do mundo."
+      title: "Acelere seu P&D",
+      description: "Reduza o tempo de pesquisa e desenvolvimento identificando rapidamente oportunidades de mercado."
     },
     {
       icon: TrendingUp,
-      title: "Análise TAM SAM SOM",
-      description: "Análise completa de tamanho de mercado, preços sugeridos, custos de produção e projeções financeiras detalhadas."
+      title: "Economia Garantida",
+      description: "Elimine a necessidade de consultorias caras. Nossa IA oferece análises precisas por uma fração do custo."
     },
     {
       icon: Globe,
-      title: "Documentação Regulatória",
-      description: "Gere toda documentação necessária para registro de patentes e aprovação regulatória em múltiplas jurisdições."
+      title: "Cobertura Internacional",
+      description: "Acesse informações de patentes de múltiplos países e jurisdições em uma única plataforma."
     },
     {
       icon: Target,
-      title: "Análise SWOT e Riscos",
-      description: "Avaliação completa de forças, fraquezas, oportunidades, ameaças e análise detalhada de riscos jurídicos."
+      title: "Análise de Riscos",
+      description: "Identifique riscos regulatórios e éticos antes de investir em desenvolvimento de produtos."
     },
     {
       icon: Zap,
-      title: "Estratégia Competitiva",
-      description: "Identifique oportunidades de mercado, compostos alternativos e estratégias para superar a concorrência."
+      title: "Alternativas Inteligentes",
+      description: "Descubra compostos análogos e alternativas viáveis para seus projetos de inovação."
     }
   ];
 
   const benefits = [
-    "Pipeline completo de produto em apenas 3 minutos",
-    "Pesquisa automática em 15+ bases de dados globais",
-    "Documentação regulatória pronta para submissão",
-    "Análise TAM SAM SOM e projeções financeiras",
-    "Estratégias para superar a concorrência",
-    "Reduza custos de consultoria em até 95%"
+    "Evite processos judiciais custosos por violação de patentes",
+    "Reduza custos de consultoria em até 90%",
+    "Acelere o time-to-market de novos produtos",
+    "Identifique oportunidades de mercado inexploradas",
+    "Minimize riscos regulatórios e éticos",
+    "Otimize investimentos em P&D"
   ];
 
   const stats = [
-    { number: "1,000+", label: "Pipelines Criados" },
-    { number: "200+", label: "Empresas Farmacêuticas" },
-    { number: "3 min", label: "Tempo Médio" },
-    { number: "95%", label: "Taxa de Sucesso" }
+    { number: "10,000+", label: "Consultas Realizadas" },
+    { number: "500+", label: "Empresas Atendidas" },
+    { number: "95%", label: "Precisão das Análises" },
+    { number: "24/7", label: "Disponibilidade" }
   ];
 
   const patentAgencies = [
     {
       name: "Instituto Nacional da Propriedade Industrial",
       country: "Brasil",
-      abbreviation: "INPI Brasil"
+      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "INPI Brasil",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "United States Patent and Trademark Office",
       country: "Estados Unidos",
-      abbreviation: "USPTO"
+      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "USPTO",
+      size: "normal"
     },
     {
       name: "European Patent Office",
       country: "Europa",
-      abbreviation: "EPO"
+      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "EPO",
+      size: "extra-reduced" // 40% smaller total (20% + 20% additional)
     },
     {
       name: "World Intellectual Property Organization",
       country: "Internacional",
-      abbreviation: "WIPO"
+      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
+      alt: "WIPO",
+      size: "normal"
     }
   ];
 
@@ -123,12 +131,6 @@ const LandingPage = () => {
                 Entrar
               </Link>
               <Link 
-                to="/quem-somos" 
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
-                Quem Somos
-              </Link>
-              <Link 
                 to="/register" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
@@ -145,15 +147,14 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                IA Avançada para
-                <span className="text-blue-600"> Pipelines</span>
-                <br />Farmacêuticos Completos
+                Análise Inteligente de
+                <span className="text-blue-600"> Patentes</span>
+                <br />Farmacêuticas
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                Como um time expert de portfólio farmacêutico na palma da sua mão! 
-                Em apenas 3 minutos, criamos pipelines completos para novos medicamentos 
-                concorrentes, incluindo pesquisa de mercado, análise de patentes, 
-                documentação regulatória e estratégias para sair na frente da concorrência.
+                Proteja sua empresa de riscos jurídicos, acelere seu P&D e economize milhões 
+                em consultorias com nossa plataforma de inteligência artificial especializada 
+                em propriedade intelectual farmacêutica.
               </p>
               
               <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -180,7 +181,7 @@ const LandingPage = () => {
               )}
               
               <p className="text-sm text-gray-500">
-                ✅ Pipeline completo em 3 min • ✅ Análise de mercado • ✅ Documentação regulatória
+                ✅ Planos profissionais • ✅ Análise especializada • ✅ Acesso imediato
               </p>
             </div>
             
@@ -196,8 +197,8 @@ const LandingPage = () => {
                     <CheckCircle className="text-green-600" size={24} />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900">Pipeline Gerado</p>
-                    <p className="text-sm text-gray-600">Produto pronto para desenvolvimento</p>
+                    <p className="font-semibold text-gray-900">Patente Verificada</p>
+                    <p className="text-sm text-gray-600">Status: Livre para uso</p>
                   </div>
                 </div>
               </div>
@@ -225,11 +226,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Conectado às Principais Bases de Dados Farmacêuticas Mundiais
+              Conectado às Principais Agências de Patentes Mundiais
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA consulta automaticamente mais de 15 bases de dados especializadas, 
-              incluindo agências de patentes, órgãos regulatórios e farmácias online globais.
+              Nossa plataforma consulta dados em tempo real das mais importantes 
+              organizações de propriedade intelectual do mundo.
             </p>
           </div>
           
@@ -237,19 +238,24 @@ const LandingPage = () => {
             {patentAgencies.map((agency, index) => (
               <div key={index} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow text-center">
                 <div className="h-20 flex items-center justify-center mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">{agency.abbreviation}</div>
-                    <div className="text-xs text-gray-500">{agency.country}</div>
-                  </div>
+                  <img
+                    src={agency.logo}
+                    alt={agency.alt}
+                    className={`max-h-full max-w-full object-contain ${
+                      agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                      agency.size === 'reduced' ? 'scale-80' : ''
+                    }`}
+                  />
                 </div>
                 <h3 className="font-semibold text-gray-900 text-sm mb-1">{agency.name}</h3>
+                <p className="text-xs text-gray-600">{agency.country}</p>
               </div>
             ))}
           </div>
           
           <div className="text-center mt-12">
             <p className="text-gray-600 mb-6">
-              Acesso direto a milhões de registros farmacêuticos e de patentes em tempo real
+              Acesso direto a milhões de registros de patentes atualizados em tempo real
             </p>
             <div className="flex justify-center items-center gap-8 text-sm text-gray-500">
               <div className="flex items-center gap-2">
@@ -262,7 +268,7 @@ const LandingPage = () => {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span>15+ bases de dados</span>
+                <span>APIs oficiais</span>
               </div>
             </div>
           </div>
@@ -274,11 +280,11 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que Empresas Farmacêuticas Escolhem o Pharmyrus?
+              Por que Empresas Farmacêuticas Escolhem Nossa Plataforma?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Nossa IA avançada cria pipelines completos de produtos farmacêuticos, 
-              acelerando drasticamente o desenvolvimento e lançamento de novos medicamentos.
+              Nossa IA especializada oferece análises precisas e instantâneas, 
+              protegendo empresas e acelerando a inovação.
             </p>
           </div>
           
@@ -302,12 +308,11 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
-                De Ideia a Produto em Tempo Record
+                Transforme Riscos em Oportunidades
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                Com o Pharmyrus, você tem um time completo de especialistas farmacêuticos 
-                trabalhando 24/7. Nossa IA cria estratégias completas que levariam meses 
-                para serem desenvolvidas por equipes tradicionais.
+                No setor farmacêutico, uma única violação de patente pode custar milhões. 
+                Nossa plataforma elimina esses riscos e acelera sua inovação.
               </p>
               
               <div className="space-y-4">
@@ -324,7 +329,7 @@ const LandingPage = () => {
                   to="/register" 
                   className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold inline-flex items-center gap-2"
                 >
-                  Criar Meu Primeiro Pipeline
+                  Começar Análise Agora
                   <ChevronRight size={20} />
                 </Link>
               </div>
@@ -338,8 +343,8 @@ const LandingPage = () => {
               />
               <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-lg">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">3 min</div>
-                  <div className="text-sm text-gray-600">Pipeline completo</div>
+                  <div className="text-2xl font-bold text-red-600">R$ 2.5M</div>
+                  <div className="text-sm text-gray-600">Economia em 1 ano</div>
                 </div>
               </div>
             </div>
@@ -351,11 +356,11 @@ const LandingPage = () => {
       <section className="py-20 bg-blue-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Pronto para Revolucionar seu Portfólio?
+            Pronto para Proteger sua Empresa?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Junte-se a centenas de empresas que já criam pipelines farmacêuticos 
-            completos em minutos e dominam seus mercados com o Pharmyrus.
+            Junte-se a centenas de empresas que já protegem seus investimentos 
+            e aceleram a inovação com nossa plataforma.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -363,7 +368,7 @@ const LandingPage = () => {
               to="/register" 
               className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-gray-50 transition-colors font-semibold inline-flex items-center gap-2"
             >
-              Criar Meu Pipeline
+              Começar Agora
               <ArrowRight size={20} />
             </Link>
             <a 
@@ -390,8 +395,8 @@ const LandingPage = () => {
                 className="h-12 w-auto mb-4"
               />
               <p className="text-gray-400 mb-6">
-                IA avançada que cria pipelines completos de produtos farmacêuticos, 
-                transformando ideias em estratégias de mercado prontas para execução.
+                Plataforma de inteligência artificial especializada em análise de patentes 
+                farmacêuticas, protegendo empresas e acelerando a inovação.
               </p>
               <div className="flex items-center gap-4">
                 <a 
@@ -409,8 +414,8 @@ const LandingPage = () => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Produto</h3>
               <ul className="space-y-2 text-gray-400">
-                <li><Link to="/register" className="hover:text-white transition-colors">Criar Pipeline</Link></li>
-                <li><Link to="/quem-somos" className="hover:text-white transition-colors">Quem Somos</Link></li>
+                <li><Link to="/register" className="hover:text-white transition-colors">Começar Agora</Link></li>
+                <li><Link to="/plans" className="hover:text-white transition-colors">Planos</Link></li>
                 <li><a href="https://wa.me/5511995736666" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Suporte</a></li>
               </ul>
             </div>
@@ -428,12 +433,18 @@ const LandingPage = () => {
           {/* Patent Agencies Logos in Footer */}
           <div className="border-t border-gray-800 mt-8 pt-8">
             <div className="text-center mb-6">
-              <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Bases de Dados Farmacêuticas</h4>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <h4 className="text-lg font-semibold text-gray-300 mb-4">Conectado às Principais Agências de Patentes</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-items-center">
                 {patentAgencies.map((agency, index) => (
-                  <div key={index} className="bg-white p-3 rounded-lg text-center">
-                    <div className="text-lg font-bold text-blue-600">{agency.abbreviation}</div>
-                    <div className="text-xs text-gray-600">{agency.country}</div>
+                  <div key={index} className="bg-white p-3 rounded-lg">
+                    <img
+                      src={agency.logo}
+                      alt={agency.alt}
+                      className={`h-8 object-contain opacity-80 hover:opacity-100 transition-opacity ${
+                        agency.size === 'extra-reduced' ? 'scale-[0.64]' : // 80% of 80% = 64%
+                        agency.size === 'reduced' ? 'scale-80' : ''
+                      }`}
+                    />
                   </div>
                 ))}
               </div>
@@ -441,11 +452,6 @@ const LandingPage = () => {
             
             <div className="text-center text-gray-400">
               <p>&copy; 2025 Consulta de Patentes. Todos os direitos reservados.</p>
-              <p className="mt-2">
-                <Link to="/quem-somos" className="text-gray-400 hover:text-gray-300 transition-colors">
-                  DATAHOLICS - 21.976.713/0001-65
-                </Link>
-              </p>
             </div>
           </div>
         </div>
