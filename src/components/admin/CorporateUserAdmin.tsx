@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   ArrowLeft, Users, Search, Edit2, Trash2, Pause, Play,
   CheckCircle, XCircle, AlertTriangle, Save, X, Shield,
   Calendar, Phone, Mail, Building2, User, Clock,
-  MoreVertical, Eye, UserX, UserCheck
+  MoreVertical, Eye, UserX, UserCheck, UserPlus
 } from 'lucide-react';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  updateDoc, 
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
   deleteDoc,
   setDoc,
   getDoc,
   orderBy
 } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../../firebase';
 import { isAdminUser } from '../../utils/serpKeyData';
 import { hasUnrestrictedAccess } from '../../utils/unrestrictedEmails';
@@ -49,9 +50,17 @@ const CorporateUserAdmin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<CorporateUser | null>(null);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [newUser, setNewUser] = useState({
+    name: '',
+    email: '',
+    password: '',
+    company: '',
+    phone: ''
+  });
 
   useEffect(() => {
     // Verificar se o usuário é admin
@@ -269,6 +278,95 @@ const CorporateUserAdmin = () => {
     setShowUserModal(true);
   };
 
+  const handleCreateCorporateUser = async () => {
+    if (!newUser.email || !newUser.password || !newUser.name) {
+      setError('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setActionLoading('creating');
+    setError('');
+
+    try {
+      const currentUser = auth.currentUser;
+
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        newUser.email,
+        newUser.password
+      );
+
+      const uid = userCredential.user.uid;
+      const now = new Date().toISOString();
+
+      await setDoc(doc(db, 'users', uid), {
+        uid,
+        name: newUser.name,
+        email: newUser.email,
+        company: newUser.company || 'Empresa Corporativa',
+        phone: newUser.phone || '+55-000-000-0000',
+        plan: 'Corporativo',
+        createdAt: now,
+        activatedAt: now,
+        activated: true,
+        unrestrictedAccess: true,
+        emailVerified: true,
+        createdBy: currentUser?.email,
+        createdByAdmin: true
+      });
+
+      await setDoc(doc(db, 'tokenUsage', uid), {
+        uid,
+        totalTokens: 10,
+        usedTokens: 0,
+        autoRenewal: false,
+        lastReset: now,
+        createdAt: now
+      });
+
+      await setDoc(doc(collection(db, 'adminActions'), crypto.randomUUID()), {
+        adminEmail: currentUser?.email,
+        action: 'create_corporate_user',
+        targetUserId: uid,
+        targetUserEmail: newUser.email,
+        performedAt: now,
+        details: {
+          name: newUser.name,
+          company: newUser.company,
+          plan: 'Corporativo',
+          totalTokens: 10
+        }
+      });
+
+      if (currentUser) {
+        await auth.updateCurrentUser(currentUser);
+      }
+
+      setSuccess(`Usuário corporativo ${newUser.name} criado com sucesso! 10 consultas disponíveis.`);
+      setShowCreateModal(false);
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        company: '',
+        phone: ''
+      });
+
+      loadCorporateUsers();
+    } catch (error: any) {
+      console.error('Erro ao criar usuário corporativo:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setError('Este e-mail já está em uso');
+      } else if (error.code === 'auth/weak-password') {
+        setError('A senha deve ter pelo menos 6 caracteres');
+      } else {
+        setError('Erro ao criar usuário corporativo: ' + error.message);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Não informado';
     try {
@@ -341,6 +439,14 @@ const CorporateUserAdmin = () => {
             </div>
 
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <UserPlus size={20} />
+                Criar Usuário Corporativo
+              </button>
+
               <div className="relative">
                 <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
@@ -557,6 +663,158 @@ const CorporateUserAdmin = () => {
             </div>
           )}
         </div>
+
+        {/* Modal de Criação de Usuário Corporativo */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Criar Novo Usuário Corporativo</h3>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewUser({
+                      name: '',
+                      email: '',
+                      password: '',
+                      company: '',
+                      phone: ''
+                    });
+                    setError('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <Shield className="text-blue-600 mt-0.5" size={20} />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-semibold mb-1">Conta Corporativa com Acesso Restrito</p>
+                      <ul className="list-disc list-inside space-y-1 text-blue-700">
+                        <li>10 consultas disponíveis (sem renovação automática)</li>
+                        <li>Conta ativada e pronta para uso imediato</li>
+                        <li>Usuário pode fazer login assim que criado</li>
+                        <li>Não requer verificação de e-mail</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nome Completo *
+                  </label>
+                  <input
+                    type="text"
+                    value={newUser.name}
+                    onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Nome completo do usuário"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    E-mail *
+                  </label>
+                  <input
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="email@empresa.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Senha *
+                  </label>
+                  <input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">A senha será fornecida ao usuário para acesso</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Empresa
+                  </label>
+                  <input
+                    type="text"
+                    value={newUser.company}
+                    onChange={(e) => setNewUser({ ...newUser, company: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Nome da empresa"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telefone
+                  </label>
+                  <input
+                    type="tel"
+                    value={newUser.phone}
+                    onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="+55 (11) 99999-9999"
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setNewUser({
+                        name: '',
+                        email: '',
+                        password: '',
+                        company: '',
+                        phone: ''
+                      });
+                      setError('');
+                    }}
+                    className="flex-1 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCreateCorporateUser}
+                    disabled={actionLoading === 'creating'}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {actionLoading === 'creating' ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Criando...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={20} />
+                        Criar Usuário Corporativo
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal de Detalhes do Usuário */}
         {showUserModal && selectedUser && (
