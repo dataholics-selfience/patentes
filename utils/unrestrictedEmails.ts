@@ -26,7 +26,7 @@ export const addUnrestrictedEmail = (email: string): void => {
 // Configuração padrão para usuários com acesso irrestrito - PLANO GRATUITO
 export const UNRESTRICTED_USER_CONFIG = {
   plan: 'Corporativo',
-  totalTokens: 100, // 100 consultas mensais (renovação automática)
+  totalTokens: 10, // 100 consultas mensais (renovação automática)
   name: 'Conta Corporativa',
   company: 'Empresa Corporativa',
   cpf: '000.000.000-00',
