@@ -5,7 +5,6 @@ export const UNRESTRICTED_EMAILS = [
   'robert.filho@hypofarma.com.br',
   'innovagenoi@gmail.com',
   'thays.perpetua@hotmail.com',
-  'innovagenoi12@gmail.com',
   'biancazychar@gmail.com',
   'innovagenoi@gmail.com' // Admin principal - acesso sempre liberado
 ];
