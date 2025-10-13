@@ -6,6 +6,7 @@ export const UNRESTRICTED_EMAILS = [
   'innovagenoi@gmail.com',
   'thays.perpetua@hotmail.com',
   'innovagenoi12@gmail.com',
+  'biancazychar@gmail.com',
   'innovagenoi@gmail.com' // Admin principal - acesso sempre liberado
 ];
 
