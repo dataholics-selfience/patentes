@@ -82,27 +82,27 @@ const Layout = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Patent agencies data with corrected image paths
+  // Patent agencies data - text only
   const patentAgencies = [
     {
       name: "INPI Brasil",
-      logo: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "INPI Brasil"
+      fullName: "Instituto Nacional da Propriedade Industrial",
+      country: "Brasil"
     },
     {
       name: "USPTO",
-      logo: "https://images.pexels.com/photos/3184292/pexels-photo-3184292.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "USPTO"
+      fullName: "United States Patent and Trademark Office",
+      country: "Estados Unidos"
     },
     {
       name: "EPO",
-      logo: "https://images.pexels.com/photos/3184338/pexels-photo-3184338.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "EPO"
+      fullName: "European Patent Office",
+      country: "Europa"
     },
     {
       name: "WIPO",
-      logo: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg?auto=compress&cs=tinysrgb&w=200&h=100",
-      alt: "WIPO"
+      fullName: "World Intellectual Property Organization",
+      country: "Internacional"
     }
   ];
 
@@ -383,15 +383,11 @@ const Layout = () => {
 
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600 hidden lg:block">Conectado às principais agências:</span>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 {patentAgencies.map((agency, index) => (
-                  <div key={index} className="bg-white p-2 rounded-lg shadow-sm border border-gray-200">
-                    <img
-                      src={agency.logo}
-                      alt={agency.alt}
-                      className="h-6 object-contain opacity-80 hover:opacity-100 transition-opacity"
-                      title={agency.name}
-                    />
+                  <div key={index} className="text-center">
+                    <div className="text-sm font-semibold text-gray-900">{agency.name}</div>
+                    <div className="text-xs text-gray-600">{agency.country}</div>
                   </div>
                 ))}
               </div>

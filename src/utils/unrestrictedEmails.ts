@@ -4,9 +4,12 @@ export const UNRESTRICTED_EMAILS = [
   'innovagenoi7@gmail.com',
   'robert.filho@hypofarma.com.br',
   'innovagenoi@gmail.com',
+  'robson.rocha@entelgy.com',
   'thays.perpetua@hotmail.com',
   'innovagenoi12@gmail.com',
-  'innovagenoi@gmail.com' // Admin principal - acesso sempre liberado
+  'innovagenoi@gmail.com', // Admin principal - acesso sempre liberado
+  'thays.perpetua@dataholics.io', // Admin adicional
+  'daniel.mendes@dataholics.io' // Admin adicional
 ];
 
 // Função para verificar se um e-mail tem acesso irrestrito
@@ -26,7 +29,7 @@ export const addUnrestrictedEmail = (email: string): void => {
 // Configuração padrão para usuários com acesso irrestrito - PLANO GRATUITO
 export const UNRESTRICTED_USER_CONFIG = {
   plan: 'Corporativo',
-  totalTokens: 100, // 100 consultas mensais (renovação automática)
+  totalTokens: 10, // 10 consultas mensais (renovação automática)
   name: 'Conta Corporativa',
   company: 'Empresa Corporativa',
   cpf: '000.000.000-00',

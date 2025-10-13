@@ -223,10 +223,10 @@ const EmailVerification = () => {
                   <div className="font-medium mb-2">Configuração Automática:</div>
                   <div className="text-left space-y-1">
                     <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                    • {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais<br/>
+                    <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                     <div>• Empresa: {UNRESTRICTED_USER_CONFIG.company}</div>
-                    • Renovação automática todo mês<br/>
-                    • Sem necessidade de verificação de e-mail
+                    <div>• Renovação automática todo mês</div>
+                    <div>• Sem necessidade de verificação de e-mail</div>
                   </div>
                 </div>
               </div>
@@ -258,7 +258,7 @@ const EmailVerification = () => {
               onClick={handleLogout}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Voltar para o login
+              Voltar ao Login
             </button>
 
             <div className="text-center">

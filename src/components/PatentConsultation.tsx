@@ -318,15 +318,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
       <div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {/* Header com seletor de ambiente para admin */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <img 
-                src="/logo_pharmyrus.png" 
-                alt="Pharmyrus" 
-                className="h-12 w-auto"
-              />
-            </div>
-
+          <div className="flex items-center justify-end mb-6">
             {/* Seletor de ambiente apenas para admin */}
             {isAdminUser && (
               <div className="relative">
@@ -544,6 +536,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 <Search size={20} />
               )}
               {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
+              {isLoading ? 'Criando pipeline...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Criar pipeline de produto'}
             </button>
 
           </form>

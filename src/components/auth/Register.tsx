@@ -207,7 +207,7 @@ Precisa de ajuda? Responda esta mensagem.
       await setDoc(doc(db, 'tokenUsage', user.uid), {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
-        plan: 'Pesquisador',
+        plan: 'Sem Plano',
         totalTokens: 0, // SEM CONSULTAS GRATUITAS - REDIRECIONAR PARA PLANOS
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),
@@ -234,23 +234,6 @@ Precisa de ajuda? Responda esta mensagem.
       // Redirecionar diretamente para planos - não há mais plano gratuito
       navigate('/plans');
 
-      // Wait a moment for the email verification link to be generated
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Generate verification link (this would typically come from Firebase Auth)
-      const verificationLink = `${window.location.origin}/verify-email`;
-
-      // Send WhatsApp verification with the link
-      if (formData.phone.trim()) {
-        try {
-          await sendWhatsAppVerification(formData.phone.trim(), verificationLink);
-        } catch (whatsappError) {
-          console.error('WhatsApp verification failed:', whatsappError);
-          // Don't block registration if WhatsApp fails
-        }
-      }
-
-      navigate('/verify-email');
     } catch (error: any) {
       console.error('Registration error:', error);
       if (error.code === 'auth/email-already-in-use') {
