@@ -130,7 +130,7 @@ const Login = () => {
         
         if (setupSuccess) {
           setError('');
-          navigate('/', { replace: true });
+          navigate('/dashboard', { replace: true });
           return;
         } else {
           setError('Erro ao configurar conta com acesso irrestrito. Tente novamente.');
@@ -138,16 +138,9 @@ const Login = () => {
         }
       }
 
-      // Verificação normal de e-mail para outros usuários
-      if (!user.emailVerified) {
-        await auth.signOut();
-        setError('Por favor, verifique seu email antes de fazer login.');
-        navigate('/verify-email');
-        return;
-      }
-
+      // Redirecionar todos os outros usuários diretamente para planos
       setError('');
-      navigate('/', { replace: true });
+      navigate('/plans', { replace: true });
       
     } catch (error: any) {
       console.error('Login error:', error);
@@ -225,10 +218,8 @@ const Login = () => {
                     <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                     <span className="text-sm font-medium">Acesso Corporativo Irrestrito</span>
                       <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
-                      <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                     <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
                       <div>• Renovação automática todo mês</div>
-                      <div>• Sem necessidade de verificação de e-mail</div>
                     <div>• Sem necessidade de verificação de e-mail</div>
                   </div>
                 </div>
