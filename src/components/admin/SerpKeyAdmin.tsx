@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Key, Plus, CreditCard as Edit2, Trash2, RotateCcw, Copy, CheckCircle, XCircle, AlertTriangle, Save, X, Shield, Calendar, Phone, Mail, Settings, BarChart3, TrendingUp, Activity, Clock, Search, Loader2 } from 'lucide-react';
+import { 
+  ArrowLeft, Key, Plus, Edit2, Trash2, RotateCcw, Copy,
+  CheckCircle, XCircle, AlertTriangle, Save, X,
+  Shield, Calendar, Phone, Mail, Settings, BarChart3, 
+  TrendingUp, Activity, Clock, Search, Loader2
+} from 'lucide-react';
 import { collection, addDoc, query, where, getDocs, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { PatentResultType, ConsultaCompleta } from '../../types';
@@ -13,7 +18,6 @@ import { SERP_API_KEYS } from '../../utils/serpKeyData';
 import { CountryFlagsFromText } from '../../utils/countryFlags';
 import { isAdminUser } from '../../utils/serpKeyData';
 import { Users } from 'lucide-react';
-import { useTranslation } from '../../utils/translations';
 
 // Países disponíveis para seleção
 const AVAILABLE_COUNTRIES = [
@@ -53,7 +57,6 @@ const PHARMACEUTICAL_CATEGORIES = [
 
 const SerpKeyAdmin = () => {
   const navigate = useNavigate();
-  const { translateCountry, translateCategory } = useTranslation();
   const [keys, setKeys] = useState<SerpKey[]>([]);
   const [consultationStats, setConsultationStats] = useState<ConsultationStats | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
@@ -295,8 +298,7 @@ const SerpKeyAdmin = () => {
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        serpApiKey: availableKey,
-        idioma: 'portuguese' // Admin sempre em português
+        serpApiKey: availableKey
       };
 
       console.log('🚀 Enviando consulta de patente (Admin):', webhookData);
@@ -773,7 +775,7 @@ const SerpKeyAdmin = () => {
                         className="rounded text-blue-600 focus:ring-blue-500"
                         disabled={isConsulting}
                       />
-                      <span className="font-medium">{translateCountry(country)}</span>
+                      <span className="font-medium">{country}</span>
                     </label>
                   ))}
                 </div>

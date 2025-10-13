@@ -21,12 +21,10 @@ import PatentDashboardReport from './PatentDashboardReport';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from '../utils/translations';
 
 // Componente para redirecionar usuários sem tokens
 const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; hasTokens: boolean }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   useEffect(() => {
     if (!hasTokens && !hasUnrestrictedAccess(auth.currentUser?.email)) {
@@ -38,15 +36,15 @@ const TokenAccessGuard = ({ children, hasTokens }: { children: React.ReactNode; 
     return (
       <div className="max-w-4xl mx-auto">
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 text-center">
-          <h2 className="text-2xl font-bold text-orange-900 mb-4">{t('restrictedAccess')}</h2>
+          <h2 className="text-2xl font-bold text-orange-900 mb-4">Acesso Restrito</h2>
           <p className="text-orange-700 mb-6">
-            {t('needActivePlan')}
+            Você precisa de um plano ativo para realizar consultas de patentes.
           </p>
           <button
             onClick={() => navigate('/plans')}
             className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
           >
-            {t('viewAvailablePlans')}
+            Ver Planos Disponíveis
           </button>
         </div>
       </div>
@@ -62,7 +60,7 @@ interface PatentConsultationProps {
 }
 
 // Países disponíveis para seleção
-const getAvailableCountries = (language: string) => [
+const AVAILABLE_COUNTRIES = [
   'Brasil',
   'Estados Unidos',
   'União Europeia',
@@ -79,27 +77,26 @@ const getAvailableCountries = (language: string) => [
 ];
 
 // Categorias farmacêuticas
-const getPharmaceuticalCategories = () => [
-    'Antidiabéticos e Antiobesidade',
-    'Cardiovasculares',
-    'Antibióticos',
-    'Antivirais',
-    'Oncológicos',
-    'Neurológicos',
-    'Imunológicos',
-    'Respiratórios',
-    'Gastrointestinais',
-    'Dermatológicos',
-    'Oftalmológicos',
-    'Analgésicos',
-    'Anti-inflamatórios',
-    'Hormônios',
-    'Vitaminas e Suplementos'
+const PHARMACEUTICAL_CATEGORIES = [
+  'Antidiabéticos e Antiobesidade',
+  'Cardiovasculares',
+  'Antibióticos',
+  'Antivirais',
+  'Oncológicos',
+  'Neurológicos',
+  'Imunológicos',
+  'Respiratórios',
+  'Gastrointestinais',
+  'Dermatológicos',
+  'Oftalmológicos',
+  'Analgésicos',
+  'Anti-inflamatórios',
+  'Hormônios',
+  'Vitaminas e Suplementos'
 ];
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
-  const { t, language, translateCountry, translateCategory } = useTranslation();
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -194,7 +191,6 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
         beneficio: searchData.beneficio || 'Tratamento médico',
         doenca_alvo: searchData.doenca_alvo || 'Condição médica',
         pais_alvo: searchData.pais_alvo,
-        idioma: language === 'en' ? 'english' : 'portuguese' // Solicitar resposta no idioma correto
       };
 
       console.log('🚀 Enviando consulta de patente:', webhookData);
@@ -390,7 +386,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Pill size={16} className="inline mr-2 text-blue-600" />
-                  {t('commercialName')} *
+                  Nome Comercial *
                 </label>
                 <input
                   type="text"
@@ -407,7 +403,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <TestTube size={16} className="inline mr-2 text-purple-600" />
-                  {t('moleculeName')} *
+                  Nome da Molécula *
                 </label>
                 <input
                   type="text"
@@ -426,7 +422,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Building2 size={16} className="inline mr-2 text-green-600" />
-                {t('pharmaceuticalCategory')}
+                Categoria Farmacêutica
               </label>
               <select
                 value={searchData.categoria}
@@ -435,9 +431,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 disabled={isLoading}
               >
-                <option value="">{t('selectCategory')}</option>
-                {getPharmaceuticalCategories().map(category => (
-                  <option key={category} value={category}>{translateCategory(category)}</option>
+                <option value="">Selecione uma categoria</option>
+                {PHARMACEUTICAL_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
                 ))}
               </select>
             </div>
@@ -447,7 +443,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Target size={16} className="inline mr-2 text-orange-600" />
-                  {t('mainBenefit')}
+                  Benefício Principal
                 </label>
                 <input
                   type="text"
@@ -455,7 +451,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('beneficio', e.target.value)}
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'en' ? 'Ex: Glycemic control and weight loss' : 'Ex: Controle glicêmico e perda de peso'}
+                  placeholder="Ex: Controle glicêmico e perda de peso"
                   disabled={isLoading}
                 />
               </div>
@@ -463,7 +459,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <Zap size={16} className="inline mr-2 text-red-600" />
-                  {t('targetDisease')}
+                  Doença Alvo
                 </label>
                 <input
                   type="text"
@@ -471,7 +467,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   onChange={(e) => handleInputChange('doenca_alvo', e.target.value)}
                   onClick={() => !hasAvailableTokens && navigate('/plans')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'en' ? 'Ex: Type 2 diabetes and obesity' : 'Ex: Diabetes tipo 2 e obesidade'}
+                  placeholder="Ex: Diabetes tipo 2 e obesidade"
                   disabled={isLoading}
                 />
               </div>
@@ -481,10 +477,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 <Globe size={16} className="inline mr-2 text-indigo-600" />
-                {t('targetCountries')} * ({t('selectAtLeastOneCountry')})
+                Países Alvo * (selecione pelo menos um)
               </label>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {getAvailableCountries(language).map(country => (
+                {AVAILABLE_COUNTRIES.map(country => (
                   <label
                     key={country}
                     className={`flex items-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -501,7 +497,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                       className="rounded text-blue-600 focus:ring-blue-500"
                       disabled={isLoading}
                     />
-                    <span className="text-sm font-medium">{translateCountry(country)}</span>
+                    <span className="text-sm font-medium">{country}</span>
                   </label>
                 ))}
               </div>
@@ -511,7 +507,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                   <div className="flex items-center gap-2 mb-2">
                     <MapPin size={16} className="text-blue-600" />
                     <span className="text-sm font-medium text-blue-700">
-                      {t('countriesSelected')} ({searchData.pais_alvo.length}):
+                      Países selecionados ({searchData.pais_alvo.length}):
                     </span>
                   </div>
                   <CountryFlagsFromText 
@@ -539,7 +535,8 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               ) : (
                 <Search size={20} />
               )}
-              {isLoading ? t('creatingPipeline') : !hasAvailableTokens ? t('acquirePlanToConsult') : t('createProductPipeline')}
+              {isLoading ? 'Analisando Patente...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Consultar Patente'}
+              {isLoading ? 'Criando pipeline...' : !hasAvailableTokens ? 'Adquirir Plano para Consultar' : 'Criar pipeline de produto'}
             </button>
 
           </form>
@@ -553,10 +550,10 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
             }`}>
               <div className="flex items-center justify-between text-sm">
                 <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
-                  {t('consultationsRemaining')}: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> {t('of')} {tokenUsage.totalTokens}
+                  Consultas restantes: <strong>{tokenUsage.totalTokens - tokenUsage.usedTokens}</strong> de {tokenUsage.totalTokens}
                 </span>
                 <span className={hasAvailableTokens ? 'text-gray-600' : 'text-orange-600'}>
-                  {t('plan')}: <strong>{tokenUsage.plan}</strong>
+                  Plano: <strong>{tokenUsage.plan}</strong>
                 </span>
               </div>
               {!hasAvailableTokens && (
@@ -565,7 +562,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
                     onClick={() => navigate('/plans')}
                     className="text-orange-600 hover:text-orange-700 font-medium underline"
                   >
-                    {t('acquirePlanToConsult')}
+                    Adquirir plano para realizar consultas
                   </button>
                 </div>
               )}

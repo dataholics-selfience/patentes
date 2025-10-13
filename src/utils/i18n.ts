@@ -1,1832 +1,1752 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+export interface Translations {
+  // Navigation and Layout
+  newChallenge: string;
+  pipelineCRM: string;
+  challenges: string;
+  logout: string;
+  profile: string;
+  plans: string;
+  
+  // Authentication
+  login: string;
+  register: string;
+  email: string;
+  password: string;
+  name: string;
+  cpf: string;
+  company: string;
+  phone: string;
+  forgotPassword: string;
+  createAccount: string;
+  alreadyHaveAccount: string;
+  acceptTerms: string;
+  verifyEmail: string;
+  resendVerification: string;
+  backToLogin: string;
+  
+  // Challenge Creation
+  challengeTitle: string;
+  challengeDescription: string;
+  businessArea: string;
+  createChallenge: string;
+  
+  // Chat Interface
+  typeMessage: string;
+  selectChallenge: string;
+  loading: string;
+  
+  // Startup List
+  startups: string;
+  selectStartup: string;
+  selected: string;
+  saving: string;
+  matchScore: string;
+  founded: string;
+  category: string;
+  vertical: string;
+  location: string;
+  teamSize: string;
+  businessModel: string;
+  ipoStatus: string;
+  website: string;
+  linkedin: string;
+  facebook: string;
+  twitter: string;
+  instagram: string;
+  
+  // Pipeline CRM
+  mapped: string;
+  contacted: string;
+  interviewed: string;
+  poc: string;
+  emptyPipeline: string;
+  exploreStartups: string;
+  manageStages: string;
+  
+  // Contact Management
+  contactManagement: string;
+  contacts: string;
+  addContact: string;
+  newContact: string;
+  editContact: string;
+  deleteContact: string;
+  contactName: string;
+  contactRole: string;
+  emails: string;
+  phones: string;
+  addEmail: string;
+  addPhone: string;
+  save: string;
+  cancel: string;
+  startup: string;
+  founder: string;
+  
+  // Message Composer
+  newMessage: string;
+  composeMessage: string;
+  recipient: string;
+  subject: string;
+  message: string;
+  sendEmail: string;
+  sendWhatsApp: string;
+  sending: string;
+  
+  // Timeline
+  interactionTimeline: string;
+  noInteractions: string;
+  firstMessage: string;
+  sendFirstMessage: string;
+  response: string;
+  responseReceived: string;
+  
+  // Plans
+  choosePlan: string;
+  currentPlan: string;
+  startNow: string;
+  initialPlan: string;
+  tokens: string;
+  free: string;
+  mostPopular: string;
+  securePayment: string;
+  padawanDescription: string;
+  jediDescription: string;
+  masterJedi: string;
+  masterJediDescription: string;
+  masterYoda: string;
+  masterYodaDescription: string;
+  unlockInnovationPower: string;
+  padawanPlanError: string;
+  errorProcessingRequest: string;
+  pciCertified: string;
+  fraudProtection: string;
+  
+  // Profile
+  updateProfile: string;
+  resetPassword: string;
+  deleteAccount: string;
+  dangerZone: string;
+  confirmDeletion: string;
+  typeDelete: string;
+  userNotFound: string;
+  errorLoadingData: string;
+  userNotAuthenticated: string;
+  profileUpdatedSuccess: string;
+  errorUpdatingProfile: string;
+  emailNotFound: string;
+  passwordResetEmailSent: string;
+  errorSendingPasswordReset: string;
+  incorrectPassword: string;
+  errorDeletingAccount: string;
+  errorDeletingAccountGeneric: string;
+  enterPasswordToConfirm: string;
+  confirmAccountDeletion: string;
+  deleteKeyword: string;
+  inFieldBelow: string;
+  type: string;
+  toConfirm: string;
+  deleting: string;
+  
+  // Token Usage
+  tokenUsage: string;
+  remaining: string;
+  renewalOn: string;
+  upgradePlan: string;
+  
+  // Language Change Message
+  languageChangeMessage: string;
+  
+  // Common
+  back: string;
+  next: string;
+  continue: string;
+  confirm: string;
+  yes: string;
+  no: string;
+  close: string;
+  open: string;
+  edit: string;
+  delete: string;
+  add: string;
+  remove: string;
+  search: string;
+  filter: string;
+  sort: string;
+  
+  // Messages
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+  
+  // Email Templates
+  emailSubjectPrefix: string;
+  emailFooterCompany: string;
+  emailFooterDescription: string;
+  emailFooterWebsite: string;
+  emailFooterContact: string;
+  emailFooterDisclaimer: string;
+  
+  // Language
+  language: string;
+  portuguese: string;
+  english: string;
+  french: string;
+  german: string;
+  italian: string;
 
-// Translation resources
-const resources = {
+  // Additional Startup Card Translations
+  reasonForChoice: string;
+  backToList: string;
+  loadingStartups: string;
+  loadingTimeline: string;
+  startupNotFound: string;
+  loadingContacts: string;
+  noContactsRegistered: string;
+  addFirstContact: string;
+  contactAddedSuccess: string;
+  errorAddingContact: string;
+  contactUpdatedSuccess: string;
+  errorUpdatingContact: string;
+  contactRemovedSuccess: string;
+  errorRemovingContact: string;
+  manageContacts: string;
+  listContacts: string;
+  addWhatsAppNumber: string;
+  addPhoneNumber: string;
+  invalidPhoneNumber: string;
+  whatsAppNumberAddedSuccess: string;
+  errorAddingPhoneNumber: string;
+  emailRequired: string;
+  subjectRequired: string;
+  messageRequired: string;
+  emailSentSuccess: string;
+  whatsAppSentSuccess: string;
+  errorSendingMessage: string;
+  selectContact: string;
+  selectEmail: string;
+  selectPhone: string;
+  noWhatsAppRegistered: string;
+  emailTo: string;
+  whatsAppTo: string;
+  sentAt: string;
+  status: string;
+  sent: string;
+  delivered: string;
+  failed: string;
+  processing: string;
+  backToPipeline: string;
+  backToSavedStartups: string;
+  projectPlanning: string;
+  expectedResults: string;
+  competitiveAdvantages: string;
+  proofOfConcept: string;
+  phase: string;
+  duration: string;
+  description: string;
+  viewStartupList: string;
+  viewCompleteList: string;
+  startupListButton: string;
+  upgradeButton: string;
+  tokenLimitReached: string;
+  updatePlan: string;
+  processingChallenge: string;
+  creatingShortlist: string;
+  conductingMarketResearch: string;
+  generatingSelectionProcess: string;
+  creatingPOCs: string;
+  finalizingRecommendations: string;
+  searchingStartups: string;
+  qualifyingStartups: string;
+  researchingMarket: string;
+  selectingFinalStartups: string;
+  creatingPOCsForChallenge: string;
+  finalizingStartupList: string;
+}
+
+export const translations: Record<string, Translations> = {
   pt: {
-    translation: {
-      // Navigation and Common
-      back: 'Voltar',
-      loading: 'Carregando...',
-      error: 'Erro',
-      success: 'Sucesso',
-      save: 'Salvar',
-      cancel: 'Cancelar',
-      delete: 'Deletar',
-      edit: 'Editar',
-      view: 'Ver',
-      search: 'Buscar',
-      logout: 'Sair',
-      plans: 'Planos',
-      
-      // Landing Page
-      landingTitle: 'IA Avançada para Pipelines Farmacêuticos Completos',
-      landingSubtitle: 'Como um time expert de portfólio farmacêutico na palma da sua mão! Em apenas 3 minutos, criamos pipelines completos para novos medicamentos concorrentes.',
-      startNow: 'Começar Agora',
-      login: 'Entrar',
-      register: 'Criar conta',
-      whoWeAre: 'Quem Somos',
-      yourProfessionalEmail: 'Seu email profissional',
-      processing: 'Processando...',
-      completeIn3Min: 'Pipeline completo em 3 min',
-      marketAnalysis: 'Análise de mercado',
-      regulatoryDocs: 'Documentação regulatória',
-      productReadyForDevelopment: 'Produto pronto para desenvolvimento',
-      
-      // Features
-      completePipeline3Min: 'Pipeline Completo em 3 Minutos',
-      completeStrategiesDescription: 'Crie estratégias completas de desenvolvimento, registro e comercialização para novos medicamentos concorrentes.',
-      automatedGlobalResearch: 'Pesquisa Global Automatizada',
-      automaticSearchDescription: 'Busca automática em INPI, EPO, WIPO, FDA e mais de 15 bases de dados especializadas.',
-      tamSamSomAnalysis: 'Análise TAM SAM SOM',
-      marketAnalysisDescription: 'Análise completa de tamanho de mercado, segmentação e projeções financeiras detalhadas.',
-      regulatoryDocumentation: 'Documentação Regulatória',
-      regulatoryDocsDescription: 'Gere toda documentação necessária para registro em agências reguladoras globais.',
-      swotRiskAnalysis: 'Análise SWOT e Riscos',
-      swotAnalysisDescription: 'Avaliação completa de forças, fraquezas, oportunidades e ameaças do produto.',
-      competitiveStrategy: 'Estratégia Competitiva',
-      competitiveStrategyDescription: 'Identifique oportunidades de mercado e estratégias para superar a concorrência.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Criar pipeline de produto',
-      commercialName: 'Nome Comercial',
-      moleculeName: 'Nome da Molécula',
-      pharmaceuticalCategory: 'Categoria Farmacêutica',
-      mainBenefit: 'Benefício Principal',
-      targetDisease: 'Doença Alvo',
-      targetCountries: 'Países Alvo',
-      selectAtLeastOneCountry: 'selecione pelo menos um',
-      countriesSelected: 'Países selecionados',
-      creatingPipeline: 'Criando pipeline...',
-      acquirePlanToConsult: 'Adquirir Plano para Consultar',
-      restrictedAccess: 'Acesso Restrito',
-      needActivePlan: 'Você precisa de um plano ativo para realizar consultas de patentes.',
-      viewAvailablePlans: 'Ver Planos Disponíveis',
-      consultationsRemaining: 'Consultas restantes',
-      of: 'de',
-      plan: 'Plano',
-      
-      // Patent Results
-      patentStatus: 'Status da Patente',
-      active: 'VIGENTE',
-      expired: 'EXPIRADA',
-      primaryExpiration: 'Expiração Principal',
-      commercialExploration: 'Exploração Comercial',
-      permitted: 'PERMITIDA',
-      restricted: 'RESTRITA',
-      availableForNewProduct: 'Disponível para Novo Produto',
-      opportunityScore: 'Score de Oportunidade',
-      patentsByCountry: 'Patentes por País',
-      chemicalData: 'Dados Químicos',
-      clinicalTrials: 'Ensaios Clínicos',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Regulação por País',
-      scientificEvidence: 'Evidência Científica Recente',
-      notInformed: 'Não informado',
-      primaryProtection: 'Proteção Primária',
-      secondaryProtection: 'Proteção Secundária',
-      protectionObject: 'Objeto de Proteção',
-      statusAndExpirationDates: 'Status e datas de expiração por jurisdição',
-      number: 'Número',
-      status: 'Status',
-      expiration: 'Expiração',
-      types: 'Tipos',
-      source: 'Fonte',
-      viewPatent: 'Ver patente',
-      molecularFormula: 'Fórmula Molecular',
-      molecularWeight: 'Peso Molecular',
-      inchiKey: 'InChI Key',
-      iupacName: 'Nome IUPAC',
-      smiles: 'SMILES',
-      activeStudies: 'Estudos Ativos',
-      advancedPhase: 'Fase Avançada',
-      yes: 'SIM',
-      no: 'NÃO',
-      studiesInBrazil: 'Estudos no Brasil',
-      mainIndications: 'Principais Indicações',
-      detailedStudies: 'Estudos Detalhados',
-      phase: 'Fase',
-      country: 'País',
-      ndaNumber: 'Número NDA',
-      approvalDate: 'Data de Aprovação',
-      exclusivityExpiration: 'Expiração da Exclusividade',
-      hasGeneric: 'Possui Genérico',
-      exclusivities: 'Exclusividades',
-      classification: 'Classificação',
-      genericRegistrationEase: 'Facilidade Registro Genérico',
-      registrationNumber: 'Número do Registro',
-      restrictions: 'Restrições',
-      doi: 'DOI',
-      exportPdf: 'Exportar PDF',
-      
-      // Plans
-      choosePlan: 'Escolha Seu Plano',
-      selectIdealPlan: 'Selecione o plano ideal para suas necessidades',
-      monthlyConsultations: 'consultas mensais',
-      choosePlanButton: 'Escolher Plano',
-      analystPlan: 'Analista',
-      specialistPlan: 'Especialista',
-      directorPlan: 'Diretor',
-      analystPlanDescription: 'Para analistas e pequenas consultas especializadas',
-      specialistPlanDescription: 'Para especialistas e profissionais do setor farmacêutico',
-      directorPlanDescription: 'Para diretores e grandes empresas farmacêuticas',
-      mostPopular: 'Mais Popular',
-      whyChoosePharmyrus: 'Por que escolher o Pharmyrus?',
-      reliableData: 'Dados Confiáveis',
-      instantAnalysis: 'Análise Instantânea',
-      completeResultsInSeconds: 'Resultados completos em segundos com IA avançada',
-      specializedSupport: 'Suporte Especializado',
-      specializedTeam: 'Equipe especializada em propriedade intelectual',
-      needHelpChoosingPlan: 'Precisa de ajuda para escolher o plano ideal?',
-      speakWithSpecialist: 'Falar com Especialista',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 consultas de patentes por mês',
-      completeIPAnalysis: 'Análise completa de propriedade intelectual',
-      chemicalMolecularData: 'Dados químicos e moleculares',
-      patentStatusByCountry: 'Status de patentes por país',
-      emailSupport: 'Suporte por email',
-      pdfExport: 'Exportação em PDF',
-      tenConsultationsPerMonth: '10 consultas de patentes por mês',
-      advancedClinicalAnalysis: 'Análise avançada de ensaios clínicos',
-      fdaOrangeBookData: 'Dados do FDA Orange Book',
-      detailedRegulationByCountry: 'Regulação por país detalhada',
-      recentScientificEvidence: 'Evidência científica recente',
-      marketOpportunityScore: 'Score de oportunidade de mercado',
-      priorityWhatsappSupport: 'Suporte prioritário via WhatsApp',
-      executiveReports: 'Relatórios executivos',
-      twentyConsultationsPerMonth: '20 consultas de patentes por mês',
-      completeTamSamSomAnalysis: 'Análise completa de mercado TAM SAM SOM',
-      formulationStrategies: 'Estratégias de formulação',
-      completeRegulatoryDocumentation: 'Documentação regulatória completa',
-      detailedSwotAnalysis: 'Análise SWOT detalhada',
-      dedicatedSupport247: 'Suporte dedicado 24/7',
-      apiIntegration: 'Integração via API',
-      customReports: 'Relatórios personalizados',
-      strategicConsultingIncluded: 'Consultoria estratégica inclusa',
-      
-      // User Profile
-      corporateAccount: 'Conta Corporativa',
-      
-      // Footer and misc
-      whatsappSupport: 'Suporte via WhatsApp',
-      connectedToMainAgencies: 'Conectado às principais agências',
-      connectedToMainDatabases: 'Conectado às Principais Bases de Dados Farmacêuticas Mundiais',
-      aiConsultsAutomatically: 'Nossa IA consulta automaticamente mais de 15 bases de dados especializadas',
-      directAccessToMillions: 'Acesso direto a milhões de registros farmacêuticos e de patentes em tempo real',
-      realTimeData: 'Dados em tempo real',
-      globalCoverage: 'Cobertura global',
-      fifteenPlusDatabases: '15+ bases de dados',
-      whyPharmaCompaniesChoose: 'Por que Empresas Farmacêuticas Escolhem o Pharmyrus?',
-      advancedAiCreates: 'Nossa IA avançada cria pipelines completos de produtos farmacêuticos, transformando ideias em estratégias de mercado prontas para execução.',
-      fromIdeaToProduct: 'De Ideia a Produto em Tempo Record',
-      withPharmyrus: 'Com o Pharmyrus, você tem um time completo de especialistas farmacêuticos trabalhando 24/7 para criar pipelines detalhados.',
-      createMyFirstPipeline: 'Criar Meu Primeiro Pipeline',
-      completePipeline: 'Pipeline completo',
-      readyToRevolutionize: 'Pronto para Revolucionar seu Portfólio?',
-      joinHundredsOfCompanies: 'Junte-se a centenas de empresas que já criam pipelines farmacêuticos completos com nossa plataforma.',
-      createMyPipeline: 'Criar Meu Pipeline',
-      advancedAiDescription: 'IA avançada que cria pipelines completos de produtos farmacêuticos, transformando ideias em estratégias de mercado prontas para execução.',
-      product: 'Produto',
-      createPipeline: 'Criar Pipeline',
-      support: 'Suporte',
-      company: 'Empresa',
-      contact: 'Contato',
-      termsOfUse: 'Termos de Uso',
-      privacy: 'Privacidade',
-      patentConsultation: 'Consulta de Patentes',
-      allRightsReserved: 'Todos os direitos reservados',
-      
-      // Benefits
-      benefit1: 'Pipeline completo de produto em apenas 3 minutos',
-      benefit2: 'Pesquisa automática em 15+ bases de dados globais',
-      benefit3: 'Documentação regulatória pronta para submissão',
-      benefit4: 'Análise TAM SAM SOM e projeções financeiras',
-      benefit5: 'Estratégias para superar a concorrência',
-      benefit6: 'Reduza custos de consultoria em até 95%',
-      
-      // Stats
-      pipelinesCreated: 'Pipelines Criados',
-      pharmaceuticalCompanies: 'Empresas Farmacêuticas',
-      averageTime: 'Tempo Médio',
-      successRate: 'Taxa de Sucesso',
-      
-      // Countries
-      brazil: 'Brasil',
-      unitedStates: 'Estados Unidos',
-      germany: 'Alemanha',
-      france: 'França',
-      unitedKingdom: 'Reino Unido',
-      japan: 'Japão',
-      china: 'China',
-      southKorea: 'Coreia do Sul',
-      canada: 'Canadá',
-      australia: 'Austrália',
-      india: 'Índia',
-      italy: 'Itália',
-      spain: 'Espanha',
-      netherlands: 'Holanda',
-      switzerland: 'Suíça',
-      sweden: 'Suécia',
-      norway: 'Noruega',
-      denmark: 'Dinamarca',
-      finland: 'Finlândia',
-      belgium: 'Bélgica',
-      austria: 'Áustria',
-      portugal: 'Portugal',
-      mexico: 'México',
-      argentina: 'Argentina',
-      chile: 'Chile',
-      colombia: 'Colômbia',
-      peru: 'Peru',
-      uruguay: 'Uruguai',
-      russia: 'Rússia',
-      southAfrica: 'África do Sul',
-      israel: 'Israel',
-      singapore: 'Singapura',
-      thailand: 'Tailândia',
-      malaysia: 'Malásia',
-      indonesia: 'Indonésia',
-      philippines: 'Filipinas',
-      vietnam: 'Vietnã',
-      taiwan: 'Taiwan',
-      hongKong: 'Hong Kong',
-      newZealand: 'Nova Zelândia',
-      europeanUnion: 'União Europeia',
-      international: 'Internacional',
-      
-      // Language indicator
-      currentLanguage: 'pt'
-    }
+    // Navigation and Layout
+    newChallenge: 'Novo desafio',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Desafios',
+    logout: 'Sair',
+    profile: 'Perfil',
+    plans: 'Planos',
+    
+    // Authentication
+    login: 'Login',
+    register: 'Criar Conta',
+    email: 'Email',
+    password: 'Senha',
+    name: 'Nome completo',
+    cpf: 'CPF',
+    company: 'Empresa',
+    phone: 'Celular',
+    forgotPassword: 'Esqueceu a senha?',
+    createAccount: 'CRIAR CONTA',
+    alreadyHaveAccount: 'Já tem uma conta? Faça login',
+    acceptTerms: 'Li e aceito os termos de uso',
+    verifyEmail: 'Verifique seu Email',
+    resendVerification: 'Reenviar email de verificação',
+    backToLogin: 'Voltar para o Login',
+    
+    // Challenge Creation
+    challengeTitle: 'Título do Desafio',
+    challengeDescription: 'Descrição do Desafio',
+    businessArea: 'Área de atuação da empresa',
+    createChallenge: 'Criar Desafio',
+    
+    // Chat Interface
+    typeMessage: 'Digite uma mensagem...',
+    selectChallenge: 'Selecione um desafio para começar',
+    loading: 'Carregando...',
+    
+    // Startup List
+    startups: 'Startups',
+    selectStartup: 'Selecionar startup',
+    selected: 'Selecionada',
+    saving: 'Salvando...',
+    matchScore: 'Match Score',
+    founded: 'Fundação',
+    category: 'Categoria',
+    vertical: 'Vertical',
+    location: 'Localização',
+    teamSize: 'Tamanho da Equipe',
+    businessModel: 'Modelo de Negócio',
+    ipoStatus: 'Status IPO',
+    website: 'Website',
+    linkedin: 'LinkedIn',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    
+    // Pipeline CRM
+    mapped: 'Mapeada',
+    contacted: 'Contatada',
+    interviewed: 'Entrevistada',
+    poc: 'POC',
+    emptyPipeline: 'Pipeline vazio',
+    exploreStartups: 'Explorar Startups',
+    manageStages: 'Gerenciar Estágios',
+    
+    // Contact Management
+    contactManagement: 'Gestão de Contatos',
+    contacts: 'Contatos',
+    addContact: 'Adicionar Contato',
+    newContact: 'Novo Contato',
+    editContact: 'Editar Contato',
+    deleteContact: 'Remover Contato',
+    contactName: 'Nome',
+    contactRole: 'Cargo/Função',
+    emails: 'Emails',
+    phones: 'Telefones/WhatsApp',
+    addEmail: 'Adicionar outro email',
+    addPhone: 'Adicionar outro telefone',
+    save: 'Salvar',
+    cancel: 'Cancelar',
+    startup: 'Startup',
+    founder: 'Fundador',
+    
+    // Message Composer
+    newMessage: 'Nova Mensagem',
+    composeMessage: 'Compor Mensagem',
+    recipient: 'Destinatário',
+    subject: 'Assunto',
+    message: 'Mensagem',
+    sendEmail: 'Enviar Email',
+    sendWhatsApp: 'Enviar WhatsApp',
+    sending: 'Enviando...',
+    
+    // Timeline
+    interactionTimeline: 'Timeline de Interações',
+    noInteractions: 'Nenhuma interação ainda',
+    firstMessage: 'Comece a interação com esta startup enviando sua primeira mensagem',
+    sendFirstMessage: 'Enviar Primeira Mensagem',
+    response: 'Resposta',
+    responseReceived: 'Resposta recebida',
+    
+    // Plans
+    choosePlan: 'Escolha seu plano',
+    currentPlan: 'Plano atual',
+    startNow: 'Começar agora',
+    initialPlan: 'Plano inicial',
+    tokens: 'tokens',
+    free: 'Grátis',
+    mostPopular: 'Mais popular',
+    securePayment: 'Pagamento Seguro SSL',
+    padawanDescription: 'Plano para iniciantes que estão começando no caminho da inovação',
+    jediDescription: 'Plano para o guerreiro que está aprendendo as artes da inovação por IA',
+    masterJedi: 'Mestre Jedi',
+    masterJediDescription: 'Plano para o Jedi que se superou, e agora pode derrotar as forças da inércia inovativa',
+    masterYoda: 'Mestre Yoda',
+    masterYodaDescription: 'Plano para o inovador que enfrentou batalhas e está preparado para defender as forças da disrupção',
+    unlockInnovationPower: 'Desbloqueie o poder da inovação com nossos planos personalizados',
+    padawanPlanError: 'O plano Padawan é o plano inicial e não pode ser contratado. Por favor, escolha outro plano.',
+    errorProcessingRequest: 'Erro ao processar sua solicitação. Por favor, tente novamente.',
+    pciCertified: 'Certificado PCI DSS',
+    fraudProtection: 'Proteção Antifraude',
+    
+    // Profile
+    updateProfile: 'Atualizar Perfil',
+    resetPassword: 'Redefinir Senha',
+    deleteAccount: 'Apagar conta',
+    dangerZone: 'Zona de Perigo',
+    confirmDeletion: 'Confirmar Deleção',
+    typeDelete: 'Digite DELETAR',
+    userNotFound: 'Usuário não encontrado',
+    errorLoadingData: 'Erro ao carregar dados',
+    userNotAuthenticated: 'Usuário não autenticado',
+    profileUpdatedSuccess: 'Perfil atualizado com sucesso!',
+    errorUpdatingProfile: 'Erro ao atualizar perfil',
+    emailNotFound: 'Email não encontrado',
+    passwordResetEmailSent: 'Email de redefinição de senha enviado!',
+    errorSendingPasswordReset: 'Erro ao enviar email de redefinição',
+    incorrectPassword: 'Senha incorreta. Por favor, tente novamente.',
+    errorDeletingAccount: 'Erro ao deletar a conta',
+    errorDeletingAccountGeneric: 'Erro ao deletar conta. Por favor, tente novamente.',
+    enterPasswordToConfirm: 'Por favor, insira sua senha para confirmar a deleção da conta:',
+    confirmAccountDeletion: 'Para confirmar a deleção da conta e anonimização dos dados, digite',
+    deleteKeyword: 'DELETAR',
+    inFieldBelow: 'no campo abaixo',
+    type: 'Digite',
+    toConfirm: 'para confirmar',
+    deleting: 'Deletando...',
+    
+    // Token Usage
+    tokenUsage: 'Uso de Tokens',
+    remaining: 'restantes',
+    renewalOn: 'Renovação em',
+    upgradePlan: 'Atualizar plano',
+    
+    // Language Change Message
+    languageChangeMessage: 'Poderia por favor mudar o idioma que fala comigo, e iniciar o questionário?',
+    
+    // Common
+    back: 'Voltar',
+    next: 'Próximo',
+    continue: 'Continuar',
+    confirm: 'Confirmar',
+    yes: 'Sim',
+    no: 'Não',
+    close: 'Fechar',
+    open: 'Abrir',
+    edit: 'Editar',
+    delete: 'Deletar',
+    add: 'Adicionar',
+    remove: 'Remover',
+    search: 'Buscar',
+    filter: 'Filtrar',
+    sort: 'Ordenar',
+    
+    // Messages
+    success: 'Sucesso',
+    error: 'Erro',
+    warning: 'Aviso',
+    info: 'Informação',
+    
+    // Email Templates
+    emailSubjectPrefix: 'A {company} deseja contatar a {startup} - ',
+    emailFooterCompany: 'Gen.OI',
+    emailFooterDescription: 'Conectando empresas às melhores startups do mundo',
+    emailFooterWebsite: 'genoi.net',
+    emailFooterContact: 'contact@genoi.net',
+    emailFooterDisclaimer: 'Esta mensagem foi enviada através da plataforma Gen.OI de inovação aberta.',
+    
+    // Language
+    language: 'Idioma',
+    portuguese: 'Português',
+    english: 'Inglês',
+    french: 'Francês',
+    german: 'Alemão',
+    italian: 'Italiano',
+
+    // Additional Startup Card Translations
+    reasonForChoice: 'Motivo da escolha',
+    backToList: 'Voltar para lista',
+    loadingStartups: 'Carregando startups...',
+    loadingTimeline: 'Carregando timeline...',
+    startupNotFound: 'Startup não encontrada',
+    loadingContacts: 'Carregando contatos...',
+    noContactsRegistered: 'Nenhum contato cadastrado',
+    addFirstContact: 'Adicionar Primeiro Contato',
+    contactAddedSuccess: 'Contato adicionado com sucesso!',
+    errorAddingContact: 'Erro ao adicionar contato',
+    contactUpdatedSuccess: 'Contato atualizado com sucesso!',
+    errorUpdatingContact: 'Erro ao atualizar contato',
+    contactRemovedSuccess: 'Contato removido com sucesso!',
+    errorRemovingContact: 'Erro ao remover contato',
+    manageContacts: 'Gerenciar Contatos',
+    listContacts: 'Lista de Contatos',
+    addWhatsAppNumber: 'Adicionar Número do WhatsApp',
+    addPhoneNumber: 'Adicionar número de WhatsApp',
+    invalidPhoneNumber: 'Número de telefone inválido para WhatsApp',
+    whatsAppNumberAddedSuccess: 'Número de WhatsApp adicionado com sucesso!',
+    errorAddingPhoneNumber: 'Erro ao adicionar número de WhatsApp',
+    emailRequired: 'Email do destinatário é obrigatório',
+    subjectRequired: 'Assunto é obrigatório para emails',
+    messageRequired: 'Mensagem é obrigatória',
+    emailSentSuccess: 'Email enviado com sucesso!',
+    whatsAppSentSuccess: 'Mensagem WhatsApp enviada com sucesso!',
+    errorSendingMessage: 'Erro ao enviar mensagem',
+    selectContact: 'Selecione um contato',
+    selectEmail: 'Selecionar Email',
+    selectPhone: 'Selecionar Telefone',
+    noWhatsAppRegistered: 'Sem WhatsApp cadastrado',
+    emailTo: 'Para: ',
+    whatsAppTo: 'WhatsApp: ',
+    sentAt: 'Enviado em',
+    status: 'Status',
+    sent: 'Enviado',
+    delivered: 'Entregue',
+    failed: 'Falhou',
+    processing: 'Processando',
+    backToPipeline: 'Voltar para pipeline',
+    backToSavedStartups: 'Voltar para startups salvas',
+    projectPlanning: 'Planejamento do Projeto',
+    expectedResults: 'Resultados Esperados',
+    competitiveAdvantages: 'Vantagens Competitivas',
+    proofOfConcept: 'Provas de conceito',
+    phase: 'Fase',
+    duration: 'Duração',
+    description: 'Descrição',
+    viewStartupList: 'Ver Lista de Startups',
+    viewCompleteList: 'Ver lista completa',
+    startupListButton: 'Ver Lista de Startups',
+    upgradeButton: 'Atualizar Plano',
+    tokenLimitReached: 'Você atingiu o limite de tokens do seu plano',
+    updatePlan: 'Atualize seu plano para continuar inovando!',
+    processingChallenge: 'Processando desafio e buscando entre milhares de startups...',
+    creatingShortlist: 'Criando uma short list de startups qualificadas',
+    conductingMarketResearch: 'Realizando uma pesquisa de mercado e do desafio',
+    generatingSelectionProcess: 'Gerando um processo seletivo final de startups',
+    creatingPOCs: 'Criando as POCs para solucionar o desafio',
+    finalizingRecommendations: 'Finalizando a lista de indicação de startups para seu desafio!',
+    searchingStartups: 'Processando desafio e buscando entre milhares de startups...',
+    qualifyingStartups: 'Criando uma short list de startups qualificadas',
+    researchingMarket: 'Realizando uma pesquisa de mercado e do desafio',
+    selectingFinalStartups: 'Gerando um processo seletivo final de startups',
+    creatingPOCsForChallenge: 'Criando as POCs para solucionar o desafio',
+    finalizingStartupList: 'Finalizando a lista de indicação de startups para seu desafio!',
   },
+  
   en: {
-    translation: {
-      // Navigation and Common
-      back: 'Back',
-      loading: 'Loading...',
-      error: 'Error',
-      success: 'Success',
-      save: 'Save',
-      cancel: 'Cancel',
-      delete: 'Delete',
-      edit: 'Edit',
-      view: 'View',
-      search: 'Search',
-      logout: 'Logout',
-      plans: 'Plans',
-      
-      // Landing Page
-      landingTitle: 'Advanced AI for Complete Pharmaceutical Pipelines',
-      landingSubtitle: 'Like having an expert pharmaceutical portfolio team in your pocket! In just 3 minutes, we create complete pipelines for new competing drugs.',
-      startNow: 'Start Now',
-      login: 'Login',
-      register: 'Sign Up',
-      whoWeAre: 'About Us',
-      yourProfessionalEmail: 'Your professional email',
-      processing: 'Processing...',
-      completeIn3Min: 'Complete pipeline in 3 min',
-      marketAnalysis: 'Market analysis',
-      regulatoryDocs: 'Regulatory documentation',
-      productReadyForDevelopment: 'Product ready for development',
-      
-      // Features
-      completePipeline3Min: 'Complete Pipeline in 3 Minutes',
-      completeStrategiesDescription: 'Create complete development, registration and commercialization strategies for new competing drugs.',
-      automatedGlobalResearch: 'Automated Global Research',
-      automaticSearchDescription: 'Automatic search across INPI, EPO, WIPO, FDA and 15+ specialized databases.',
-      tamSamSomAnalysis: 'TAM SAM SOM Analysis',
-      marketAnalysisDescription: 'Complete market size analysis, segmentation and detailed financial projections.',
-      regulatoryDocumentation: 'Regulatory Documentation',
-      regulatoryDocsDescription: 'Generate all necessary documentation for registration with global regulatory agencies.',
-      swotRiskAnalysis: 'SWOT & Risk Analysis',
-      swotAnalysisDescription: 'Complete assessment of product strengths, weaknesses, opportunities and threats.',
-      competitiveStrategy: 'Competitive Strategy',
-      competitiveStrategyDescription: 'Identify market opportunities and strategies to overcome competition.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Create product pipeline',
-      commercialName: 'Commercial Name',
-      moleculeName: 'Molecule Name',
-      pharmaceuticalCategory: 'Pharmaceutical Category',
-      mainBenefit: 'Main Benefit',
-      targetDisease: 'Target Disease',
-      targetCountries: 'Target Countries',
-      selectAtLeastOneCountry: 'select at least one',
-      countriesSelected: 'Countries selected',
-      creatingPipeline: 'Creating pipeline...',
-      acquirePlanToConsult: 'Acquire Plan to Consult',
-      restrictedAccess: 'Restricted Access',
-      needActivePlan: 'You need an active plan to perform patent consultations.',
-      viewAvailablePlans: 'View Available Plans',
-      consultationsRemaining: 'Consultations remaining',
-      of: 'of',
-      plan: 'Plan',
-      
-      // Patent Results
-      patentStatus: 'Patent Status',
-      active: 'ACTIVE',
-      expired: 'EXPIRED',
-      primaryExpiration: 'Primary Expiration',
-      commercialExploration: 'Commercial Exploration',
-      permitted: 'PERMITTED',
-      restricted: 'RESTRICTED',
-      availableForNewProduct: 'Available for New Product',
-      opportunityScore: 'Opportunity Score',
-      patentsByCountry: 'Patents by Country',
-      chemicalData: 'Chemical Data',
-      clinicalTrials: 'Clinical Trials',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Regulation by Country',
-      scientificEvidence: 'Recent Scientific Evidence',
-      notInformed: 'Not informed',
-      primaryProtection: 'Primary Protection',
-      secondaryProtection: 'Secondary Protection',
-      protectionObject: 'Protection Object',
-      statusAndExpirationDates: 'Status and expiration dates by jurisdiction',
-      number: 'Number',
-      status: 'Status',
-      expiration: 'Expiration',
-      types: 'Types',
-      source: 'Source',
-      viewPatent: 'View patent',
-      molecularFormula: 'Molecular Formula',
-      molecularWeight: 'Molecular Weight',
-      inchiKey: 'InChI Key',
-      iupacName: 'IUPAC Name',
-      smiles: 'SMILES',
-      activeStudies: 'Active Studies',
-      advancedPhase: 'Advanced Phase',
-      yes: 'YES',
-      no: 'NO',
-      studiesInBrazil: 'Studies in Brazil',
-      mainIndications: 'Main Indications',
-      detailedStudies: 'Detailed Studies',
-      phase: 'Phase',
-      country: 'Country',
-      ndaNumber: 'NDA Number',
-      approvalDate: 'Approval Date',
-      exclusivityExpiration: 'Exclusivity Expiration',
-      hasGeneric: 'Has Generic',
-      exclusivities: 'Exclusivities',
-      classification: 'Classification',
-      genericRegistrationEase: 'Generic Registration Ease',
-      registrationNumber: 'Registration Number',
-      restrictions: 'Restrictions',
-      doi: 'DOI',
-      exportPdf: 'Export PDF',
-      
-      // Plans
-      choosePlan: 'Choose Your Plan',
-      selectIdealPlan: 'Select the ideal plan for your needs',
-      monthlyConsultations: 'monthly consultations',
-      choosePlanButton: 'Choose Plan',
-      analystPlan: 'Analyst',
-      specialistPlan: 'Specialist',
-      directorPlan: 'Director',
-      analystPlanDescription: 'For analysts and small specialized consultations',
-      specialistPlanDescription: 'For specialists and pharmaceutical industry professionals',
-      directorPlanDescription: 'For directors and large pharmaceutical companies',
-      mostPopular: 'Most Popular',
-      whyChoosePharmyrus: 'Why choose Pharmyrus?',
-      reliableData: 'Reliable Data',
-      instantAnalysis: 'Instant Analysis',
-      completeResultsInSeconds: 'Complete results in seconds with advanced AI',
-      specializedSupport: 'Specialized Support',
-      specializedTeam: 'Team specialized in intellectual property',
-      needHelpChoosingPlan: 'Need help choosing the ideal plan?',
-      speakWithSpecialist: 'Speak with Specialist',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 patent consultations per month',
-      completeIPAnalysis: 'Complete intellectual property analysis',
-      chemicalMolecularData: 'Chemical and molecular data',
-      patentStatusByCountry: 'Patent status by country',
-      emailSupport: 'Email support',
-      pdfExport: 'PDF export',
-      tenConsultationsPerMonth: '10 patent consultations per month',
-      advancedClinicalAnalysis: 'Advanced clinical trial analysis',
-      fdaOrangeBookData: 'FDA Orange Book data',
-      detailedRegulationByCountry: 'Detailed regulation by country',
-      recentScientificEvidence: 'Recent scientific evidence',
-      marketOpportunityScore: 'Market opportunity score',
-      priorityWhatsappSupport: 'Priority WhatsApp support',
-      executiveReports: 'Executive reports',
-      twentyConsultationsPerMonth: '20 patent consultations per month',
-      completeTamSamSomAnalysis: 'Complete TAM SAM SOM market analysis',
-      formulationStrategies: 'Formulation strategies',
-      completeRegulatoryDocumentation: 'Complete regulatory documentation',
-      detailedSwotAnalysis: 'Detailed SWOT analysis',
-      dedicatedSupport247: 'Dedicated 24/7 support',
-      apiIntegration: 'API integration',
-      customReports: 'Custom reports',
-      strategicConsultingIncluded: 'Strategic consulting included',
-      
-      // User Profile
-      corporateAccount: 'Corporate Account',
-      
-      // Footer and misc
-      whatsappSupport: 'WhatsApp Support',
-      connectedToMainAgencies: 'Connected to main agencies',
-      connectedToMainDatabases: 'Connected to Main Global Pharmaceutical Databases',
-      aiConsultsAutomatically: 'Our AI automatically consults over 15 specialized databases',
-      directAccessToMillions: 'Direct access to millions of pharmaceutical and patent records in real time',
-      realTimeData: 'Real-time data',
-      globalCoverage: 'Global coverage',
-      fifteenPlusDatabases: '15+ databases',
-      whyPharmaCompaniesChoose: 'Why Do Pharmaceutical Companies Choose Pharmyrus?',
-      advancedAiCreates: 'Our advanced AI creates complete pharmaceutical product pipelines, transforming ideas into market-ready strategies.',
-      fromIdeaToProduct: 'From Idea to Product in Record Time',
-      withPharmyrus: 'With Pharmyrus, you have a complete team of pharmaceutical specialists working 24/7 to create detailed pipelines.',
-      createMyFirstPipeline: 'Create My First Pipeline',
-      completePipeline: 'Complete pipeline',
-      readyToRevolutionize: 'Ready to Revolutionize Your Portfolio?',
-      joinHundredsOfCompanies: 'Join hundreds of companies that already create complete pharmaceutical pipelines with our platform.',
-      createMyPipeline: 'Create My Pipeline',
-      advancedAiDescription: 'Advanced AI that creates complete pharmaceutical product pipelines, transforming ideas into market-ready strategies.',
-      product: 'Product',
-      createPipeline: 'Create Pipeline',
-      support: 'Support',
-      company: 'Company',
-      contact: 'Contact',
-      termsOfUse: 'Terms of Use',
-      privacy: 'Privacy',
-      patentConsultation: 'Patent Consultation',
-      allRightsReserved: 'All rights reserved',
-      
-      // Benefits
-      benefit1: 'Complete product pipeline in just 3 minutes',
-      benefit2: 'Automatic research across 15+ global databases',
-      benefit3: 'Regulatory documentation ready for submission',
-      benefit4: 'TAM SAM SOM analysis and financial projections',
-      benefit5: 'Strategies to overcome competition',
-      benefit6: 'Reduce consulting costs by up to 95%',
-      
-      // Stats
-      pipelinesCreated: 'Pipelines Created',
-      pharmaceuticalCompanies: 'Pharmaceutical Companies',
-      averageTime: 'Average Time',
-      successRate: 'Success Rate',
-      
-      // Countries
-      brazil: 'Brazil',
-      unitedStates: 'United States',
-      germany: 'Germany',
-      france: 'France',
-      unitedKingdom: 'United Kingdom',
-      japan: 'Japan',
-      china: 'China',
-      southKorea: 'South Korea',
-      canada: 'Canada',
-      australia: 'Australia',
-      india: 'India',
-      italy: 'Italy',
-      spain: 'Spain',
-      netherlands: 'Netherlands',
-      switzerland: 'Switzerland',
-      sweden: 'Sweden',
-      norway: 'Norway',
-      denmark: 'Denmark',
-      finland: 'Finland',
-      belgium: 'Belgium',
-      austria: 'Austria',
-      portugal: 'Portugal',
-      mexico: 'Mexico',
-      argentina: 'Argentina',
-      chile: 'Chile',
-      colombia: 'Colombia',
-      peru: 'Peru',
-      uruguay: 'Uruguay',
-      russia: 'Russia',
-      southAfrica: 'South Africa',
-      israel: 'Israel',
-      singapore: 'Singapore',
-      thailand: 'Thailand',
-      malaysia: 'Malaysia',
-      indonesia: 'Indonesia',
-      philippines: 'Philippines',
-      vietnam: 'Vietnam',
-      taiwan: 'Taiwan',
-      hongKong: 'Hong Kong',
-      newZealand: 'New Zealand',
-      europeanUnion: 'European Union',
-      international: 'International',
-      
-      // Language indicator
-      currentLanguage: 'en'
-    }
+    // Navigation and Layout
+    newChallenge: 'New challenge',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Challenges',
+    logout: 'Logout',
+    profile: 'Profile',
+    plans: 'Plans',
+    
+    // Authentication
+    login: 'Login',
+    register: 'Create Account',
+    email: 'Email',
+    password: 'Password',
+    name: 'Full name',
+    cpf: 'Tax ID',
+    company: 'Company',
+    phone: 'Phone',
+    forgotPassword: 'Forgot password?',
+    createAccount: 'CREATE ACCOUNT',
+    alreadyHaveAccount: 'Already have an account? Sign in',
+    acceptTerms: 'I have read and accept the terms of use',
+    verifyEmail: 'Verify your Email',
+    resendVerification: 'Resend verification email',
+    backToLogin: 'Back to Login',
+    
+    // Challenge Creation
+    challengeTitle: 'Challenge Title',
+    challengeDescription: 'Challenge Description',
+    businessArea: 'Company business area',
+    createChallenge: 'Create Challenge',
+    
+    // Chat Interface
+    typeMessage: 'Type a message...',
+    selectChallenge: 'Select a challenge to start',
+    loading: 'Loading...',
+    
+    // Startup List
+    startups: 'Startups',
+    selectStartup: 'Select startup',
+    selected: 'Selected',
+    saving: 'Saving...',
+    matchScore: 'Match Score',
+    founded: 'Founded',
+    category: 'Category',
+    vertical: 'Vertical',
+    location: 'Location',
+    teamSize: 'Team Size',
+    businessModel: 'Business Model',
+    ipoStatus: 'IPO Status',
+    website: 'Website',
+    linkedin: 'LinkedIn',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    
+    // Pipeline CRM
+    mapped: 'Mapped',
+    contacted: 'Contacted',
+    interviewed: 'Interviewed',
+    poc: 'POC',
+    emptyPipeline: 'Empty pipeline',
+    exploreStartups: 'Explore Startups',
+    manageStages: 'Manage Stages',
+    
+    // Contact Management
+    contactManagement: 'Contact Management',
+    contacts: 'Contacts',
+    addContact: 'Add Contact',
+    newContact: 'New Contact',
+    editContact: 'Edit Contact',
+    deleteContact: 'Delete Contact',
+    contactName: 'Name',
+    contactRole: 'Role/Position',
+    emails: 'Emails',
+    phones: 'Phones/WhatsApp',
+    addEmail: 'Add another email',
+    addPhone: 'Add another phone',
+    save: 'Save',
+    cancel: 'Cancel',
+    startup: 'Startup',
+    founder: 'Founder',
+    
+    // Message Composer
+    newMessage: 'New Message',
+    composeMessage: 'Compose Message',
+    recipient: 'Recipient',
+    subject: 'Subject',
+    message: 'Message',
+    sendEmail: 'Send Email',
+    sendWhatsApp: 'Send WhatsApp',
+    sending: 'Sending...',
+    
+    // Timeline
+    interactionTimeline: 'Interaction Timeline',
+    noInteractions: 'No interactions yet',
+    firstMessage: 'Start interacting with this startup by sending your first message',
+    sendFirstMessage: 'Send First Message',
+    response: 'Response',
+    responseReceived: 'Response received',
+    
+    // Plans
+    choosePlan: 'Choose your plan',
+    currentPlan: 'Current plan',
+    startNow: 'Start now',
+    initialPlan: 'Initial plan',
+    tokens: 'tokens',
+    free: 'Free',
+    mostPopular: 'Most popular',
+    securePayment: 'Secure SSL Payment',
+    padawanDescription: 'Plan for beginners starting their innovation journey',
+    jediDescription: 'Plan for warriors learning the arts of AI innovation',
+    masterJedi: 'Master Jedi',
+    masterJediDescription: 'Plan for Jedis who have overcome and can now defeat the forces of innovative inertia',
+    masterYoda: 'Master Yoda',
+    masterYodaDescription: 'Plan for innovators who have faced battles and are ready to defend the forces of disruption',
+    unlockInnovationPower: 'Unlock the power of innovation with our personalized plans',
+    padawanPlanError: 'The Padawan plan is the initial plan and cannot be purchased. Please choose another plan.',
+    errorProcessingRequest: 'Error processing your request. Please try again.',
+    pciCertified: 'PCI DSS Certified',
+    fraudProtection: 'Fraud Protection',
+    
+    // Profile
+    updateProfile: 'Update Profile',
+    resetPassword: 'Reset Password',
+    deleteAccount: 'Delete account',
+    dangerZone: 'Danger Zone',
+    confirmDeletion: 'Confirm Deletion',
+    typeDelete: 'Type DELETE',
+    userNotFound: 'User not found',
+    errorLoadingData: 'Error loading data',
+    userNotAuthenticated: 'User not authenticated',
+    profileUpdatedSuccess: 'Profile updated successfully!',
+    errorUpdatingProfile: 'Error updating profile',
+    emailNotFound: 'Email not found',
+    passwordResetEmailSent: 'Password reset email sent!',
+    errorSendingPasswordReset: 'Error sending password reset email',
+    incorrectPassword: 'Incorrect password. Please try again.',
+    errorDeletingAccount: 'Error deleting account',
+    errorDeletingAccountGeneric: 'Error deleting account. Please try again.',
+    enterPasswordToConfirm: 'Please enter your password to confirm account deletion:',
+    confirmAccountDeletion: 'To confirm account deletion and data anonymization, type',
+    deleteKeyword: 'DELETE',
+    inFieldBelow: 'in the field below',
+    type: 'Type',
+    toConfirm: 'to confirm',
+    deleting: 'Deleting...',
+    
+    // Token Usage
+    tokenUsage: 'Token Usage',
+    remaining: 'remaining',
+    renewalOn: 'Renewal on',
+    upgradePlan: 'Upgrade plan',
+    
+    // Language Change Message
+    languageChangeMessage: 'Could you please change the language you speak to me, to english and begin the questionare?',
+    
+    // Common
+    back: 'Back',
+    next: 'Next',
+    continue: 'Continue',
+    confirm: 'Confirm',
+    yes: 'Yes',
+    no: 'No',
+    close: 'Close',
+    open: 'Open',
+    edit: 'Edit',
+    delete: 'Delete',
+    add: 'Add',
+    remove: 'Remove',
+    search: 'Search',
+    filter: 'Filter',
+    sort: 'Sort',
+    
+    // Messages
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Information',
+    
+    // Email Templates
+    emailSubjectPrefix: '{company} wants to contact {startup} - ',
+    emailFooterCompany: 'Gen.OI',
+    emailFooterDescription: 'Connecting companies to the world\'s best startups',
+    emailFooterWebsite: 'genoi.net',
+    emailFooterContact: 'contact@genoi.net',
+    emailFooterDisclaimer: 'This message was sent through the Gen.OI open innovation platform.',
+    
+    // Language
+    language: 'Language',
+    portuguese: 'Portuguese',
+    english: 'English',
+    french: 'French',
+    german: 'German',
+    italian: 'Italian',
+
+    // Additional Startup Card Translations
+    reasonForChoice: 'Reason for choice',
+    backToList: 'Back to list',
+    loadingStartups: 'Loading startups...',
+    loadingTimeline: 'Loading timeline...',
+    startupNotFound: 'Startup not found',
+    loadingContacts: 'Loading contacts...',
+    noContactsRegistered: 'No contacts registered',
+    addFirstContact: 'Add First Contact',
+    contactAddedSuccess: 'Contact added successfully!',
+    errorAddingContact: 'Error adding contact',
+    contactUpdatedSuccess: 'Contact updated successfully!',
+    errorUpdatingContact: 'Error updating contact',
+    contactRemovedSuccess: 'Contact removed successfully!',
+    errorRemovingContact: 'Error removing contact',
+    manageContacts: 'Manage Contacts',
+    listContacts: 'Contact List',
+    addWhatsAppNumber: 'Add WhatsApp Number',
+    addPhoneNumber: 'Add WhatsApp number',
+    invalidPhoneNumber: 'Invalid phone number for WhatsApp',
+    whatsAppNumberAddedSuccess: 'WhatsApp number added successfully!',
+    errorAddingPhoneNumber: 'Error adding WhatsApp number',
+    emailRequired: 'Recipient email is required',
+    subjectRequired: 'Subject is required for emails',
+    messageRequired: 'Message is required',
+    emailSentSuccess: 'Email sent successfully!',
+    whatsAppSentSuccess: 'WhatsApp message sent successfully!',
+    errorSendingMessage: 'Error sending message',
+    selectContact: 'Select a contact',
+    selectEmail: 'Select Email',
+    selectPhone: 'Select Phone',
+    noWhatsAppRegistered: 'No WhatsApp registered',
+    emailTo: 'To: ',
+    whatsAppTo: 'WhatsApp: ',
+    sentAt: 'Sent at',
+    status: 'Status',
+    sent: 'Sent',
+    delivered: 'Delivered',
+    failed: 'Failed',
+    processing: 'Processing',
+    backToPipeline: 'Back to pipeline',
+    backToSavedStartups: 'Back to saved startups',
+    projectPlanning: 'Project Planning',
+    expectedResults: 'Expected Results',
+    competitiveAdvantages: 'Competitive Advantages',
+    proofOfConcept: 'Proof of concept',
+    phase: 'Phase',
+    duration: 'Duration',
+    description: 'Description',
+    viewStartupList: 'View Startup List',
+    viewCompleteList: 'View complete list',
+    startupListButton: 'View Startup List',
+    upgradeButton: 'Upgrade Plan',
+    tokenLimitReached: 'You have reached your plan\'s token limit',
+    updatePlan: 'Upgrade your plan to continue innovating!',
+    processingChallenge: 'Processing challenge and searching among thousands of startups...',
+    creatingShortlist: 'Creating a shortlist of qualified startups',
+    conductingMarketResearch: 'Conducting market and challenge research',
+    generatingSelectionProcess: 'Generating final startup selection process',
+    creatingPOCs: 'Creating POCs to solve the challenge',
+    finalizingRecommendations: 'Finalizing startup recommendation list for your challenge!',
+    searchingStartups: 'Processing challenge and searching among thousands of startups...',
+    qualifyingStartups: 'Creating a shortlist of qualified startups',
+    researchingMarket: 'Conducting market and challenge research',
+    selectingFinalStartups: 'Generating final startup selection process',
+    creatingPOCsForChallenge: 'Creating POCs to solve the challenge',
+    finalizingStartupList: 'Finalizing startup recommendation list for your challenge!',
   },
-  es: {
-    translation: {
-      // Navigation and Common
-      back: 'Volver',
-      loading: 'Cargando...',
-      error: 'Error',
-      success: 'Éxito',
-      save: 'Guardar',
-      cancel: 'Cancelar',
-      delete: 'Eliminar',
-      edit: 'Editar',
-      view: 'Ver',
-      search: 'Buscar',
-      logout: 'Cerrar Sesión',
-      plans: 'Planes',
-      
-      // Landing Page
-      landingTitle: 'IA Avanzada para Pipelines Farmacéuticos Completos',
-      landingSubtitle: '¡Como tener un equipo experto de portafolio farmacéutico en tu bolsillo! En solo 3 minutos, creamos pipelines completos para nuevos medicamentos competidores.',
-      startNow: 'Comenzar Ahora',
-      login: 'Iniciar Sesión',
-      register: 'Registrarse',
-      whoWeAre: 'Quiénes Somos',
-      yourProfessionalEmail: 'Tu email profesional',
-      processing: 'Procesando...',
-      completeIn3Min: 'Pipeline completo en 3 min',
-      marketAnalysis: 'Análisis de mercado',
-      regulatoryDocs: 'Documentación regulatoria',
-      productReadyForDevelopment: 'Producto listo para desarrollo',
-      
-      // Features
-      completePipeline3Min: 'Pipeline Completo en 3 Minutos',
-      completeStrategiesDescription: 'Crea estrategias completas de desarrollo, registro y comercialización para nuevos medicamentos competidores.',
-      automatedGlobalResearch: 'Investigación Global Automatizada',
-      automaticSearchDescription: 'Búsqueda automática en INPI, EPO, WIPO, FDA y más de 15 bases de datos especializadas.',
-      tamSamSomAnalysis: 'Análisis TAM SAM SOM',
-      marketAnalysisDescription: 'Análisis completo de tamaño de mercado, segmentación y proyecciones financieras detalladas.',
-      regulatoryDocumentation: 'Documentación Regulatoria',
-      regulatoryDocsDescription: 'Genera toda la documentación necesaria para registro en agencias reguladoras globales.',
-      swotRiskAnalysis: 'Análisis SWOT y Riesgos',
-      swotAnalysisDescription: 'Evaluación completa de fortalezas, debilidades, oportunidades y amenazas del producto.',
-      competitiveStrategy: 'Estrategia Competitiva',
-      competitiveStrategyDescription: 'Identifica oportunidades de mercado y estrategias para superar la competencia.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Crear pipeline de producto',
-      commercialName: 'Nombre Comercial',
-      moleculeName: 'Nombre de la Molécula',
-      pharmaceuticalCategory: 'Categoría Farmacéutica',
-      mainBenefit: 'Beneficio Principal',
-      targetDisease: 'Enfermedad Objetivo',
-      targetCountries: 'Países Objetivo',
-      selectAtLeastOneCountry: 'selecciona al menos uno',
-      countriesSelected: 'Países seleccionados',
-      creatingPipeline: 'Creando pipeline...',
-      acquirePlanToConsult: 'Adquirir Plan para Consultar',
-      restrictedAccess: 'Acceso Restringido',
-      needActivePlan: 'Necesitas un plan activo para realizar consultas de patentes.',
-      viewAvailablePlans: 'Ver Planes Disponibles',
-      consultationsRemaining: 'Consultas restantes',
-      of: 'de',
-      plan: 'Plan',
-      
-      // Patent Results
-      patentStatus: 'Estado de la Patente',
-      active: 'ACTIVA',
-      expired: 'EXPIRADA',
-      primaryExpiration: 'Expiración Primaria',
-      commercialExploration: 'Exploración Comercial',
-      permitted: 'PERMITIDA',
-      restricted: 'RESTRINGIDA',
-      availableForNewProduct: 'Disponible para Nuevo Producto',
-      opportunityScore: 'Puntuación de Oportunidad',
-      patentsByCountry: 'Patentes por País',
-      chemicalData: 'Datos Químicos',
-      clinicalTrials: 'Ensayos Clínicos',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Regulación por País',
-      scientificEvidence: 'Evidencia Científica Reciente',
-      notInformed: 'No informado',
-      primaryProtection: 'Protección Primaria',
-      secondaryProtection: 'Protección Secundaria',
-      protectionObject: 'Objeto de Protección',
-      statusAndExpirationDates: 'Estado y fechas de expiración por jurisdicción',
-      number: 'Número',
-      status: 'Estado',
-      expiration: 'Expiración',
-      types: 'Tipos',
-      source: 'Fuente',
-      viewPatent: 'Ver patente',
-      molecularFormula: 'Fórmula Molecular',
-      molecularWeight: 'Peso Molecular',
-      inchiKey: 'Clave InChI',
-      iupacName: 'Nombre IUPAC',
-      smiles: 'SMILES',
-      activeStudies: 'Estudios Activos',
-      advancedPhase: 'Fase Avanzada',
-      yes: 'SÍ',
-      no: 'NO',
-      studiesInBrazil: 'Estudios en Brasil',
-      mainIndications: 'Indicaciones Principales',
-      detailedStudies: 'Estudios Detallados',
-      phase: 'Fase',
-      country: 'País',
-      ndaNumber: 'Número NDA',
-      approvalDate: 'Fecha de Aprobación',
-      exclusivityExpiration: 'Expiración de Exclusividad',
-      hasGeneric: 'Tiene Genérico',
-      exclusivities: 'Exclusividades',
-      classification: 'Clasificación',
-      genericRegistrationEase: 'Facilidad Registro Genérico',
-      registrationNumber: 'Número de Registro',
-      restrictions: 'Restricciones',
-      doi: 'DOI',
-      exportPdf: 'Exportar PDF',
-      
-      // Plans
-      choosePlan: 'Elige Tu Plan',
-      selectIdealPlan: 'Selecciona el plan ideal para tus necesidades',
-      monthlyConsultations: 'consultas mensuales',
-      choosePlanButton: 'Elegir Plan',
-      analystPlan: 'Analista',
-      specialistPlan: 'Especialista',
-      directorPlan: 'Director',
-      analystPlanDescription: 'Para analistas y pequeñas consultas especializadas',
-      specialistPlanDescription: 'Para especialistas y profesionales del sector farmacéutico',
-      directorPlanDescription: 'Para directores y grandes empresas farmacéuticas',
-      mostPopular: 'Más Popular',
-      whyChoosePharmyrus: '¿Por qué elegir Pharmyrus?',
-      reliableData: 'Datos Confiables',
-      instantAnalysis: 'Análisis Instantáneo',
-      completeResultsInSeconds: 'Resultados completos en segundos con IA avanzada',
-      specializedSupport: 'Soporte Especializado',
-      specializedTeam: 'Equipo especializado en propiedad intelectual',
-      needHelpChoosingPlan: '¿Necesitas ayuda para elegir el plan ideal?',
-      speakWithSpecialist: 'Hablar con Especialista',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 consultas de patentes por mes',
-      completeIPAnalysis: 'Análisis completo de propiedad intelectual',
-      chemicalMolecularData: 'Datos químicos y moleculares',
-      patentStatusByCountry: 'Estado de patentes por país',
-      emailSupport: 'Soporte por email',
-      pdfExport: 'Exportación en PDF',
-      tenConsultationsPerMonth: '10 consultas de patentes por mes',
-      advancedClinicalAnalysis: 'Análisis avanzado de ensayos clínicos',
-      fdaOrangeBookData: 'Datos del FDA Orange Book',
-      detailedRegulationByCountry: 'Regulación por país detallada',
-      recentScientificEvidence: 'Evidencia científica reciente',
-      marketOpportunityScore: 'Puntuación de oportunidad de mercado',
-      priorityWhatsappSupport: 'Soporte prioritario vía WhatsApp',
-      executiveReports: 'Informes ejecutivos',
-      twentyConsultationsPerMonth: '20 consultas de patentes por mes',
-      completeTamSamSomAnalysis: 'Análisis completo de mercado TAM SAM SOM',
-      formulationStrategies: 'Estrategias de formulación',
-      completeRegulatoryDocumentation: 'Documentación regulatoria completa',
-      detailedSwotAnalysis: 'Análisis SWOT detallado',
-      dedicatedSupport247: 'Soporte dedicado 24/7',
-      apiIntegration: 'Integración vía API',
-      customReports: 'Informes personalizados',
-      strategicConsultingIncluded: 'Consultoría estratégica incluida',
-      
-      // User Profile
-      corporateAccount: 'Cuenta Corporativa',
-      
-      // Footer and misc
-      whatsappSupport: 'Soporte WhatsApp',
-      connectedToMainAgencies: 'Conectado a las principales agencias',
-      connectedToMainDatabases: 'Conectado a las Principales Bases de Datos Farmacéuticas Mundiales',
-      aiConsultsAutomatically: 'Nuestra IA consulta automáticamente más de 15 bases de datos especializadas',
-      directAccessToMillions: 'Acceso directo a millones de registros farmacéuticos y de patentes en tiempo real',
-      realTimeData: 'Datos en tiempo real',
-      globalCoverage: 'Cobertura global',
-      fifteenPlusDatabases: '15+ bases de datos',
-      whyPharmaCompaniesChoose: '¿Por qué las Empresas Farmacéuticas Eligen Pharmyrus?',
-      advancedAiCreates: 'Nuestra IA avanzada crea pipelines completos de productos farmacéuticos, transformando ideas en estrategias listas para el mercado.',
-      fromIdeaToProduct: 'De Idea a Producto en Tiempo Récord',
-      withPharmyrus: 'Con Pharmyrus, tienes un equipo completo de especialistas farmacéuticos trabajando 24/7 para crear pipelines detallados.',
-      createMyFirstPipeline: 'Crear Mi Primer Pipeline',
-      completePipeline: 'Pipeline completo',
-      readyToRevolutionize: '¿Listo para Revolucionar tu Portafolio?',
-      joinHundredsOfCompanies: 'Únete a cientos de empresas que ya crean pipelines farmacéuticos completos con nuestra plataforma.',
-      createMyPipeline: 'Crear Mi Pipeline',
-      advancedAiDescription: 'IA avanzada que crea pipelines completos de productos farmacéuticos, transformando ideas en estrategias listas para el mercado.',
-      product: 'Producto',
-      createPipeline: 'Crear Pipeline',
-      support: 'Soporte',
-      company: 'Empresa',
-      contact: 'Contacto',
-      termsOfUse: 'Términos de Uso',
-      privacy: 'Privacidad',
-      patentConsultation: 'Consulta de Patentes',
-      allRightsReserved: 'Todos los derechos reservados',
-      
-      // Benefits
-      benefit1: 'Pipeline completo de producto en solo 3 minutos',
-      benefit2: 'Investigación automática en 15+ bases de datos globales',
-      benefit3: 'Documentación regulatoria lista para envío',
-      benefit4: 'Análisis TAM SAM SOM y proyecciones financieras',
-      benefit5: 'Estrategias para superar la competencia',
-      benefit6: 'Reduce costos de consultoría hasta en 95%',
-      
-      // Stats
-      pipelinesCreated: 'Pipelines Creados',
-      pharmaceuticalCompanies: 'Empresas Farmacéuticas',
-      averageTime: 'Tiempo Promedio',
-      successRate: 'Tasa de Éxito',
-      
-      // Countries
-      brazil: 'Brasil',
-      unitedStates: 'Estados Unidos',
-      germany: 'Alemania',
-      france: 'Francia',
-      unitedKingdom: 'Reino Unido',
-      japan: 'Japón',
-      china: 'China',
-      southKorea: 'Corea del Sur',
-      canada: 'Canadá',
-      australia: 'Australia',
-      india: 'India',
-      italy: 'Italia',
-      spain: 'España',
-      netherlands: 'Países Bajos',
-      switzerland: 'Suiza',
-      sweden: 'Suecia',
-      norway: 'Noruega',
-      denmark: 'Dinamarca',
-      finland: 'Finlandia',
-      belgium: 'Bélgica',
-      austria: 'Austria',
-      portugal: 'Portugal',
-      mexico: 'México',
-      argentina: 'Argentina',
-      chile: 'Chile',
-      colombia: 'Colombia',
-      peru: 'Perú',
-      uruguay: 'Uruguay',
-      russia: 'Rusia',
-      southAfrica: 'Sudáfrica',
-      israel: 'Israel',
-      singapore: 'Singapur',
-      thailand: 'Tailandia',
-      malaysia: 'Malasia',
-      indonesia: 'Indonesia',
-      philippines: 'Filipinas',
-      vietnam: 'Vietnam',
-      taiwan: 'Taiwán',
-      hongKong: 'Hong Kong',
-      newZealand: 'Nueva Zelanda',
-      europeanUnion: 'Unión Europea',
-      international: 'Internacional',
-      
-      // Language indicator
-      currentLanguage: 'es'
-    }
-  },
-  de: {
-    translation: {
-      // Navigation and Common
-      back: 'Zurück',
-      loading: 'Laden...',
-      error: 'Fehler',
-      success: 'Erfolg',
-      save: 'Speichern',
-      cancel: 'Abbrechen',
-      delete: 'Löschen',
-      edit: 'Bearbeiten',
-      view: 'Ansehen',
-      search: 'Suchen',
-      logout: 'Abmelden',
-      plans: 'Pläne',
-      
-      // Landing Page
-      landingTitle: 'Fortgeschrittene KI für Vollständige Pharmazeutische Pipelines',
-      landingSubtitle: 'Wie ein Expertenteam für pharmazeutische Portfolios in Ihrer Tasche! In nur 3 Minuten erstellen wir vollständige Pipelines für neue konkurrierende Medikamente.',
-      startNow: 'Jetzt Starten',
-      login: 'Anmelden',
-      register: 'Registrieren',
-      whoWeAre: 'Über Uns',
-      yourProfessionalEmail: 'Ihre berufliche E-Mail',
-      processing: 'Verarbeitung...',
-      completeIn3Min: 'Vollständige Pipeline in 3 Min',
-      marketAnalysis: 'Marktanalyse',
-      regulatoryDocs: 'Regulatorische Dokumentation',
-      productReadyForDevelopment: 'Produkt bereit für Entwicklung',
-      
-      // Features
-      completePipeline3Min: 'Vollständige Pipeline in 3 Minuten',
-      completeStrategiesDescription: 'Erstellen Sie vollständige Entwicklungs-, Registrierungs- und Vermarktungsstrategien für neue konkurrierende Medikamente.',
-      automatedGlobalResearch: 'Automatisierte Globale Forschung',
-      automaticSearchDescription: 'Automatische Suche in INPI, EPO, WIPO, FDA und über 15 spezialisierten Datenbanken.',
-      tamSamSomAnalysis: 'TAM SAM SOM Analyse',
-      marketAnalysisDescription: 'Vollständige Marktgrößenanalyse, Segmentierung und detaillierte Finanzprognosen.',
-      regulatoryDocumentation: 'Regulatorische Dokumentation',
-      regulatoryDocsDescription: 'Generieren Sie alle notwendigen Dokumente für die Registrierung bei globalen Regulierungsbehörden.',
-      swotRiskAnalysis: 'SWOT & Risikoanalyse',
-      swotAnalysisDescription: 'Vollständige Bewertung von Produktstärken, -schwächen, -chancen und -bedrohungen.',
-      competitiveStrategy: 'Wettbewerbsstrategie',
-      competitiveStrategyDescription: 'Identifizieren Sie Marktchancen und Strategien zur Überwindung der Konkurrenz.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Produktpipeline erstellen',
-      commercialName: 'Handelsname',
-      moleculeName: 'Molekülname',
-      pharmaceuticalCategory: 'Pharmazeutische Kategorie',
-      mainBenefit: 'Hauptvorteil',
-      targetDisease: 'Zielkrankheit',
-      targetCountries: 'Zielländer',
-      selectAtLeastOneCountry: 'mindestens eines auswählen',
-      countriesSelected: 'Länder ausgewählt',
-      creatingPipeline: 'Pipeline erstellen...',
-      acquirePlanToConsult: 'Plan zum Konsultieren erwerben',
-      restrictedAccess: 'Eingeschränkter Zugang',
-      needActivePlan: 'Sie benötigen einen aktiven Plan, um Patentberatungen durchzuführen.',
-      viewAvailablePlans: 'Verfügbare Pläne anzeigen',
-      consultationsRemaining: 'Beratungen verbleibend',
-      of: 'von',
-      plan: 'Plan',
-      
-      // Patent Results
-      patentStatus: 'Patentstatus',
-      active: 'AKTIV',
-      expired: 'ABGELAUFEN',
-      primaryExpiration: 'Primäres Ablaufdatum',
-      commercialExploration: 'Kommerzielle Nutzung',
-      permitted: 'ERLAUBT',
-      restricted: 'EINGESCHRÄNKT',
-      availableForNewProduct: 'Verfügbar für Neues Produkt',
-      opportunityScore: 'Chancenbewertung',
-      patentsByCountry: 'Patente nach Land',
-      chemicalData: 'Chemische Daten',
-      clinicalTrials: 'Klinische Studien',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Regulierung nach Land',
-      scientificEvidence: 'Aktuelle Wissenschaftliche Evidenz',
-      notInformed: 'Nicht angegeben',
-      primaryProtection: 'Primärer Schutz',
-      secondaryProtection: 'Sekundärer Schutz',
-      protectionObject: 'Schutzobjekt',
-      statusAndExpirationDates: 'Status und Ablaufdaten nach Gerichtsbarkeit',
-      number: 'Nummer',
-      status: 'Status',
-      expiration: 'Ablauf',
-      types: 'Typen',
-      source: 'Quelle',
-      viewPatent: 'Patent ansehen',
-      molecularFormula: 'Molekularformel',
-      molecularWeight: 'Molekulargewicht',
-      inchiKey: 'InChI-Schlüssel',
-      iupacName: 'IUPAC-Name',
-      smiles: 'SMILES',
-      activeStudies: 'Aktive Studien',
-      advancedPhase: 'Fortgeschrittene Phase',
-      yes: 'JA',
-      no: 'NEIN',
-      studiesInBrazil: 'Studien in Brasilien',
-      mainIndications: 'Hauptindikationen',
-      detailedStudies: 'Detaillierte Studien',
-      phase: 'Phase',
-      country: 'Land',
-      ndaNumber: 'NDA-Nummer',
-      approvalDate: 'Genehmigungsdatum',
-      exclusivityExpiration: 'Exklusivitätsablauf',
-      hasGeneric: 'Hat Generikum',
-      exclusivities: 'Exklusivitäten',
-      classification: 'Klassifizierung',
-      genericRegistrationEase: 'Generika-Registrierungsleichtigkeit',
-      registrationNumber: 'Registrierungsnummer',
-      restrictions: 'Beschränkungen',
-      doi: 'DOI',
-      exportPdf: 'PDF exportieren',
-      
-      // Plans
-      choosePlan: 'Wählen Sie Ihren Plan',
-      selectIdealPlan: 'Wählen Sie den idealen Plan für Ihre Bedürfnisse',
-      monthlyConsultations: 'monatliche Beratungen',
-      choosePlanButton: 'Plan Wählen',
-      analystPlan: 'Analyst',
-      specialistPlan: 'Spezialist',
-      directorPlan: 'Direktor',
-      analystPlanDescription: 'Für Analysten und kleine spezialisierte Beratungen',
-      specialistPlanDescription: 'Für Spezialisten und Fachkräfte der Pharmaindustrie',
-      directorPlanDescription: 'Für Direktoren und große Pharmaunternehmen',
-      mostPopular: 'Am Beliebtesten',
-      whyChoosePharmyrus: 'Warum Pharmyrus wählen?',
-      reliableData: 'Zuverlässige Daten',
-      instantAnalysis: 'Sofortige Analyse',
-      completeResultsInSeconds: 'Vollständige Ergebnisse in Sekunden mit fortgeschrittener KI',
-      specializedSupport: 'Spezialisierter Support',
-      specializedTeam: 'Team spezialisiert auf geistiges Eigentum',
-      needHelpChoosingPlan: 'Benötigen Sie Hilfe bei der Auswahl des idealen Plans?',
-      speakWithSpecialist: 'Mit Spezialist sprechen',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 Patentberatungen pro Monat',
-      completeIPAnalysis: 'Vollständige Analyse des geistigen Eigentums',
-      chemicalMolecularData: 'Chemische und molekulare Daten',
-      patentStatusByCountry: 'Patentstatus nach Land',
-      emailSupport: 'E-Mail-Support',
-      pdfExport: 'PDF-Export',
-      tenConsultationsPerMonth: '10 Patentberatungen pro Monat',
-      advancedClinicalAnalysis: 'Erweiterte klinische Studienanalyse',
-      fdaOrangeBookData: 'FDA Orange Book Daten',
-      detailedRegulationByCountry: 'Detaillierte Regulierung nach Land',
-      recentScientificEvidence: 'Aktuelle wissenschaftliche Evidenz',
-      marketOpportunityScore: 'Marktchancenbewertung',
-      priorityWhatsappSupport: 'Prioritärer WhatsApp-Support',
-      executiveReports: 'Executive-Berichte',
-      twentyConsultationsPerMonth: '20 Patentberatungen pro Monat',
-      completeTamSamSomAnalysis: 'Vollständige TAM SAM SOM Marktanalyse',
-      formulationStrategies: 'Formulierungsstrategien',
-      completeRegulatoryDocumentation: 'Vollständige regulatorische Dokumentation',
-      detailedSwotAnalysis: 'Detaillierte SWOT-Analyse',
-      dedicatedSupport247: 'Dedizierter 24/7-Support',
-      apiIntegration: 'API-Integration',
-      customReports: 'Benutzerdefinierte Berichte',
-      strategicConsultingIncluded: 'Strategische Beratung inbegriffen',
-      
-      // User Profile
-      corporateAccount: 'Unternehmenskonto',
-      
-      // Footer and misc
-      whatsappSupport: 'WhatsApp-Support',
-      connectedToMainAgencies: 'Verbunden mit Hauptagenturen',
-      connectedToMainDatabases: 'Verbunden mit den Wichtigsten Globalen Pharmazeutischen Datenbanken',
-      aiConsultsAutomatically: 'Unsere KI konsultiert automatisch über 15 spezialisierte Datenbanken',
-      directAccessToMillions: 'Direkter Zugang zu Millionen von pharmazeutischen und Patent-Datensätzen in Echtzeit',
-      realTimeData: 'Echtzeitdaten',
-      globalCoverage: 'Globale Abdeckung',
-      fifteenPlusDatabases: '15+ Datenbanken',
-      whyPharmaCompaniesChoose: 'Warum Wählen Pharmaunternehmen Pharmyrus?',
-      advancedAiCreates: 'Unsere fortgeschrittene KI erstellt vollständige pharmazeutische Produktpipelines und verwandelt Ideen in marktreife Strategien.',
-      fromIdeaToProduct: 'Von der Idee zum Produkt in Rekordzeit',
-      withPharmyrus: 'Mit Pharmyrus haben Sie ein komplettes Team von pharmazeutischen Spezialisten, die 24/7 arbeiten, um detaillierte Pipelines zu erstellen.',
-      createMyFirstPipeline: 'Meine Erste Pipeline Erstellen',
-      completePipeline: 'Vollständige Pipeline',
-      readyToRevolutionize: 'Bereit, Ihr Portfolio zu Revolutionieren?',
-      joinHundredsOfCompanies: 'Schließen Sie sich Hunderten von Unternehmen an, die bereits vollständige pharmazeutische Pipelines mit unserer Plattform erstellen.',
-      createMyPipeline: 'Meine Pipeline Erstellen',
-      advancedAiDescription: 'Fortgeschrittene KI, die vollständige pharmazeutische Produktpipelines erstellt und Ideen in marktreife Strategien verwandelt.',
-      product: 'Produkt',
-      createPipeline: 'Pipeline Erstellen',
-      support: 'Support',
-      company: 'Unternehmen',
-      contact: 'Kontakt',
-      termsOfUse: 'Nutzungsbedingungen',
-      privacy: 'Datenschutz',
-      patentConsultation: 'Patentberatung',
-      allRightsReserved: 'Alle Rechte vorbehalten',
-      
-      // Benefits
-      benefit1: 'Vollständige Produktpipeline in nur 3 Minuten',
-      benefit2: 'Automatische Recherche in 15+ globalen Datenbanken',
-      benefit3: 'Regulatorische Dokumentation bereit zur Einreichung',
-      benefit4: 'TAM SAM SOM Analyse und Finanzprognosen',
-      benefit5: 'Strategien zur Überwindung der Konkurrenz',
-      benefit6: 'Reduzieren Sie Beratungskosten um bis zu 95%',
-      
-      // Stats
-      pipelinesCreated: 'Pipelines Erstellt',
-      pharmaceuticalCompanies: 'Pharmaunternehmen',
-      averageTime: 'Durchschnittszeit',
-      successRate: 'Erfolgsrate',
-      
-      // Countries
-      brazil: 'Brasilien',
-      unitedStates: 'Vereinigte Staaten',
-      germany: 'Deutschland',
-      france: 'Frankreich',
-      unitedKingdom: 'Vereinigtes Königreich',
-      japan: 'Japan',
-      china: 'China',
-      southKorea: 'Südkorea',
-      canada: 'Kanada',
-      australia: 'Australien',
-      india: 'Indien',
-      italy: 'Italien',
-      spain: 'Spanien',
-      netherlands: 'Niederlande',
-      switzerland: 'Schweiz',
-      sweden: 'Schweden',
-      norway: 'Norwegen',
-      denmark: 'Dänemark',
-      finland: 'Finnland',
-      belgium: 'Belgien',
-      austria: 'Österreich',
-      portugal: 'Portugal',
-      mexico: 'Mexiko',
-      argentina: 'Argentinien',
-      chile: 'Chile',
-      colombia: 'Kolumbien',
-      peru: 'Peru',
-      uruguay: 'Uruguay',
-      russia: 'Russland',
-      southAfrica: 'Südafrika',
-      israel: 'Israel',
-      singapore: 'Singapur',
-      thailand: 'Thailand',
-      malaysia: 'Malaysia',
-      indonesia: 'Indonesien',
-      philippines: 'Philippinen',
-      vietnam: 'Vietnam',
-      taiwan: 'Taiwan',
-      hongKong: 'Hongkong',
-      newZealand: 'Neuseeland',
-      europeanUnion: 'Europäische Union',
-      international: 'International',
-      
-      // Language indicator
-      currentLanguage: 'de'
-    }
-  },
+  
   fr: {
-    translation: {
-      // Navigation and Common
-      back: 'Retour',
-      loading: 'Chargement...',
-      error: 'Erreur',
-      success: 'Succès',
-      save: 'Enregistrer',
-      cancel: 'Annuler',
-      delete: 'Supprimer',
-      edit: 'Modifier',
-      view: 'Voir',
-      search: 'Rechercher',
-      logout: 'Se Déconnecter',
-      plans: 'Plans',
-      
-      // Landing Page
-      landingTitle: 'IA Avancée pour des Pipelines Pharmaceutiques Complets',
-      landingSubtitle: 'Comme avoir une équipe experte de portefeuille pharmaceutique dans votre poche ! En seulement 3 minutes, nous créons des pipelines complets pour de nouveaux médicaments concurrents.',
-      startNow: 'Commencer Maintenant',
-      login: 'Se Connecter',
-      register: "S'inscrire",
-      whoWeAre: 'Qui Sommes-Nous',
-      yourProfessionalEmail: 'Votre email professionnel',
-      processing: 'Traitement...',
-      completeIn3Min: 'Pipeline complet en 3 min',
-      marketAnalysis: 'Analyse de marché',
-      regulatoryDocs: 'Documentation réglementaire',
-      productReadyForDevelopment: 'Produit prêt pour le développement',
-      
-      // Features
-      completePipeline3Min: 'Pipeline Complet en 3 Minutes',
-      completeStrategiesDescription: 'Créez des stratégies complètes de développement, d\'enregistrement et de commercialisation pour de nouveaux médicaments concurrents.',
-      automatedGlobalResearch: 'Recherche Globale Automatisée',
-      automaticSearchDescription: 'Recherche automatique dans INPI, EPO, WIPO, FDA et plus de 15 bases de données spécialisées.',
-      tamSamSomAnalysis: 'Analyse TAM SAM SOM',
-      marketAnalysisDescription: 'Analyse complète de la taille du marché, segmentation et projections financières détaillées.',
-      regulatoryDocumentation: 'Documentation Réglementaire',
-      regulatoryDocsDescription: 'Générez toute la documentation nécessaire pour l\'enregistrement auprès des agences réglementaires mondiales.',
-      swotRiskAnalysis: 'Analyse SWOT et Risques',
-      swotAnalysisDescription: 'Évaluation complète des forces, faiblesses, opportunités et menaces du produit.',
-      competitiveStrategy: 'Stratégie Concurrentielle',
-      competitiveStrategyDescription: 'Identifiez les opportunités de marché et les stratégies pour surmonter la concurrence.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Créer un pipeline de produit',
-      commercialName: 'Nom Commercial',
-      moleculeName: 'Nom de la Molécule',
-      pharmaceuticalCategory: 'Catégorie Pharmaceutique',
-      mainBenefit: 'Avantage Principal',
-      targetDisease: 'Maladie Cible',
-      targetCountries: 'Pays Cibles',
-      selectAtLeastOneCountry: 'sélectionnez au moins un',
-      countriesSelected: 'Pays sélectionnés',
-      creatingPipeline: 'Création du pipeline...',
-      acquirePlanToConsult: 'Acquérir un Plan pour Consulter',
-      restrictedAccess: 'Accès Restreint',
-      needActivePlan: 'Vous avez besoin d\'un plan actif pour effectuer des consultations de brevets.',
-      viewAvailablePlans: 'Voir les Plans Disponibles',
-      consultationsRemaining: 'Consultations restantes',
-      of: 'de',
-      plan: 'Plan',
-      
-      // Patent Results
-      patentStatus: 'Statut du Brevet',
-      active: 'ACTIF',
-      expired: 'EXPIRÉ',
-      primaryExpiration: 'Expiration Primaire',
-      commercialExploration: 'Exploration Commerciale',
-      permitted: 'AUTORISÉE',
-      restricted: 'RESTREINTE',
-      availableForNewProduct: 'Disponible pour Nouveau Produit',
-      opportunityScore: 'Score d\'Opportunité',
-      patentsByCountry: 'Brevets par Pays',
-      chemicalData: 'Données Chimiques',
-      clinicalTrials: 'Essais Cliniques',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Réglementation par Pays',
-      scientificEvidence: 'Preuves Scientifiques Récentes',
-      notInformed: 'Non renseigné',
-      primaryProtection: 'Protection Primaire',
-      secondaryProtection: 'Protection Secondaire',
-      protectionObject: 'Objet de Protection',
-      statusAndExpirationDates: 'Statut et dates d\'expiration par juridiction',
-      number: 'Numéro',
-      status: 'Statut',
-      expiration: 'Expiration',
-      types: 'Types',
-      source: 'Source',
-      viewPatent: 'Voir le brevet',
-      molecularFormula: 'Formule Moléculaire',
-      molecularWeight: 'Poids Moléculaire',
-      inchiKey: 'Clé InChI',
-      iupacName: 'Nom IUPAC',
-      smiles: 'SMILES',
-      activeStudies: 'Études Actives',
-      advancedPhase: 'Phase Avancée',
-      yes: 'OUI',
-      no: 'NON',
-      studiesInBrazil: 'Études au Brésil',
-      mainIndications: 'Indications Principales',
-      detailedStudies: 'Études Détaillées',
-      phase: 'Phase',
-      country: 'Pays',
-      ndaNumber: 'Numéro NDA',
-      approvalDate: 'Date d\'Approbation',
-      exclusivityExpiration: 'Expiration de l\'Exclusivité',
-      hasGeneric: 'A un Générique',
-      exclusivities: 'Exclusivités',
-      classification: 'Classification',
-      genericRegistrationEase: 'Facilité d\'Enregistrement Générique',
-      registrationNumber: 'Numéro d\'Enregistrement',
-      restrictions: 'Restrictions',
-      doi: 'DOI',
-      exportPdf: 'Exporter PDF',
-      
-      // Plans
-      choosePlan: 'Choisissez Votre Plan',
-      selectIdealPlan: 'Sélectionnez le plan idéal pour vos besoins',
-      monthlyConsultations: 'consultations mensuelles',
-      choosePlanButton: 'Choisir le Plan',
-      analystPlan: 'Analyste',
-      specialistPlan: 'Spécialiste',
-      directorPlan: 'Directeur',
-      analystPlanDescription: 'Pour les analystes et petites consultations spécialisées',
-      specialistPlanDescription: 'Pour les spécialistes et professionnels du secteur pharmaceutique',
-      directorPlanDescription: 'Pour les directeurs et grandes entreprises pharmaceutiques',
-      mostPopular: 'Le Plus Populaire',
-      whyChoosePharmyrus: 'Pourquoi choisir Pharmyrus ?',
-      reliableData: 'Données Fiables',
-      instantAnalysis: 'Analyse Instantanée',
-      completeResultsInSeconds: 'Résultats complets en secondes avec IA avancée',
-      specializedSupport: 'Support Spécialisé',
-      specializedTeam: 'Équipe spécialisée en propriété intellectuelle',
-      needHelpChoosingPlan: 'Besoin d\'aide pour choisir le plan idéal ?',
-      speakWithSpecialist: 'Parler avec un Spécialiste',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 consultations de brevets par mois',
-      completeIPAnalysis: 'Analyse complète de la propriété intellectuelle',
-      chemicalMolecularData: 'Données chimiques et moléculaires',
-      patentStatusByCountry: 'Statut des brevets par pays',
-      emailSupport: 'Support par email',
-      pdfExport: 'Export PDF',
-      tenConsultationsPerMonth: '10 consultations de brevets par mois',
-      advancedClinicalAnalysis: 'Analyse avancée des essais cliniques',
-      fdaOrangeBookData: 'Données FDA Orange Book',
-      detailedRegulationByCountry: 'Réglementation détaillée par pays',
-      recentScientificEvidence: 'Preuves scientifiques récentes',
-      marketOpportunityScore: 'Score d\'opportunité de marché',
-      priorityWhatsappSupport: 'Support WhatsApp prioritaire',
-      executiveReports: 'Rapports exécutifs',
-      twentyConsultationsPerMonth: '20 consultations de brevets par mois',
-      completeTamSamSomAnalysis: 'Analyse complète du marché TAM SAM SOM',
-      formulationStrategies: 'Stratégies de formulation',
-      completeRegulatoryDocumentation: 'Documentation réglementaire complète',
-      detailedSwotAnalysis: 'Analyse SWOT détaillée',
-      dedicatedSupport247: 'Support dédié 24/7',
-      apiIntegration: 'Intégration API',
-      customReports: 'Rapports personnalisés',
-      strategicConsultingIncluded: 'Conseil stratégique inclus',
-      
-      // User Profile
-      corporateAccount: 'Compte d\'Entreprise',
-      
-      // Footer and misc
-      whatsappSupport: 'Support WhatsApp',
-      connectedToMainAgencies: 'Connecté aux principales agences',
-      connectedToMainDatabases: 'Connecté aux Principales Bases de Données Pharmaceutiques Mondiales',
-      aiConsultsAutomatically: 'Notre IA consulte automatiquement plus de 15 bases de données spécialisées',
-      directAccessToMillions: 'Accès direct à des millions d\'enregistrements pharmaceutiques et de brevets en temps réel',
-      realTimeData: 'Données en temps réel',
-      globalCoverage: 'Couverture mondiale',
-      fifteenPlusDatabases: '15+ bases de données',
-      whyPharmaCompaniesChoose: 'Pourquoi les Entreprises Pharmaceutiques Choisissent Pharmyrus ?',
-      advancedAiCreates: 'Notre IA avancée crée des pipelines complets de produits pharmaceutiques, transformant les idées en stratégies prêtes pour le marché.',
-      fromIdeaToProduct: 'De l\'Idée au Produit en Temps Record',
-      withPharmyrus: 'Avec Pharmyrus, vous avez une équipe complète de spécialistes pharmaceutiques travaillant 24/7 pour créer des pipelines détaillés.',
-      createMyFirstPipeline: 'Créer Mon Premier Pipeline',
-      completePipeline: 'Pipeline complet',
-      readyToRevolutionize: 'Prêt à Révolutionner Votre Portefeuille ?',
-      joinHundredsOfCompanies: 'Rejoignez des centaines d\'entreprises qui créent déjà des pipelines pharmaceutiques complets avec notre plateforme.',
-      createMyPipeline: 'Créer Mon Pipeline',
-      advancedAiDescription: 'IA avancée qui crée des pipelines complets de produits pharmaceutiques, transformant les idées en stratégies prêtes pour le marché.',
-      product: 'Produit',
-      createPipeline: 'Créer un Pipeline',
-      support: 'Support',
-      company: 'Entreprise',
-      contact: 'Contact',
-      termsOfUse: 'Conditions d\'Utilisation',
-      privacy: 'Confidentialité',
-      patentConsultation: 'Consultation de Brevets',
-      allRightsReserved: 'Tous droits réservés',
-      
-      // Benefits
-      benefit1: 'Pipeline de produit complet en seulement 3 minutes',
-      benefit2: 'Recherche automatique dans 15+ bases de données mondiales',
-      benefit3: 'Documentation réglementaire prête pour soumission',
-      benefit4: 'Analyse TAM SAM SOM et projections financières',
-      benefit5: 'Stratégies pour surmonter la concurrence',
-      benefit6: 'Réduisez les coûts de conseil jusqu\'à 95%',
-      
-      // Stats
-      pipelinesCreated: 'Pipelines Créés',
-      pharmaceuticalCompanies: 'Entreprises Pharmaceutiques',
-      averageTime: 'Temps Moyen',
-      successRate: 'Taux de Réussite',
-      
-      // Countries
-      brazil: 'Brésil',
-      unitedStates: 'États-Unis',
-      germany: 'Allemagne',
-      france: 'France',
-      unitedKingdom: 'Royaume-Uni',
-      japan: 'Japon',
-      china: 'Chine',
-      southKorea: 'Corée du Sud',
-      canada: 'Canada',
-      australia: 'Australie',
-      india: 'Inde',
-      italy: 'Italie',
-      spain: 'Espagne',
-      netherlands: 'Pays-Bas',
-      switzerland: 'Suisse',
-      sweden: 'Suède',
-      norway: 'Norvège',
-      denmark: 'Danemark',
-      finland: 'Finlande',
-      belgium: 'Belgique',
-      austria: 'Autriche',
-      portugal: 'Portugal',
-      mexico: 'Mexique',
-      argentina: 'Argentine',
-      chile: 'Chili',
-      colombia: 'Colombie',
-      peru: 'Pérou',
-      uruguay: 'Uruguay',
-      russia: 'Russie',
-      southAfrica: 'Afrique du Sud',
-      israel: 'Israël',
-      singapore: 'Singapour',
-      thailand: 'Thaïlande',
-      malaysia: 'Malaisie',
-      indonesia: 'Indonésie',
-      philippines: 'Philippines',
-      vietnam: 'Vietnam',
-      taiwan: 'Taïwan',
-      hongKong: 'Hong Kong',
-      newZealand: 'Nouvelle-Zélande',
-      europeanUnion: 'Union Européenne',
-      international: 'International',
-      
-      // Language indicator
-      currentLanguage: 'fr'
-    }
+    // Navigation and Layout
+    newChallenge: 'Nouveau défi',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Défis',
+    logout: 'Déconnexion',
+    profile: 'Profil',
+    plans: 'Plans',
+    
+    // Authentication
+    login: 'Connexion',
+    register: 'Créer un compte',
+    email: 'Email',
+    password: 'Mot de passe',
+    name: 'Nom complet',
+    cpf: 'ID fiscal',
+    company: 'Entreprise',
+    phone: 'Téléphone',
+    forgotPassword: 'Mot de passe oublié?',
+    createAccount: 'CRÉER UN COMPTE',
+    alreadyHaveAccount: 'Vous avez déjà un compte? Connectez-vous',
+    acceptTerms: 'J\'ai lu et j\'accepte les conditions d\'utilisation',
+    verifyEmail: 'Vérifiez votre email',
+    resendVerification: 'Renvoyer l\'email de vérification',
+    backToLogin: 'Retour à la connexion',
+    
+    // Challenge Creation
+    challengeTitle: 'Titre du défi',
+    challengeDescription: 'Description du défi',
+    businessArea: 'Secteur d\'activité de l\'entreprise',
+    createChallenge: 'Créer un défi',
+    
+    // Chat Interface
+    typeMessage: 'Tapez un message...',
+    selectChallenge: 'Sélectionnez un défi pour commencer',
+    loading: 'Chargement...',
+    
+    // Startup List
+    startups: 'Startups',
+    selectStartup: 'Sélectionner startup',
+    selected: 'Sélectionnée',
+    saving: 'Sauvegarde...',
+    matchScore: 'Score de correspondance',
+    founded: 'Fondée',
+    category: 'Catégorie',
+    vertical: 'Vertical',
+    location: 'Localisation',
+    teamSize: 'Taille de l\'équipe',
+    businessModel: 'Modèle d\'affaires',
+    ipoStatus: 'Statut IPO',
+    website: 'Site web',
+    linkedin: 'LinkedIn',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    
+    // Pipeline CRM
+    mapped: 'Cartographiée',
+    contacted: 'Contactée',
+    interviewed: 'Interviewée',
+    poc: 'POC',
+    emptyPipeline: 'Pipeline vide',
+    exploreStartups: 'Explorer les startups',
+    manageStages: 'Gérer les étapes',
+    
+    // Contact Management
+    contactManagement: 'Gestion des contacts',
+    contacts: 'Contacts',
+    addContact: 'Ajouter un contact',
+    newContact: 'Nouveau contact',
+    editContact: 'Modifier le contact',
+    deleteContact: 'Supprimer le contact',
+    contactName: 'Nom',
+    contactRole: 'Rôle/Poste',
+    emails: 'Emails',
+    phones: 'Téléphones/WhatsApp',
+    addEmail: 'Ajouter un autre email',
+    addPhone: 'Ajouter un autre téléphone',
+    save: 'Sauvegarder',
+    cancel: 'Annuler',
+    startup: 'Startup',
+    founder: 'Fondateur',
+    
+    // Message Composer
+    newMessage: 'Nouveau message',
+    composeMessage: 'Composer un message',
+    recipient: 'Destinataire',
+    subject: 'Sujet',
+    message: 'Message',
+    sendEmail: 'Envoyer un email',
+    sendWhatsApp: 'Envoyer WhatsApp',
+    sending: 'Envoi...',
+    
+    // Timeline
+    interactionTimeline: 'Chronologie des interactions',
+    noInteractions: 'Aucune interaction encore',
+    firstMessage: 'Commencez à interagir avec cette startup en envoyant votre premier message',
+    sendFirstMessage: 'Envoyer le premier message',
+    response: 'Réponse',
+    responseReceived: 'Réponse reçue',
+    
+    // Plans
+    choosePlan: 'Choisissez votre plan',
+    currentPlan: 'Plan actuel',
+    startNow: 'Commencer maintenant',
+    initialPlan: 'Plan initial',
+    tokens: 'jetons',
+    free: 'Gratuit',
+    mostPopular: 'Le plus populaire',
+    securePayment: 'Paiement sécurisé SSL',
+    padawanDescription: 'Plan pour les débutants qui commencent leur parcours d\'innovation',
+    jediDescription: 'Plan pour les guerriers qui apprennent les arts de l\'innovation IA',
+    masterJedi: 'Maître Jedi',
+    masterJediDescription: 'Plan pour les Jedis qui ont surmonté et peuvent maintenant vaincre les forces d\'inertie innovante',
+    masterYoda: 'Maître Yoda',
+    masterYodaDescription: 'Plan pour les innovateurs qui ont affronté des batailles et sont prêts à défendre les forces de disruption',
+    unlockInnovationPower: 'Débloquez le pouvoir de l\'innovation avec nos plans personnalisés',
+    padawanPlanError: 'Le plan Padawan est le plan initial et ne peut pas être acheté. Veuillez choisir un autre plan.',
+    errorProcessingRequest: 'Erreur lors du traitement de votre demande. Veuillez réessayer.',
+    pciCertified: 'Certifié PCI DSS',
+    fraudProtection: 'Protection contre la fraude',
+    
+    // Profile
+    updateProfile: 'Mettre à jour le profil',
+    resetPassword: 'Réinitialiser le mot de passe',
+    deleteAccount: 'Supprimer le compte',
+    dangerZone: 'Zone de danger',
+    confirmDeletion: 'Confirmer la suppression',
+    typeDelete: 'Tapez SUPPRIMER',
+    userNotFound: 'Utilisateur non trouvé',
+    errorLoadingData: 'Erreur lors du chargement des données',
+    userNotAuthenticated: 'Utilisateur non authentifié',
+    profileUpdatedSuccess: 'Profil mis à jour avec succès!',
+    errorUpdatingProfile: 'Erreur lors de la mise à jour du profil',
+    emailNotFound: 'Email non trouvé',
+    passwordResetEmailSent: 'Email de réinitialisation du mot de passe envoyé!',
+    errorSendingPasswordReset: 'Erreur lors de l\'envoi de l\'email de réinitialisation',
+    incorrectPassword: 'Mot de passe incorrect. Veuillez réessayer.',
+    errorDeletingAccount: 'Erreur lors de la suppression du compte',
+    errorDeletingAccountGeneric: 'Erreur lors de la suppression du compte. Veuillez réessayer.',
+    enterPasswordToConfirm: 'Veuillez entrer votre mot de passe pour confirmer la suppression du compte:',
+    confirmAccountDeletion: 'Pour confirmer la suppression du compte et l\'anonymisation des données, tapez',
+    deleteKeyword: 'SUPPRIMER',
+    inFieldBelow: 'dans le champ ci-dessous',
+    type: 'Tapez',
+    toConfirm: 'pour confirmer',
+    deleting: 'Suppression...',
+    
+    // Token Usage
+    tokenUsage: 'Utilisation des jetons',
+    remaining: 'restants',
+    renewalOn: 'Renouvellement le',
+    upgradePlan: 'Mettre à niveau le plan',
+    
+    // Language Change Message
+    languageChangeMessage: 'Pourriez-vous changer la langue en français et commencer le questionnaire ?',
+    
+    // Common
+    back: 'Retour',
+    next: 'Suivant',
+    continue: 'Continuer',
+    confirm: 'Confirmer',
+    yes: 'Oui',
+    no: 'Non',
+    close: 'Fermer',
+    open: 'Ouvrir',
+    edit: 'Modifier',
+    delete: 'Supprimer',
+    add: 'Ajouter',
+    remove: 'Retirer',
+    search: 'Rechercher',
+    filter: 'Filtrer',
+    sort: 'Trier',
+    
+    // Messages
+    success: 'Succès',
+    error: 'Erreur',
+    warning: 'Avertissement',
+    info: 'Information',
+    
+    // Email Templates
+    emailSubjectPrefix: '{company} souhaite contacter {startup} - ',
+    emailFooterCompany: 'Gen.OI',
+    emailFooterDescription: 'Connecter les entreprises aux meilleures startups du monde',
+    emailFooterWebsite: 'genoi.net',
+    emailFooterContact: 'contact@genoi.net',
+    emailFooterDisclaimer: 'Ce message a été envoyé via la plateforme d\'innovation ouverte Gen.OI.',
+    
+    // Language
+    language: 'Langue',
+    portuguese: 'Portugais',
+    english: 'Anglais',
+    french: 'Français',
+    german: 'Allemand',
+    italian: 'Italien',
+
+    // Additional Startup Card Translations
+    reasonForChoice: 'Raison du choix',
+    backToList: 'Retour à la liste',
+    loadingStartups: 'Chargement des startups...',
+    loadingTimeline: 'Chargement de la chronologie...',
+    startupNotFound: 'Startup non trouvée',
+    loadingContacts: 'Chargement des contacts...',
+    noContactsRegistered: 'Aucun contact enregistré',
+    addFirstContact: 'Ajouter le premier contact',
+    contactAddedSuccess: 'Contact ajouté avec succès!',
+    errorAddingContact: 'Erreur lors de l\'ajout du contact',
+    contactUpdatedSuccess: 'Contact mis à jour avec succès!',
+    errorUpdatingContact: 'Erreur lors de la mise à jour du contact',
+    contactRemovedSuccess: 'Contact supprimé avec succès!',
+    errorRemovingContact: 'Erreur lors de la suppression du contact',
+    manageContacts: 'Gérer les contacts',
+    listContacts: 'Liste des contacts',
+    addWhatsAppNumber: 'Ajouter un numéro WhatsApp',
+    addPhoneNumber: 'Ajouter un numéro WhatsApp',
+    invalidPhoneNumber: 'Numéro de téléphone invalide pour WhatsApp',
+    whatsAppNumberAddedSuccess: 'Numéro WhatsApp ajouté avec succès!',
+    errorAddingPhoneNumber: 'Erreur lors de l\'ajout du numéro WhatsApp',
+    emailRequired: 'L\'email du destinataire est requis',
+    subjectRequired: 'Le sujet est requis pour les emails',
+    messageRequired: 'Le message est requis',
+    emailSentSuccess: 'Email envoyé avec succès!',
+    whatsAppSentSuccess: 'Message WhatsApp envoyé avec succès!',
+    errorSendingMessage: 'Erreur lors de l\'envoi du message',
+    selectContact: 'Sélectionner un contact',
+    selectEmail: 'Sélectionner un email',
+    selectPhone: 'Sélectionner un téléphone',
+    noWhatsAppRegistered: 'Aucun WhatsApp enregistré',
+    emailTo: 'À: ',
+    whatsAppTo: 'WhatsApp: ',
+    sentAt: 'Envoyé le',
+    status: 'Statut',
+    sent: 'Envoyé',
+    delivered: 'Livré',
+    failed: 'Échoué',
+    processing: 'Traitement',
+    backToPipeline: 'Retour au pipeline',
+    backToSavedStartups: 'Retour aux startups sauvegardées',
+    projectPlanning: 'Planification du projet',
+    expectedResults: 'Résultats attendus',
+    competitiveAdvantages: 'Avantages concurrentiels',
+    proofOfConcept: 'Preuve de concept',
+    phase: 'Phase',
+    duration: 'Durée',
+    description: 'Description',
+    viewStartupList: 'Voir la liste des startups',
+    viewCompleteList: 'Voir la liste complète',
+    startupListButton: 'Voir la liste des startups',
+    upgradeButton: 'Mettre à niveau le plan',
+    tokenLimitReached: 'Vous avez atteint la limite de jetons de votre plan',
+    updatePlan: 'Mettez à niveau votre plan pour continuer à innover!',
+    processingChallenge: 'Traitement du défi et recherche parmi des milliers de startups...',
+    creatingShortlist: 'Création d\'une liste restreinte de startups qualifiées',
+    conductingMarketResearch: 'Réalisation d\'une étude de marché et du défi',
+    generatingSelectionProcess: 'Génération du processus de sélection final des startups',
+    creatingPOCs: 'Création des POCs pour résoudre le défi',
+    finalizingRecommendations: 'Finalisation de la liste de recommandations de startups pour votre défi!',
+    searchingStartups: 'Traitement du défi et recherche parmi des milliers de startups...',
+    qualifyingStartups: 'Création d\'une liste restreinte de startups qualifiées',
+    researchingMarket: 'Réalisation d\'une étude de marché et du défi',
+    selectingFinalStartups: 'Génération du processus de sélection final des startups',
+    creatingPOCsForChallenge: 'Création des POCs pour résoudre le défi',
+    finalizingStartupList: 'Finalisation de la liste de recommandations de startups pour votre défi!',
   },
-  ru: {
-    translation: {
-      // Navigation and Common
-      back: 'Назад',
-      loading: 'Загрузка...',
-      error: 'Ошибка',
-      success: 'Успех',
-      save: 'Сохранить',
-      cancel: 'Отмена',
-      delete: 'Удалить',
-      edit: 'Редактировать',
-      view: 'Просмотр',
-      search: 'Поиск',
-      logout: 'Выйти',
-      plans: 'Планы',
-      
-      // Landing Page
-      landingTitle: 'Продвинутый ИИ для Полных Фармацевтических Пайплайнов',
-      landingSubtitle: 'Как иметь экспертную команду фармацевтического портфолио в кармане! Всего за 3 минуты мы создаем полные пайплайны для новых конкурирующих лекарств.',
-      startNow: 'Начать Сейчас',
-      login: 'Войти',
-      register: 'Регистрация',
-      whoWeAre: 'О Нас',
-      yourProfessionalEmail: 'Ваш рабочий email',
-      processing: 'Обработка...',
-      completeIn3Min: 'Полный пайплайн за 3 мин',
-      marketAnalysis: 'Анализ рынка',
-      regulatoryDocs: 'Регуляторная документация',
-      productReadyForDevelopment: 'Продукт готов к разработке',
-      
-      // Features
-      completePipeline3Min: 'Полный Пайплайн за 3 Минуты',
-      completeStrategiesDescription: 'Создавайте полные стратегии разработки, регистрации и коммерциализации для новых конкурирующих лекарств.',
-      automatedGlobalResearch: 'Автоматизированное Глобальное Исследование',
-      automaticSearchDescription: 'Автоматический поиск в INPI, EPO, WIPO, FDA и более чем 15 специализированных базах данных.',
-      tamSamSomAnalysis: 'Анализ TAM SAM SOM',
-      marketAnalysisDescription: 'Полный анализ размера рынка, сегментация и детальные финансовые прогнозы.',
-      regulatoryDocumentation: 'Регуляторная Документация',
-      regulatoryDocsDescription: 'Генерируйте всю необходимую документацию для регистрации в глобальных регуляторных агентствах.',
-      swotRiskAnalysis: 'SWOT и Анализ Рисков',
-      swotAnalysisDescription: 'Полная оценка сильных и слабых сторон продукта, возможностей и угроз.',
-      competitiveStrategy: 'Конкурентная Стратегия',
-      competitiveStrategyDescription: 'Определите рыночные возможности и стратегии для преодоления конкуренции.',
-      
-      // Patent Consultation
-      createProductPipeline: 'Создать пайплайн продукта',
-      commercialName: 'Коммерческое Название',
-      moleculeName: 'Название Молекулы',
-      pharmaceuticalCategory: 'Фармацевтическая Категория',
-      mainBenefit: 'Основная Польза',
-      targetDisease: 'Целевое Заболевание',
-      targetCountries: 'Целевые Страны',
-      selectAtLeastOneCountry: 'выберите хотя бы одну',
-      countriesSelected: 'Выбранные страны',
-      creatingPipeline: 'Создание пайплайна...',
-      acquirePlanToConsult: 'Приобрести План для Консультации',
-      restrictedAccess: 'Ограниченный Доступ',
-      needActivePlan: 'Вам нужен активный план для проведения патентных консультаций.',
-      viewAvailablePlans: 'Посмотреть Доступные Планы',
-      consultationsRemaining: 'Консультаций осталось',
-      of: 'из',
-      plan: 'План',
-      
-      // Patent Results
-      patentStatus: 'Статус Патента',
-      active: 'АКТИВНЫЙ',
-      expired: 'ИСТЁК',
-      primaryExpiration: 'Первичное Истечение',
-      commercialExploration: 'Коммерческое Использование',
-      permitted: 'РАЗРЕШЕНО',
-      restricted: 'ОГРАНИЧЕНО',
-      availableForNewProduct: 'Доступно для Нового Продукта',
-      opportunityScore: 'Оценка Возможностей',
-      patentsByCountry: 'Патенты по Странам',
-      chemicalData: 'Химические Данные',
-      clinicalTrials: 'Клинические Испытания',
-      orangeBook: 'FDA Orange Book',
-      regulationByCountry: 'Регулирование по Странам',
-      scientificEvidence: 'Недавние Научные Доказательства',
-      notInformed: 'Не указано',
-      primaryProtection: 'Первичная Защита',
-      secondaryProtection: 'Вторичная Защита',
-      protectionObject: 'Объект Защиты',
-      statusAndExpirationDates: 'Статус и даты истечения по юрисдикции',
-      number: 'Номер',
-      status: 'Статус',
-      expiration: 'Истечение',
-      types: 'Типы',
-      source: 'Источник',
-      viewPatent: 'Посмотреть патент',
-      molecularFormula: 'Молекулярная Формула',
-      molecularWeight: 'Молекулярный Вес',
-      inchiKey: 'Ключ InChI',
-      iupacName: 'Название IUPAC',
-      smiles: 'SMILES',
-      activeStudies: 'Активные Исследования',
-      advancedPhase: 'Продвинутая Фаза',
-      yes: 'ДА',
-      no: 'НЕТ',
-      studiesInBrazil: 'Исследования в Бразилии',
-      mainIndications: 'Основные Показания',
-      detailedStudies: 'Детальные Исследования',
-      phase: 'Фаза',
-      country: 'Страна',
-      ndaNumber: 'Номер NDA',
-      approvalDate: 'Дата Одобрения',
-      exclusivityExpiration: 'Истечение Эксклюзивности',
-      hasGeneric: 'Имеет Дженерик',
-      exclusivities: 'Эксклюзивности',
-      classification: 'Классификация',
-      genericRegistrationEase: 'Легкость Регистрации Дженерика',
-      registrationNumber: 'Номер Регистрации',
-      restrictions: 'Ограничения',
-      doi: 'DOI',
-      exportPdf: 'Экспорт PDF',
-      
-      // Plans
-      choosePlan: 'Выберите Ваш План',
-      selectIdealPlan: 'Выберите идеальный план для ваших потребностей',
-      monthlyConsultations: 'ежемесячных консультаций',
-      choosePlanButton: 'Выбрать План',
-      analystPlan: 'Аналитик',
-      specialistPlan: 'Специалист',
-      directorPlan: 'Директор',
-      analystPlanDescription: 'Для аналитиков и небольших специализированных консультаций',
-      specialistPlanDescription: 'Для специалистов и профессионалов фармацевтической отрасли',
-      directorPlanDescription: 'Для директоров и крупных фармацевтических компаний',
-      mostPopular: 'Самый Популярный',
-      whyChoosePharmyrus: 'Почему выбрать Pharmyrus?',
-      reliableData: 'Надежные Данные',
-      instantAnalysis: 'Мгновенный Анализ',
-      completeResultsInSeconds: 'Полные результаты за секунды с продвинутым ИИ',
-      specializedSupport: 'Специализированная Поддержка',
-      specializedTeam: 'Команда, специализирующаяся на интеллектуальной собственности',
-      needHelpChoosingPlan: 'Нужна помощь в выборе идеального плана?',
-      speakWithSpecialist: 'Поговорить со Специалистом',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '5 патентных консультаций в месяц',
-      completeIPAnalysis: 'Полный анализ интеллектуальной собственности',
-      chemicalMolecularData: 'Химические и молекулярные данные',
-      patentStatusByCountry: 'Статус патентов по странам',
-      emailSupport: 'Поддержка по email',
-      pdfExport: 'Экспорт в PDF',
-      tenConsultationsPerMonth: '10 патентных консультаций в месяц',
-      advancedClinicalAnalysis: 'Расширенный анализ клинических испытаний',
-      fdaOrangeBookData: 'Данные FDA Orange Book',
-      detailedRegulationByCountry: 'Детальное регулирование по странам',
-      recentScientificEvidence: 'Недавние научные доказательства',
-      marketOpportunityScore: 'Оценка рыночных возможностей',
-      priorityWhatsappSupport: 'Приоритетная поддержка WhatsApp',
-      executiveReports: 'Исполнительные отчеты',
-      twentyConsultationsPerMonth: '20 патентных консультаций в месяц',
-      completeTamSamSomAnalysis: 'Полный анализ рынка TAM SAM SOM',
-      formulationStrategies: 'Стратегии формулирования',
-      completeRegulatoryDocumentation: 'Полная регуляторная документация',
-      detailedSwotAnalysis: 'Детальный SWOT-анализ',
-      dedicatedSupport247: 'Выделенная поддержка 24/7',
-      apiIntegration: 'API интеграция',
-      customReports: 'Пользовательские отчеты',
-      strategicConsultingIncluded: 'Стратегическое консультирование включено',
-      
-      // User Profile
-      corporateAccount: 'Корпоративный Аккаунт',
-      
-      // Footer and misc
-      whatsappSupport: 'Поддержка WhatsApp',
-      connectedToMainAgencies: 'Подключен к основным агентствам',
-      connectedToMainDatabases: 'Подключен к Основным Глобальным Фармацевтическим Базам Данных',
-      aiConsultsAutomatically: 'Наш ИИ автоматически консультируется с более чем 15 специализированными базами данных',
-      directAccessToMillions: 'Прямой доступ к миллионам фармацевтических и патентных записей в реальном времени',
-      realTimeData: 'Данные в реальном времени',
-      globalCoverage: 'Глобальное покрытие',
-      fifteenPlusDatabases: '15+ баз данных',
-      whyPharmaCompaniesChoose: 'Почему Фармацевтические Компании Выбирают Pharmyrus?',
-      advancedAiCreates: 'Наш продвинутый ИИ создает полные пайплайны фармацевтических продуктов, превращая идеи в готовые к рынку стратегии.',
-      fromIdeaToProduct: 'От Идеи к Продукту в Рекордное Время',
-      withPharmyrus: 'С Pharmyrus у вас есть полная команда фармацевтических специалистов, работающих 24/7 для создания детальных пайплайнов.',
-      createMyFirstPipeline: 'Создать Мой Первый Пайплайн',
-      completePipeline: 'Полный пайплайн',
-      readyToRevolutionize: 'Готовы Революционизировать Ваше Портфолио?',
-      joinHundredsOfCompanies: 'Присоединяйтесь к сотням компаний, которые уже создают полные фармацевтические пайплайны с нашей платформой.',
-      createMyPipeline: 'Создать Мой Пайплайн',
-      advancedAiDescription: 'Продвинутый ИИ, который создает полные пайплайны фармацевтических продуктов, превращая идеи в готовые к рынку стратегии.',
-      product: 'Продукт',
-      createPipeline: 'Создать Пайплайн',
-      support: 'Поддержка',
-      company: 'Компания',
-      contact: 'Контакт',
-      termsOfUse: 'Условия Использования',
-      privacy: 'Конфиденциальность',
-      patentConsultation: 'Консультация по Патентам',
-      allRightsReserved: 'Все права защищены',
-      
-      // Benefits
-      benefit1: 'Полный пайплайн продукта всего за 3 минуты',
-      benefit2: 'Автоматическое исследование в 15+ глобальных базах данных',
-      benefit3: 'Регуляторная документация готова к подаче',
-      benefit4: 'Анализ TAM SAM SOM и финансовые прогнозы',
-      benefit5: 'Стратегии для преодоления конкуренции',
-      benefit6: 'Сократите расходы на консультации до 95%',
-      
-      // Stats
-      pipelinesCreated: 'Пайплайнов Создано',
-      pharmaceuticalCompanies: 'Фармацевтических Компаний',
-      averageTime: 'Среднее Время',
-      successRate: 'Показатель Успеха',
-      
-      // Countries
-      brazil: 'Бразилия',
-      unitedStates: 'Соединённые Штаты',
-      germany: 'Германия',
-      france: 'Франция',
-      unitedKingdom: 'Великобритания',
-      japan: 'Япония',
-      china: 'Китай',
-      southKorea: 'Южная Корея',
-      canada: 'Канада',
-      australia: 'Австралия',
-      india: 'Индия',
-      italy: 'Италия',
-      spain: 'Испания',
-      netherlands: 'Нидерланды',
-      switzerland: 'Швейцария',
-      sweden: 'Швеция',
-      norway: 'Норвегия',
-      denmark: 'Дания',
-      finland: 'Финляндия',
-      belgium: 'Бельгия',
-      austria: 'Австрия',
-      portugal: 'Португалия',
-      mexico: 'Мексика',
-      argentina: 'Аргентина',
-      chile: 'Чили',
-      colombia: 'Колумбия',
-      peru: 'Перу',
-      uruguay: 'Уругвай',
-      russia: 'Россия',
-      southAfrica: 'Южная Африка',
-      israel: 'Израиль',
-      singapore: 'Сингапур',
-      thailand: 'Таиланд',
-      malaysia: 'Малайзия',
-      indonesia: 'Индонезия',
-      philippines: 'Филиппины',
-      vietnam: 'Вьетнам',
-      taiwan: 'Тайвань',
-      hongKong: 'Гонконг',
-      newZealand: 'Новая Зеландия',
-      europeanUnion: 'Европейский Союз',
-      international: 'Международный',
-      
-      // Language indicator
-      currentLanguage: 'ru'
-    }
+  
+  de: {
+    // Navigation and Layout
+    newChallenge: 'Neue Herausforderung',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Herausforderungen',
+    logout: 'Abmelden',
+    profile: 'Profil',
+    plans: 'Pläne',
+    
+    // Authentication
+    login: 'Anmelden',
+    register: 'Konto erstellen',
+    email: 'E-Mail',
+    password: 'Passwort',
+    name: 'Vollständiger Name',
+    cpf: 'Steuer-ID',
+    company: 'Unternehmen',
+    phone: 'Telefon',
+    forgotPassword: 'Passwort vergessen?',
+    createAccount: 'KONTO ERSTELLEN',
+    alreadyHaveAccount: 'Haben Sie bereits ein Konto? Anmelden',
+    acceptTerms: 'Ich habe die Nutzungsbedingungen gelesen und akzeptiert',
+    verifyEmail: 'E-Mail verifizieren',
+    resendVerification: 'Bestätigungs-E-Mail erneut senden',
+    backToLogin: 'Zurück zur Anmeldung',
+    
+    // Challenge Creation
+    challengeTitle: 'Herausforderungstitel',
+    challengeDescription: 'Herausforderungsbeschreibung',
+    businessArea: 'Geschäftsbereich des Unternehmens',
+    createChallenge: 'Herausforderung erstellen',
+    
+    // Chat Interface
+    typeMessage: 'Nachricht eingeben...',
+    selectChallenge: 'Wählen Sie eine Herausforderung zum Starten',
+    loading: 'Laden...',
+    
+    // Startup List
+    startups: 'Startups',
+    selectStartup: 'Startup auswählen',
+    selected: 'Ausgewählt',
+    saving: 'Speichern...',
+    matchScore: 'Match-Score',
+    founded: 'Gegründet',
+    category: 'Kategorie',
+    vertical: 'Vertikal',
+    location: 'Standort',
+    teamSize: 'Teamgröße',
+    businessModel: 'Geschäftsmodell',
+    ipoStatus: 'IPO-Status',
+    website: 'Website',
+    linkedin: 'LinkedIn',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    
+    // Pipeline CRM
+    mapped: 'Kartiert',
+    contacted: 'Kontaktiert',
+    interviewed: 'Interviewt',
+    poc: 'POC',
+    emptyPipeline: 'Leere Pipeline',
+    exploreStartups: 'Startups erkunden',
+    manageStages: 'Phasen verwalten',
+    
+    // Contact Management
+    contactManagement: 'Kontaktverwaltung',
+    contacts: 'Kontakte',
+    addContact: 'Kontakt hinzufügen',
+    newContact: 'Neuer Kontakt',
+    editContact: 'Kontakt bearbeiten',
+    deleteContact: 'Kontakt löschen',
+    contactName: 'Name',
+    contactRole: 'Rolle/Position',
+    emails: 'E-Mails',
+    phones: 'Telefone/WhatsApp',
+    addEmail: 'Weitere E-Mail hinzufügen',
+    addPhone: 'Weiteres Telefon hinzufügen',
+    save: 'Speichern',
+    cancel: 'Abbrechen',
+    startup: 'Startup',
+    founder: 'Gründer',
+    
+    // Message Composer
+    newMessage: 'Neue Nachricht',
+    composeMessage: 'Nachricht verfassen',
+    recipient: 'Empfänger',
+    subject: 'Betreff',
+    message: 'Nachricht',
+    sendEmail: 'E-Mail senden',
+    sendWhatsApp: 'WhatsApp senden',
+    sending: 'Senden...',
+    
+    // Timeline
+    interactionTimeline: 'Interaktions-Timeline',
+    noInteractions: 'Noch keine Interaktionen',
+    firstMessage: 'Beginnen Sie die Interaktion mit diesem Startup, indem Sie Ihre erste Nachricht senden',
+    sendFirstMessage: 'Erste Nachricht senden',
+    response: 'Antwort',
+    responseReceived: 'Antwort erhalten',
+    
+    // Plans
+    choosePlan: 'Wählen Sie Ihren Plan',
+    currentPlan: 'Aktueller Plan',
+    startNow: 'Jetzt starten',
+    initialPlan: 'Anfangsplan',
+    tokens: 'Token',
+    free: 'Kostenlos',
+    mostPopular: 'Am beliebtesten',
+    securePayment: 'Sichere SSL-Zahlung',
+    padawanDescription: 'Plan für Anfänger, die ihre Innovationsreise beginnen',
+    jediDescription: 'Plan für Krieger, die die Künste der KI-Innovation erlernen',
+    masterJedi: 'Meister Jedi',
+    masterJediDescription: 'Plan für Jedis, die überwunden haben und nun die Kräfte der innovativen Trägheit besiegen können',
+    masterYoda: 'Meister Yoda',
+    masterYodaDescription: 'Plan für Innovatoren, die Schlachten erlebt haben und bereit sind, die Kräfte der Disruption zu verteidigen',
+    unlockInnovationPower: 'Entfesseln Sie die Kraft der Innovation mit unseren personalisierten Plänen',
+    padawanPlanError: 'Der Padawan-Plan ist der Anfangsplan und kann nicht gekauft werden. Bitte wählen Sie einen anderen Plan.',
+    errorProcessingRequest: 'Fehler bei der Bearbeitung Ihrer Anfrage. Bitte versuchen Sie es erneut.',
+    pciCertified: 'PCI DSS zertifiziert',
+    fraudProtection: 'Betrugsschutz',
+    
+    // Profile
+    updateProfile: 'Profil aktualisieren',
+    resetPassword: 'Passwort zurücksetzen',
+    deleteAccount: 'Konto löschen',
+    dangerZone: 'Gefahrenzone',
+    confirmDeletion: 'Löschung bestätigen',
+    typeDelete: 'LÖSCHEN eingeben',
+    userNotFound: 'Benutzer nicht gefunden',
+    errorLoadingData: 'Fehler beim Laden der Daten',
+    userNotAuthenticated: 'Benutzer nicht authentifiziert',
+    profileUpdatedSuccess: 'Profil erfolgreich aktualisiert!',
+    errorUpdatingProfile: 'Fehler beim Aktualisieren des Profils',
+    emailNotFound: 'E-Mail nicht gefunden',
+    passwordResetEmailSent: 'Passwort-Reset-E-Mail gesendet!',
+    errorSendingPasswordReset: 'Fehler beim Senden der Passwort-Reset-E-Mail',
+    incorrectPassword: 'Falsches Passwort. Bitte versuchen Sie es erneut.',
+    errorDeletingAccount: 'Fehler beim Löschen des Kontos',
+    errorDeletingAccountGeneric: 'Fehler beim Löschen des Kontos. Bitte versuchen Sie es erneut.',
+    enterPasswordToConfirm: 'Bitte geben Sie Ihr Passwort ein, um die Kontolöschung zu bestätigen:',
+    confirmAccountDeletion: 'Um die Kontolöschung und Datenanonymisierung zu bestätigen, geben Sie',
+    deleteKeyword: 'LÖSCHEN',
+    inFieldBelow: 'in das Feld unten ein',
+    type: 'Geben Sie',
+    toConfirm: 'zur Bestätigung ein',
+    deleting: 'Löschen...',
+    
+    // Token Usage
+    tokenUsage: 'Token-Nutzung',
+    remaining: 'verbleibend',
+    renewalOn: 'Erneuerung am',
+    upgradePlan: 'Plan upgraden',
+    
+    // Language Change Message
+    languageChangeMessage: 'Könnten Sie bitte die Sprache auf Deutsch umstellen und mit dem Fragebogen beginnen?',
+    
+    // Common
+    back: 'Zurück',
+    next: 'Weiter',
+    continue: 'Fortfahren',
+    confirm: 'Bestätigen',
+    yes: 'Ja',
+    no: 'Nein',
+    close: 'Schließen',
+    open: 'Öffnen',
+    edit: 'Bearbeiten',
+    delete: 'Löschen',
+    add: 'Hinzufügen',
+    remove: 'Entfernen',
+    search: 'Suchen',
+    filter: 'Filtern',
+    sort: 'Sortieren',
+    
+    // Messages
+    success: 'Erfolg',
+    error: 'Fehler',
+    warning: 'Warnung',
+    info: 'Information',
+    
+    // Email Templates
+    emailSubjectPrefix: '{company} möchte {startup} kontaktieren - ',
+    emailFooterCompany: 'Gen.OI',
+    emailFooterDescription: 'Unternehmen mit den besten Startups der Welt verbinden',
+    emailFooterWebsite: 'genoi.net',
+    emailFooterContact: 'contact@genoi.net',
+    emailFooterDisclaimer: 'Diese Nachricht wurde über die Gen.OI Open Innovation Plattform gesendet.',
+    
+    // Language
+    language: 'Sprache',
+    portuguese: 'Portugiesisch',
+    english: 'Englisch',
+    french: 'Französisch',
+    german: 'Deutsch',
+    italian: 'Italienisch',
+
+    // Additional Startup Card Translations
+    reasonForChoice: 'Grund für die Wahl',
+    backToList: 'Zurück zur Liste',
+    loadingStartups: 'Startups laden...',
+    loadingTimeline: 'Timeline laden...',
+    startupNotFound: 'Startup nicht gefunden',
+    loadingContacts: 'Kontakte laden...',
+    noContactsRegistered: 'Keine Kontakte registriert',
+    addFirstContact: 'Ersten Kontakt hinzufügen',
+    contactAddedSuccess: 'Kontakt erfolgreich hinzugefügt!',
+    errorAddingContact: 'Fehler beim Hinzufügen des Kontakts',
+    contactUpdatedSuccess: 'Kontakt erfolgreich aktualisiert!',
+    errorUpdatingContact: 'Fehler beim Aktualisieren des Kontakts',
+    contactRemovedSuccess: 'Kontakt erfolgreich entfernt!',
+    errorRemovingContact: 'Fehler beim Entfernen des Kontakts',
+    manageContacts: 'Kontakte verwalten',
+    listContacts: 'Kontaktliste',
+    addWhatsAppNumber: 'WhatsApp-Nummer hinzufügen',
+    addPhoneNumber: 'WhatsApp-Nummer hinzufügen',
+    invalidPhoneNumber: 'Ungültige Telefonnummer für WhatsApp',
+    whatsAppNumberAddedSuccess: 'WhatsApp-Nummer erfolgreich hinzugefügt!',
+    errorAddingPhoneNumber: 'Fehler beim Hinzufügen der WhatsApp-Nummer',
+    emailRequired: 'Empfänger-E-Mail ist erforderlich',
+    subjectRequired: 'Betreff ist für E-Mails erforderlich',
+    messageRequired: 'Nachricht ist erforderlich',
+    emailSentSuccess: 'E-Mail erfolgreich gesendet!',
+    whatsAppSentSuccess: 'WhatsApp-Nachricht erfolgreich gesendet!',
+    errorSendingMessage: 'Fehler beim Senden der Nachricht',
+    selectContact: 'Kontakt auswählen',
+    selectEmail: 'E-Mail auswählen',
+    selectPhone: 'Telefon auswählen',
+    noWhatsAppRegistered: 'Kein WhatsApp registriert',
+    emailTo: 'An: ',
+    whatsAppTo: 'WhatsApp: ',
+    sentAt: 'Gesendet am',
+    status: 'Status',
+    sent: 'Gesendet',
+    delivered: 'Zugestellt',
+    failed: 'Fehlgeschlagen',
+    processing: 'Verarbeitung',
+    backToPipeline: 'Zurück zur Pipeline',
+    backToSavedStartups: 'Zurück zu gespeicherten Startups',
+    projectPlanning: 'Projektplanung',
+    expectedResults: 'Erwartete Ergebnisse',
+    competitiveAdvantages: 'Wettbewerbsvorteile',
+    proofOfConcept: 'Proof of Concept',
+    phase: 'Phase',
+    duration: 'Dauer',
+    description: 'Beschreibung',
+    viewStartupList: 'Startup-Liste anzeigen',
+    viewCompleteList: 'Vollständige Liste anzeigen',
+    startupListButton: 'Startup-Liste anzeigen',
+    upgradeButton: 'Plan upgraden',
+    tokenLimitReached: 'Sie haben das Token-Limit Ihres Plans erreicht',
+    updatePlan: 'Upgraden Sie Ihren Plan, um weiter zu innovieren!',
+    processingChallenge: 'Herausforderung verarbeiten und unter Tausenden von Startups suchen...',
+    creatingShortlist: 'Erstellen einer Shortlist qualifizierter Startups',
+    conductingMarketResearch: 'Durchführung von Markt- und Herausforderungsforschung',
+    generatingSelectionProcess: 'Generierung des finalen Startup-Auswahlprozesses',
+    creatingPOCs: 'Erstellen von POCs zur Lösung der Herausforderung',
+    finalizingRecommendations: 'Finalisierung der Startup-Empfehlungsliste für Ihre Herausforderung!',
+    searchingStartups: 'Herausforderung verarbeiten und unter Tausenden von Startups suchen...',
+    qualifyingStartups: 'Erstellen einer Shortlist qualifizierter Startups',
+    researchingMarket: 'Durchführung von Markt- und Herausforderungsforschung',
+    selectingFinalStartups: 'Generierung des finalen Startup-Auswahlprozesses',
+    creatingPOCsForChallenge: 'Erstellen von POCs zur Lösung der Herausforderung',
+    finalizingStartupList: 'Finalisierung der Startup-Empfehlungsliste für Ihre Herausforderung!',
   },
-  zh: {
-    translation: {
-      // Navigation and Common
-      back: '返回',
-      loading: '加载中...',
-      error: '错误',
-      success: '成功',
-      save: '保存',
-      cancel: '取消',
-      delete: '删除',
-      edit: '编辑',
-      view: '查看',
-      search: '搜索',
-      logout: '退出',
-      plans: '计划',
-      
-      // Landing Page
-      landingTitle: '完整制药管道的先进人工智能',
-      landingSubtitle: '就像在您的口袋里拥有专业的制药投资组合团队！仅需3分钟，我们就能为新的竞争药物创建完整的管道。',
-      startNow: '立即开始',
-      login: '登录',
-      register: '注册',
-      whoWeAre: '关于我们',
-      yourProfessionalEmail: '您的专业邮箱',
-      processing: '处理中...',
-      completeIn3Min: '3分钟完整管道',
-      marketAnalysis: '市场分析',
-      regulatoryDocs: '监管文档',
-      productReadyForDevelopment: '产品准备开发',
-      
-      // Features
-      completePipeline3Min: '3分钟完整管道',
-      completeStrategiesDescription: '为新的竞争药物创建完整的开发、注册和商业化策略。',
-      automatedGlobalResearch: '自动化全球研究',
-      automaticSearchDescription: '在INPI、EPO、WIPO、FDA和15+专业数据库中自动搜索。',
-      tamSamSomAnalysis: 'TAM SAM SOM分析',
-      marketAnalysisDescription: '完整的市场规模分析、细分和详细的财务预测。',
-      regulatoryDocumentation: '监管文档',
-      regulatoryDocsDescription: '生成在全球监管机构注册所需的所有文档。',
-      swotRiskAnalysis: 'SWOT和风险分析',
-      swotAnalysisDescription: '产品优势、劣势、机会和威胁的完整评估。',
-      competitiveStrategy: '竞争策略',
-      competitiveStrategyDescription: '识别市场机会和克服竞争的策略。',
-      
-      // Patent Consultation
-      createProductPipeline: '创建产品管道',
-      commercialName: '商品名',
-      moleculeName: '分子名称',
-      pharmaceuticalCategory: '制药类别',
-      mainBenefit: '主要益处',
-      targetDisease: '目标疾病',
-      targetCountries: '目标国家',
-      selectAtLeastOneCountry: '至少选择一个',
-      countriesSelected: '已选择的国家',
-      creatingPipeline: '创建管道中...',
-      acquirePlanToConsult: '获取咨询计划',
-      restrictedAccess: '受限访问',
-      needActivePlan: '您需要一个活跃的计划来进行专利咨询。',
-      viewAvailablePlans: '查看可用计划',
-      consultationsRemaining: '剩余咨询',
-      of: '的',
-      plan: '计划',
-      
-      // Patent Results
-      patentStatus: '专利状态',
-      active: '有效',
-      expired: '已过期',
-      primaryExpiration: '主要到期日',
-      commercialExploration: '商业开发',
-      permitted: '允许',
-      restricted: '受限',
-      availableForNewProduct: '可用于新产品',
-      opportunityScore: '机会评分',
-      patentsByCountry: '各国专利',
-      chemicalData: '化学数据',
-      clinicalTrials: '临床试验',
-      orangeBook: 'FDA橙皮书',
-      regulationByCountry: '各国监管',
-      scientificEvidence: '最新科学证据',
-      notInformed: '未提供信息',
-      primaryProtection: '主要保护',
-      secondaryProtection: '次要保护',
-      protectionObject: '保护对象',
-      statusAndExpirationDates: '各司法管辖区的状态和到期日期',
-      number: '编号',
-      status: '状态',
-      expiration: '到期',
-      types: '类型',
-      source: '来源',
-      viewPatent: '查看专利',
-      molecularFormula: '分子式',
-      molecularWeight: '分子量',
-      inchiKey: 'InChI键',
-      iupacName: 'IUPAC名称',
-      smiles: 'SMILES',
-      activeStudies: '活跃研究',
-      advancedPhase: '高级阶段',
-      yes: '是',
-      no: '否',
-      studiesInBrazil: '巴西的研究',
-      mainIndications: '主要适应症',
-      detailedStudies: '详细研究',
-      phase: '阶段',
-      country: '国家',
-      ndaNumber: 'NDA编号',
-      approvalDate: '批准日期',
-      exclusivityExpiration: '独占权到期',
-      hasGeneric: '有仿制药',
-      exclusivities: '独占权',
-      classification: '分类',
-      genericRegistrationEase: '仿制药注册便利性',
-      registrationNumber: '注册号',
-      restrictions: '限制',
-      doi: 'DOI',
-      exportPdf: '导出PDF',
-      
-      // Plans
-      choosePlan: '选择您的计划',
-      selectIdealPlan: '选择适合您需求的理想计划',
-      monthlyConsultations: '每月咨询',
-      choosePlanButton: '选择计划',
-      analystPlan: '分析师',
-      specialistPlan: '专家',
-      directorPlan: '总监',
-      analystPlanDescription: '适用于分析师和小型专业咨询',
-      specialistPlanDescription: '适用于专家和制药行业专业人士',
-      directorPlanDescription: '适用于总监和大型制药公司',
-      mostPopular: '最受欢迎',
-      whyChoosePharmyrus: '为什么选择Pharmyrus？',
-      reliableData: '可靠数据',
-      instantAnalysis: '即时分析',
-      completeResultsInSeconds: '先进AI几秒钟内完整结果',
-      specializedSupport: '专业支持',
-      specializedTeam: '专门从事知识产权的团队',
-      needHelpChoosingPlan: '需要帮助选择理想计划？',
-      speakWithSpecialist: '与专家交谈',
-      
-      // Plan features
-      fiveConsultationsPerMonth: '每月5次专利咨询',
-      completeIPAnalysis: '完整的知识产权分析',
-      chemicalMolecularData: '化学和分子数据',
-      patentStatusByCountry: '各国专利状态',
-      emailSupport: '邮件支持',
-      pdfExport: 'PDF导出',
-      tenConsultationsPerMonth: '每月10次专利咨询',
-      advancedClinicalAnalysis: '高级临床试验分析',
-      fdaOrangeBookData: 'FDA橙皮书数据',
-      detailedRegulationByCountry: '各国详细监管',
-      recentScientificEvidence: '最新科学证据',
-      marketOpportunityScore: '市场机会评分',
-      priorityWhatsappSupport: '优先WhatsApp支持',
-      executiveReports: '执行报告',
-      twentyConsultationsPerMonth: '每月20次专利咨询',
-      completeTamSamSomAnalysis: '完整的TAM SAM SOM市场分析',
-      formulationStrategies: '配方策略',
-      completeRegulatoryDocumentation: '完整的监管文档',
-      detailedSwotAnalysis: '详细的SWOT分析',
-      dedicatedSupport247: '专门的24/7支持',
-      apiIntegration: 'API集成',
-      customReports: '自定义报告',
-      strategicConsultingIncluded: '包含战略咨询',
-      
-      // User Profile
-      corporateAccount: '企业账户',
-      
-      // Footer and misc
-      whatsappSupport: 'WhatsApp支持',
-      connectedToMainAgencies: '连接到主要机构',
-      connectedToMainDatabases: '连接到主要全球制药数据库',
-      aiConsultsAutomatically: '我们的AI自动咨询超过15个专业数据库',
-      directAccessToMillions: '实时直接访问数百万制药和专利记录',
-      realTimeData: '实时数据',
-      globalCoverage: '全球覆盖',
-      fifteenPlusDatabases: '15+数据库',
-      whyPharmaCompaniesChoose: '为什么制药公司选择Pharmyrus？',
-      advancedAiCreates: '我们的先进AI创建完整的制药产品管道，将想法转化为市场就绪的策略。',
-      fromIdeaToProduct: '从想法到产品的创纪录时间',
-      withPharmyrus: '使用Pharmyrus，您拥有一个完整的制药专家团队，24/7工作以创建详细的管道。',
-      createMyFirstPipeline: '创建我的第一个管道',
-      completePipeline: '完整管道',
-      readyToRevolutionize: '准备革命化您的投资组合？',
-      joinHundredsOfCompanies: '加入数百家已经使用我们平台创建完整制药管道的公司。',
-      createMyPipeline: '创建我的管道',
-      advancedAiDescription: '先进的AI，创建完整的制药产品管道，将想法转化为市场就绪的策略。',
-      product: '产品',
-      createPipeline: '创建管道',
-      support: '支持',
-      company: '公司',
-      contact: '联系',
-      termsOfUse: '使用条款',
-      privacy: '隐私',
-      patentConsultation: '专利咨询',
-      allRightsReserved: '版权所有',
-      
-      // Benefits
-      benefit1: '仅需3分钟完整产品管道',
-      benefit2: '15+全球数据库自动研究',
-      benefit3: '监管文档准备提交',
-      benefit4: 'TAM SAM SOM分析和财务预测',
-      benefit5: '克服竞争的策略',
-      benefit6: '减少高达95%的咨询成本',
-      
-      // Stats
-      pipelinesCreated: '已创建管道',
-      pharmaceuticalCompanies: '制药公司',
-      averageTime: '平均时间',
-      successRate: '成功率',
-      
-      // Countries
-      brazil: '巴西',
-      unitedStates: '美国',
-      germany: '德国',
-      france: '法国',
-      unitedKingdom: '英国',
-      japan: '日本',
-      china: '中国',
-      southKorea: '韩国',
-      canada: '加拿大',
-      australia: '澳大利亚',
-      india: '印度',
-      italy: '意大利',
-      spain: '西班牙',
-      netherlands: '荷兰',
-      switzerland: '瑞士',
-      sweden: '瑞典',
-      norway: '挪威',
-      denmark: '丹麦',
-      finland: '芬兰',
-      belgium: '比利时',
-      austria: '奥地利',
-      portugal: '葡萄牙',
-      mexico: '墨西哥',
-      argentina: '阿根廷',
-      chile: '智利',
-      colombia: '哥伦比亚',
-      peru: '秘鲁',
-      uruguay: '乌拉圭',
-      russia: '俄罗斯',
-      southAfrica: '南非',
-      israel: '以色列',
-      singapore: '新加坡',
-      thailand: '泰国',
-      malaysia: '马来西亚',
-      indonesia: '印度尼西亚',
-      philippines: '菲律宾',
-      vietnam: '越南',
-      taiwan: '台湾',
-      hongKong: '香港',
-      newZealand: '新西兰',
-      europeanUnion: '欧盟',
-      international: '国际',
-      
-      // Language indicator
-      currentLanguage: 'zh'
-    }
+  
+  it: {
+    // Navigation and Layout
+    newChallenge: 'Nuova sfida',
+    pipelineCRM: 'Pipeline CRM',
+    challenges: 'Sfide',
+    logout: 'Disconnetti',
+    profile: 'Profilo',
+    plans: 'Piani',
+    
+    // Authentication
+    login: 'Accedi',
+    register: 'Crea account',
+    email: 'Email',
+    password: 'Password',
+    name: 'Nome completo',
+    cpf: 'ID fiscale',
+    company: 'Azienda',
+    phone: 'Telefono',
+    forgotPassword: 'Password dimenticata?',
+    createAccount: 'CREA ACCOUNT',
+    alreadyHaveAccount: 'Hai già un account? Accedi',
+    acceptTerms: 'Ho letto e accetto i termini di utilizzo',
+    verifyEmail: 'Verifica la tua email',
+    resendVerification: 'Invia nuovamente email di verifica',
+    backToLogin: 'Torna al login',
+    
+    // Challenge Creation
+    challengeTitle: 'Titolo della sfida',
+    challengeDescription: 'Descrizione della sfida',
+    businessArea: 'Area di business dell\'azienda',
+    createChallenge: 'Crea sfida',
+    
+    // Chat Interface
+    typeMessage: 'Digita un messaggio...',
+    selectChallenge: 'Seleziona una sfida per iniziare',
+    loading: 'Caricamento...',
+    
+    // Startup List
+    startups: 'Startup',
+    selectStartup: 'Seleziona startup',
+    selected: 'Selezionata',
+    saving: 'Salvando...',
+    matchScore: 'Punteggio di corrispondenza',
+    founded: 'Fondata',
+    category: 'Categoria',
+    vertical: 'Verticale',
+    location: 'Posizione',
+    teamSize: 'Dimensione del team',
+    businessModel: 'Modello di business',
+    ipoStatus: 'Stato IPO',
+    website: 'Sito web',
+    linkedin: 'LinkedIn',
+    facebook: 'Facebook',
+    twitter: 'Twitter',
+    instagram: 'Instagram',
+    
+    // Pipeline CRM
+    mapped: 'Mappata',
+    contacted: 'Contattata',
+    interviewed: 'Intervistata',
+    poc: 'POC',
+    emptyPipeline: 'Pipeline vuota',
+    exploreStartups: 'Esplora startup',
+    manageStages: 'Gestisci fasi',
+    
+    // Contact Management
+    contactManagement: 'Gestione contatti',
+    contacts: 'Contatti',
+    addContact: 'Aggiungi contatto',
+    newContact: 'Nuovo contatto',
+    editContact: 'Modifica contatto',
+    deleteContact: 'Elimina contatto',
+    contactName: 'Nome',
+    contactRole: 'Ruolo/Posizione',
+    emails: 'Email',
+    phones: 'Telefoni/WhatsApp',
+    addEmail: 'Aggiungi un\'altra email',
+    addPhone: 'Aggiungi un altro telefono',
+    save: 'Salva',
+    cancel: 'Annulla',
+    startup: 'Startup',
+    founder: 'Fondatore',
+    
+    // Message Composer
+    newMessage: 'Nuovo messaggio',
+    composeMessage: 'Componi messaggio',
+    recipient: 'Destinatario',
+    subject: 'Oggetto',
+    message: 'Messaggio',
+    sendEmail: 'Invia email',
+    sendWhatsApp: 'Invia WhatsApp',
+    sending: 'Invio...',
+    
+    // Timeline
+    interactionTimeline: 'Timeline delle interazioni',
+    noInteractions: 'Nessuna interazione ancora',
+    firstMessage: 'Inizia a interagire con questa startup inviando il tuo primo messaggio',
+    sendFirstMessage: 'Invia primo messaggio',
+    response: 'Risposta',
+    responseReceived: 'Risposta ricevuta',
+    
+    // Plans
+    choosePlan: 'Scegli il tuo piano',
+    currentPlan: 'Piano attuale',
+    startNow: 'Inizia ora',
+    initialPlan: 'Piano iniziale',
+    tokens: 'token',
+    free: 'Gratuito',
+    mostPopular: 'Più popolare',
+    securePayment: 'Pagamento sicuro SSL',
+    padawanDescription: 'Piano per principianti che iniziano il loro percorso di innovazione',
+    jediDescription: 'Piano per guerrieri che imparano le arti dell\'innovazione AI',
+    masterJedi: 'Maestro Jedi',
+    masterJediDescription: 'Piano per Jedi che hanno superato e ora possono sconfiggere le forze dell\'inerzia innovativa',
+    masterYoda: 'Maestro Yoda',
+    masterYodaDescription: 'Piano per innovatori che hanno affrontato battaglie e sono pronti a difendere le forze della disruption',
+    unlockInnovationPower: 'Sblocca il potere dell\'innovazione con i nostri piani personalizzati',
+    padawanPlanError: 'Il piano Padawan è il piano iniziale e non può essere acquistato. Si prega di scegliere un altro piano.',
+    errorProcessingRequest: 'Errore nell\'elaborazione della richiesta. Si prega di riprovare.',
+    pciCertified: 'Certificato PCI DSS',
+    fraudProtection: 'Protezione dalle frodi',
+    
+    // Profile
+    updateProfile: 'Aggiorna profilo',
+    resetPassword: 'Reimposta password',
+    deleteAccount: 'Elimina account',
+    dangerZone: 'Zona di pericolo',
+    confirmDeletion: 'Conferma eliminazione',
+    typeDelete: 'Digita ELIMINA',
+    userNotFound: 'Utente non trovato',
+    errorLoadingData: 'Errore nel caricamento dei dati',
+    userNotAuthenticated: 'Utente non autenticato',
+    profileUpdatedSuccess: 'Profilo aggiornato con successo!',
+    errorUpdatingProfile: 'Errore nell\'aggiornamento del profilo',
+    emailNotFound: 'Email non trovata',
+    passwordResetEmailSent: 'Email di reset password inviata!',
+    errorSendingPasswordReset: 'Errore nell\'invio dell\'email di reset password',
+    incorrectPassword: 'Password errata. Si prega di riprovare.',
+    errorDeletingAccount: 'Errore nell\'eliminazione dell\'account',
+    errorDeletingAccountGeneric: 'Errore nell\'eliminazione dell\'account. Si prega di riprovare.',
+    enterPasswordToConfirm: 'Si prega di inserire la password per confermare l\'eliminazione dell\'account:',
+    confirmAccountDeletion: 'Per confermare l\'eliminazione dell\'account e l\'anonimizzazione dei dati, digita',
+    deleteKeyword: 'ELIMINA',
+    inFieldBelow: 'nel campo sottostante',
+    type: 'Digita',
+    toConfirm: 'per confermare',
+    deleting: 'Eliminazione...',
+    
+    // Token Usage
+    tokenUsage: 'Utilizzo token',
+    remaining: 'rimanenti',
+    renewalOn: 'Rinnovo il',
+    upgradePlan: 'Aggiorna piano',
+    
+    // Language Change Message
+    languageChangeMessage: 'Potresti cambiare la lingua in italiano e iniziare il questionario?',
+    
+    // Common
+    back: 'Indietro',
+    next: 'Avanti',
+    continue: 'Continua',
+    confirm: 'Conferma',
+    yes: 'Sì',
+    no: 'No',
+    close: 'Chiudi',
+    open: 'Apri',
+    edit: 'Modifica',
+    delete: 'Elimina',
+    add: 'Aggiungi',
+    remove: 'Rimuovi',
+    search: 'Cerca',
+    filter: 'Filtra',
+    sort: 'Ordina',
+    
+    // Messages
+    success: 'Successo',
+    error: 'Errore',
+    warning: 'Avviso',
+    info: 'Informazione',
+    
+    // Email Templates
+    emailSubjectPrefix: '{company} vuole contattare {startup} - ',
+    emailFooterCompany: 'Gen.OI',
+    emailFooterDescription: 'Collegare le aziende alle migliori startup del mondo',
+    emailFooterWebsite: 'genoi.net',
+    emailFooterContact: 'contact@genoi.net',
+    emailFooterDisclaimer: 'Questo messaggio è stato inviato tramite la piattaforma di innovazione aperta Gen.OI.',
+    
+    // Language
+    language: 'Lingua',
+    portuguese: 'Portoghese',
+    english: 'Inglese',
+    french: 'Francese',
+    german: 'Tedesco',
+    italian: 'Italiano',
+
+    // Additional Startup Card Translations
+    reasonForChoice: 'Motivo della scelta',
+    backToList: 'Torna alla lista',
+    loadingStartups: 'Caricamento startup...',
+    loadingTimeline: 'Caricamento timeline...',
+    startupNotFound: 'Startup non trovata',
+    loadingContacts: 'Caricamento contatti...',
+    noContactsRegistered: 'Nessun contatto registrato',
+    addFirstContact: 'Aggiungi primo contatto',
+    contactAddedSuccess: 'Contatto aggiunto con successo!',
+    errorAddingContact: 'Errore nell\'aggiunta del contatto',
+    contactUpdatedSuccess: 'Contatto aggiornato con successo!',
+    errorUpdatingContact: 'Errore nell\'aggiornamento del contatto',
+    contactRemovedSuccess: 'Contatto rimosso con successo!',
+    errorRemovingContact: 'Errore nella rimozione del contatto',
+    manageContacts: 'Gestisci contatti',
+    listContacts: 'Lista contatti',
+    addWhatsAppNumber: 'Aggiungi numero WhatsApp',
+    addPhoneNumber: 'Aggiungi numero WhatsApp',
+    invalidPhoneNumber: 'Numero di telefono non valido per WhatsApp',
+    whatsAppNumberAddedSuccess: 'Numero WhatsApp aggiunto con successo!',
+    errorAddingPhoneNumber: 'Errore nell\'aggiunta del numero WhatsApp',
+    emailRequired: 'L\'email del destinatario è richiesta',
+    subjectRequired: 'L\'oggetto è richiesto per le email',
+    messageRequired: 'Il messaggio è richiesto',
+    emailSentSuccess: 'Email inviata con successo!',
+    whatsAppSentSuccess: 'Messaggio WhatsApp inviato con successo!',
+    errorSendingMessage: 'Errore nell\'invio del messaggio',
+    selectContact: 'Seleziona un contatto',
+    selectEmail: 'Seleziona email',
+    selectPhone: 'Seleziona telefono',
+    noWhatsAppRegistered: 'Nessun WhatsApp registrato',
+    emailTo: 'A: ',
+    whatsAppTo: 'WhatsApp: ',
+    sentAt: 'Inviato il',
+    status: 'Stato',
+    sent: 'Inviato',
+    delivered: 'Consegnato',
+    failed: 'Fallito',
+    processing: 'Elaborazione',
+    backToPipeline: 'Torna alla pipeline',
+    backToSavedStartups: 'Torna alle startup salvate',
+    projectPlanning: 'Pianificazione del progetto',
+    expectedResults: 'Risultati attesi',
+    competitiveAdvantages: 'Vantaggi competitivi',
+    proofOfConcept: 'Proof of concept',
+    phase: 'Fase',
+    duration: 'Durata',
+    description: 'Descrizione',
+    viewStartupList: 'Visualizza lista startup',
+    viewCompleteList: 'Visualizza lista completa',
+    startupListButton: 'Visualizza lista startup',
+    upgradeButton: 'Aggiorna piano',
+    tokenLimitReached: 'Hai raggiunto il limite di token del tuo piano',
+    updatePlan: 'Aggiorna il tuo piano per continuare a innovare!',
+    processingChallenge: 'Elaborazione della sfida e ricerca tra migliaia di startup...',
+    creatingShortlist: 'Creazione di una shortlist di startup qualificate',
+    conductingMarketResearch: 'Conduzione di ricerca di mercato e della sfida',
+    generatingSelectionProcess: 'Generazione del processo di selezione finale delle startup',
+    creatingPOCs: 'Creazione di POC per risolvere la sfida',
+    finalizingRecommendations: 'Finalizzazione della lista di raccomandazioni startup per la tua sfida!',
+    searchingStartups: 'Elaborazione della sfida e ricerca tra migliaia di startup...',
+    qualifyingStartups: 'Creazione di una shortlist di startup qualificate',
+    researchingMarket: 'Conduzione di ricerca di mercato e della sfida',
+    selectingFinalStartups: 'Generazione del processo di selezione finale delle startup',
+    creatingPOCsForChallenge: 'Creazione di POC per risolvere la sfida',
+    finalizingStartupList: 'Finalizzazione della lista di raccomandazioni startup per la tua sfida!',
+  },
+};
+
+// Language detection based on IP geolocation
+export const detectLanguageFromIP = async (): Promise<string> => {
+  try {
+    const response = await fetch('https://ipapi.co/json/');
+    const data = await response.json();
+    const countryCode = data.country_code?.toLowerCase();
+    
+    const languageMap: Record<string, string> = {
+      'br': 'pt',
+      'pt': 'pt',
+      'us': 'en',
+      'gb': 'en',
+      'ca': 'en',
+      'au': 'en',
+      'nz': 'en',
+      'ie': 'en',
+      'za': 'en',
+      'fr': 'fr',
+      'be': 'fr',
+      'ch': 'fr',
+      'mc': 'fr',
+      'de': 'de',
+      'at': 'de',
+      'it': 'it',
+      'sm': 'it',
+      'va': 'it',
+    };
+    
+    return languageMap[countryCode] || 'en'; // Default to English
+  } catch (error) {
+    console.error('Error detecting language from IP:', error);
+    return 'en'; // Default to English on error
   }
 };
 
-// Language detection configuration with IP-based detection
-const detectionOptions = {
-  order: ['navigator', 'htmlTag', 'path', 'subdomain'],
-  caches: ['localStorage'],
-  excludeCacheFor: ['cimode'],
-  checkWhitelist: true
+// Get browser language as fallback
+export const getBrowserLanguage = (): string => {
+  const browserLang = navigator.language.split('-')[0];
+  const supportedLanguages = ['pt', 'en', 'fr', 'de', 'it'];
+  return supportedLanguages.includes(browserLang) ? browserLang : 'en';
 };
 
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: 'pt',
-    debug: false,
-    detection: detectionOptions,
-    interpolation: {
-      escapeValue: false
+// Initialize language
+export const initializeLanguage = async (): Promise<string> => {
+  // Check if user has a saved language preference
+  const savedLanguage = localStorage.getItem('genoi-language');
+  if (savedLanguage && translations[savedLanguage]) {
+    return savedLanguage;
+  }
+  
+  // Try to detect from IP
+  try {
+    const detectedLanguage = await detectLanguageFromIP();
+    if (translations[detectedLanguage]) {
+      localStorage.setItem('genoi-language', detectedLanguage);
+      return detectedLanguage;
     }
-  });
+  } catch (error) {
+    console.error('IP language detection failed:', error);
+  }
+  
+  // Fallback to browser language
+  const browserLanguage = getBrowserLanguage();
+  localStorage.setItem('genoi-language', browserLanguage);
+  return browserLanguage;
+};
 
-export default i18n;
+// Set language and send webhook message
+export const setLanguage = async (language: string): Promise<void> => {
+  if (!translations[language]) return;
+  
+  const previousLanguage = getCurrentLanguage();
+  localStorage.setItem('genoi-language', language);
+  
+  // Only send webhook if language actually changed and user is authenticated
+  if (previousLanguage !== language) {
+    await sendLanguageChangeMessage(language);
+  }
+  
+  window.location.reload(); // Reload to apply new language
+};
 
-// Hook for easy translation access
+// Send language change message to webhook
+const sendLanguageChangeMessage = async (newLanguage: string): Promise<void> => {
+  try {
+    // Import auth and other dependencies dynamically to avoid circular imports
+    const { auth } = await import('../firebase');
+    const { addDoc, collection } = await import('firebase/firestore');
+    const { db } = await import('../firebase');
+    
+    if (!auth.currentUser) return;
+    
+    // Get current challenge from localStorage or other source
+    const currentChallengeId = localStorage.getItem('current-challenge-id');
+    if (!currentChallengeId) return;
+    
+    const message = translations[newLanguage].languageChangeMessage;
+    
+    // Send to webhook
+    const response = await fetch('https://primary-production-2e3b.up.railway.app/webhook/production', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        sessionId: currentChallengeId,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Save hidden user message
+      await addDoc(collection(db, 'messages'), {
+        challengeId: currentChallengeId,
+        userId: auth.currentUser.uid,
+        role: 'user',
+        content: message,
+        timestamp: new Date().toISOString(),
+        hidden: true
+      });
+
+      // Save AI response
+      if (data[0]?.output) {
+        await addDoc(collection(db, 'messages'), {
+          challengeId: currentChallengeId,
+          userId: auth.currentUser.uid,
+          role: 'assistant',
+          content: data[0].output,
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error sending language change message:', error);
+  }
+};
+
+// Get current language
+export const getCurrentLanguage = (): string => {
+  return localStorage.getItem('genoi-language') || 'en';
+};
+
+// Get translations for current language
+export const getTranslations = (language?: string): Translations => {
+  const currentLang = language || getCurrentLanguage();
+  return translations[currentLang] || translations.en;
+};
+
+// Translation hook
 export const useTranslation = () => {
-  const { t, i18n } = require('react-i18next');
+  const currentLanguage = getCurrentLanguage();
+  const t = getTranslations(currentLanguage);
+  
   return {
     t,
-    language: i18n.language,
-    changeLanguage: i18n.changeLanguage
+    language: currentLanguage,
+    setLanguage,
+    availableLanguages: Object.keys(translations),
   };
 };
