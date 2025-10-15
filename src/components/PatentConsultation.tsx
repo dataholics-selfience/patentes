@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { 
-  FlaskConical, 
-  Search, 
+import {
+  FlaskConical,
+  Search,
   Globe,
   Building2,
   Pill,
@@ -18,6 +18,8 @@ import { PatentResultType, TokenUsageType, ConsultaCompleta } from '../types';
 import { parsePatentResponse, isDashboardData, parseDashboardData } from '../utils/patentParser';
 import PatentResultsPage from './PatentResultsPage';
 import PatentDashboardReport from './PatentDashboardReport';
+import AdvancedPatentSearch from './AdvancedPatentSearch';
+import AdvancedPatentReport from './AdvancedPatentReport';
 import { CountryFlagsFromText } from '../utils/countryFlags';
 import { hasUnrestrictedAccess } from '../utils/unrestrictedEmails';
 import { useNavigate } from 'react-router-dom';
@@ -97,6 +99,8 @@ const PHARMACEUTICAL_CATEGORIES = [
 
 const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationProps) => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'pharma' | 'advanced'>('pharma');
+
   // Estados principais
   const [searchData, setSearchData] = useState({
     nome_comercial: '',
@@ -109,6 +113,7 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<PatentResultType | null>(null);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [advancedPatentData, setAdvancedPatentData] = useState<any>(null);
   const [error, setError] = useState('');
   const [isEnvironmentSelectorOpen, setIsEnvironmentSelectorOpen] = useState(false);
   const [environment, setEnvironment] = useState<'production' | 'test'>('production');
@@ -287,8 +292,23 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   const handleBackToConsultation = () => {
     setResult(null);
     setDashboardData(null);
+    setAdvancedPatentData(null);
     setError('');
   };
+
+  const handleAdvancedPatentResult = (data: any) => {
+    setAdvancedPatentData(data);
+  };
+
+  // Se há dados de busca avançada, mostrar relatório
+  if (advancedPatentData) {
+    return (
+      <AdvancedPatentReport
+        data={advancedPatentData}
+        onBack={handleBackToConsultation}
+      />
+    );
+  }
 
   // Se há dashboard data, mostrar dashboard
   if (dashboardData) {
@@ -314,9 +334,45 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
   return (
     <TokenAccessGuard hasTokens={hasAvailableTokens}>
       <div className="max-w-4xl mx-auto">
-      {/* Formulário Principal */}
-      <div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        {/* Tabs de Serviços */}
+        <div className="mb-6">
+          <div className="flex gap-2 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('pharma')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'pharma'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              P&D Farmacêutico
+            </button>
+            <button
+              onClick={() => setActiveTab('advanced')}
+              className={`px-6 py-3 font-semibold transition-colors ${
+                activeTab === 'advanced'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Busca Avançada de Patentes
+            </button>
+          </div>
+        </div>
+
+        {/* Conteúdo da Tab de Busca Avançada */}
+        {activeTab === 'advanced' && (
+          <AdvancedPatentSearch
+            checkTokenUsage={checkTokenUsage}
+            tokenUsage={tokenUsage}
+            onResultReceived={handleAdvancedPatentResult}
+          />
+        )}
+
+        {/* Conteúdo da Tab de P&D Farmacêutico */}
+        {activeTab === 'pharma' && (
+          <div>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           {/* Header com seletor de ambiente para admin */}
           <div className="flex items-center justify-end mb-6">
             {/* Seletor de ambiente apenas para admin */}
@@ -568,8 +624,9 @@ const PatentConsultation = ({ checkTokenUsage, tokenUsage }: PatentConsultationP
               )}
             </div>
           )}
-        </div>
-      </div>
+            </div>
+          </div>
+        )}
       </div>
     </TokenAccessGuard>
   );

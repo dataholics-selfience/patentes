@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/
 import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { FlaskConical } from 'lucide-react';
+import { hasUnrestrictedAccess, UNRESTRICTED_USER_CONFIG } from '../../utils/unrestrictedEmails';
 
 const EVOLUTION_API_CONFIG = {
   instances: [
@@ -165,7 +166,7 @@ Precisa de ajuda? Responda esta mensagem.
       setError('Por favor, insira um número de telefone válido.');
       return;
     }
-    
+
     setError('');
     setIsLoading(true);
 
@@ -178,8 +179,8 @@ Precisa de ajuda? Responda esta mensagem.
       }
 
       const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        formData.email.trim(), 
+        auth,
+        formData.email.trim(),
         formData.password
       );
       const user = userCredential.user;
@@ -188,6 +189,63 @@ Precisa de ajuda? Responda esta mensagem.
       const now = new Date();
       const expirationDate = new Date(now.setMonth(now.getMonth() + 1));
 
+      // Verificar se é usuário corporativo
+      const isCorporateUser = hasUnrestrictedAccess(formData.email.trim());
+
+      if (isCorporateUser) {
+        // FLUXO PARA USUÁRIOS CORPORATIVOS
+        console.log(`✅ Registrando usuário corporativo: ${formData.email}`);
+
+        // 1. Criar documento do usuário com dados corporativos
+        await setDoc(doc(db, 'users', user.uid), {
+          uid: user.uid,
+          name: formData.name.trim() || UNRESTRICTED_USER_CONFIG.name,
+          email: formData.email.trim().toLowerCase(),
+          cpf: formData.cpf.trim() || UNRESTRICTED_USER_CONFIG.cpf,
+          company: formData.company.trim() || UNRESTRICTED_USER_CONFIG.company,
+          phone: formData.phone.trim() || UNRESTRICTED_USER_CONFIG.phone,
+          plan: UNRESTRICTED_USER_CONFIG.plan,
+          activated: true, // JÁ ATIVADO - SEM VERIFICAÇÃO DE EMAIL
+          activatedAt: now.toISOString(),
+          unrestrictedAccess: true,
+          createdAt: now.toISOString(),
+          acceptedTerms: true,
+          termsAcceptanceId: transactionId
+        });
+
+        // 2. Criar token usage com 10 consultas
+        await setDoc(doc(db, 'tokenUsage', user.uid), {
+          uid: user.uid,
+          email: formData.email.trim().toLowerCase(),
+          plan: UNRESTRICTED_USER_CONFIG.plan,
+          totalTokens: UNRESTRICTED_USER_CONFIG.totalTokens, // 10 consultas
+          usedTokens: 0,
+          lastUpdated: now.toISOString(),
+          purchasedAt: now.toISOString(),
+          renewalDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString(), // Primeiro dia do próximo mês
+          autoRenewal: true
+        });
+
+        // 3. Registrar compliance GDPR
+        await setDoc(doc(collection(db, 'gdprCompliance'), transactionId), {
+          uid: user.uid,
+          email: formData.email.trim().toLowerCase(),
+          type: 'unrestricted_access_registration',
+          unrestrictedAccess: true,
+          acceptedTerms: true,
+          acceptedAt: now.toISOString(),
+          registeredAt: now.toISOString(),
+          transactionId
+        });
+
+        console.log(`✅ Usuário corporativo registrado com sucesso: ${formData.email}`);
+
+        // Redirecionar diretamente para dashboard
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+
+      // FLUXO PARA USUÁRIOS NORMAIS
       const userData = {
         uid: user.uid,
         name: formData.name.trim(),
@@ -207,7 +265,7 @@ Precisa de ajuda? Responda esta mensagem.
       await setDoc(doc(db, 'tokenUsage', user.uid), {
         uid: user.uid,
         email: formData.email.trim().toLowerCase(),
-        plan: 'Pesquisador',
+        plan: 'Sem Plano',
         totalTokens: 0, // SEM CONSULTAS GRATUITAS - REDIRECIONAR PARA PLANOS
         usedTokens: 0,
         lastUpdated: new Date().toISOString(),
@@ -234,23 +292,6 @@ Precisa de ajuda? Responda esta mensagem.
       // Redirecionar diretamente para planos - não há mais plano gratuito
       navigate('/plans');
 
-      // Wait a moment for the email verification link to be generated
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Generate verification link (this would typically come from Firebase Auth)
-      const verificationLink = `${window.location.origin}/verify-email`;
-
-      // Send WhatsApp verification with the link
-      if (formData.phone.trim()) {
-        try {
-          await sendWhatsAppVerification(formData.phone.trim(), verificationLink);
-        } catch (whatsappError) {
-          console.error('WhatsApp verification failed:', whatsappError);
-          // Don't block registration if WhatsApp fails
-        }
-      }
-
-      navigate('/verify-email');
     } catch (error: any) {
       console.error('Registration error:', error);
       if (error.code === 'auth/email-already-in-use') {
@@ -319,15 +360,33 @@ Precisa de ajuda? Responda esta mensagem.
               className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Empresa"
             />
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Email"
-            />
+            <div>
+              <input
+                type="email"
+                name="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Email"
+              />
+              {formData.email.trim() && hasUnrestrictedAccess(formData.email.trim()) && (
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-start gap-2 text-green-700">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5 flex-shrink-0"></span>
+                    <div className="text-sm">
+                      <div className="font-semibold mb-1">Acesso Corporativo Irrestrito</div>
+                      <div className="space-y-0.5 text-xs">
+                        <div>• Plano: {UNRESTRICTED_USER_CONFIG.plan}</div>
+                        <div>• {UNRESTRICTED_USER_CONFIG.totalTokens} consultas mensais</div>
+                        <div>• Renovação automática</div>
+                        <div>• Acesso imediato (sem verificação de email)</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <input
               type="tel"
               name="phone"
